@@ -1,6 +1,6 @@
 # Jango Cards
 
-The public, read-only copy of the Jango Card Picker: https://rossers.github.io/JangoCards/
+The public, read-only copy of the Jango Card Picker.
 
 Pick a balance sheet at the top, browse its cards, read the design guide, and use the simulator: build boards, fight them against each other or against the boards shared with the sheet, and run mass simulations. Boards you save stay in your own browser.
 
