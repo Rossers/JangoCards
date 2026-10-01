@@ -1,33 +1,58 @@
 # Jango Cards
 
-The public, read-only copy of the Jango Card Picker: https://rossers.github.io/JangoCards/
+The public copy of the Jango Card Picker: **https://rossers.github.io/JangoCards/**
 
-Pick a balance sheet at the top, browse its cards, read the design guide, and use the simulator: build boards, fight them against each other or against the boards shared with the sheet, and run mass simulations. Boards you save stay in your own browser.
+Pick a balance sheet at the top, browse its cards, read the design guide (**Guide**), and try them in the **Simulator**: build boards, fight them against each other or against the boards that come with the sheet, and run many fights at once. You can also make a sheet of your own and send it in.
 
-## Make your own sheet and submit it
+## Make your own sheet
 
-1. Open **Sheet**, and under **Sheets** make a sheet of your own: a copy of the sheet you're on, or an empty one. Your sheets are marked "(yours)" and are kept in your browser.
-2. On your own sheet you can edit cards and add new ones, change the formula and run **Auto Apply** to rebalance the cards to it, edit the guide's notes (**Guide**, then **Edit**), and bring cards over from other sheets with **Not on this sheet** in the filters.
-3. When it's ready, open **Sheet**, then **Export and share**, and press **Export**. Keep the file: it's also your backup, and **Open a sheet file** (under Sheets) loads it back, here or on another device.
-4. To submit it, open this repo's [sheets folder](https://github.com/Rossers/JangoCards/tree/main/sheets), choose **Add file**, then **Upload files**, and add your file. You need a free GitHub account. GitHub makes a copy of the repo for you and opens a pull request.
-5. Once the pull request is accepted, your sheet appears on the site for everyone.
+1. On the site, press **Sheet** at the top right.
+2. Scroll down to **Sheets**. Type a name, choose **A copy of this sheet** (to start from the cards you were looking at) or **Start empty**, and press **Create sheet**. Your new sheet is now picked at the top, marked "(yours)".
+3. Under **About this sheet**, put your name in **Made by** and press **Save**. Your name goes on the sheet and on every card you make.
+4. Change whatever you like:
+   - **Edit** on a card changes it. **Add card**, above the cards, makes a new one.
+   - In **Sheet**, **Formula** sets what everything costs. After changing it, use **Auto Apply** to rebalance every card to the new prices.
+   - **Guide**, then **Edit**, changes the guide's notes and findings.
+   - In the filters, pick **Not on this sheet** to see cards from other sheets, and press **Add from …** to bring one over.
+5. Your sheet is saved in this browser, on this device only. Export it now and then as a backup (see below).
 
-## Reviewing a submitted sheet
+## Share your sheet
 
-A submission is a pull request that adds one file to `sheets/`. Merging it publishes the sheet on the site. To try it first, download the file from the pull request and use **Open a sheet file** in the Card Picker, which adds it as a new sheet with its cards set to private.
+### 1. Export it
+
+Press **Sheet**, scroll to **Export and share**, and press **Export**. A file with a name like `my-balance-k3x9.json` downloads. Keep it: it's your backup, and **Open a sheet file** (in Sheet, under Sheets) loads it back, on this device or any other.
+
+### 2. Send it in through GitHub
+
+About five minutes the first time. You don't need to know anything about GitHub.
+
+1. If you don't have a GitHub account, make a free one at https://github.com/signup, then sign in.
+2. Open the sheets folder: https://github.com/Rossers/JangoCards/tree/main/sheets
+3. Press **Add file** (near the top right), then **Upload files**. GitHub says you can't change this project directly, so it makes a copy of it for you (a "fork"). That's expected.
+4. Drag your sheet file onto the page, or press **choose your files** and pick it.
+5. At the bottom, under **Propose changes**, type a short note such as "Sam's balance sheet", then press **Propose changes**.
+6. On the next page, press **Create pull request**. Add a message if you like, then press **Create pull request** again.
+
+That's it. Ross gets a notification. Once he accepts it, your sheet appears on the site for everyone, usually within a couple of minutes.
+
+To send a newer version later, export the sheet again and repeat these steps with the new file.
+
+### Or skip GitHub
+
+Send the exported file to Ross however you normally talk (message, email), and he'll add it.
+
+## For Ross: adding a sheet
+
+- **A pull request:** open it on GitHub, check the file under **Files changed**, then press **Merge pull request** and **Confirm merge**. The site updates within a couple of minutes.
+- **To try one first:** download the file (in the pull request, **Files changed**, the file's **⋯** menu, **View file**, then the download button), and use **Open a sheet file** in the Card Picker. It arrives as a new sheet with its cards set to private.
+- **A file someone sent you:** open the sheets folder on GitHub, then **Add file**, **Upload files**, **Commit changes**. Or copy it into `sheets/` and commit it with GitHub Desktop.
+- **Your own sheets:** in the Card Picker, mark the cards to share as **Public**, tick **Public** on the sheet (Sheet, Public export), press **Export**, and upload the file the same way. A newer export of the same sheet replaces the old one.
+- **To take a sheet down,** delete its file from `sheets/`.
+
+An export holds the sheet's formula, guide and notes, its cards (from your picker, only the public ones that aren't parked), and its saved boards made only of those cards.
 
 ## What's here
 
-- `index.html`: the Card Picker page. Off claude.ai it runs as this public copy and reads the sheets below. It is a copy of `docs/brainstorm/card_picker.html` in the Jango repo; copy it again to update the page.
-- `sheets/`: one file per balance sheet, made by the picker's **Export** button. The page finds every `.json` file in this folder by itself.
+- `index.html`: the Card Picker page. Away from claude.ai it runs as this public copy and reads the sheets below. It's a copy of `docs/brainstorm/card_picker.html` from the Jango repo.
+- `sheets/`: one file per balance sheet. The site lists every `.json` file in this folder by itself.
 - `.nojekyll`: tells GitHub Pages to serve the files as they are.
-
-## Adding or updating a sheet
-
-1. In the Card Picker, mark the cards you want to share as **Public**, tick **Public** on the sheet (Sheet, Public export), and press **Export**. It downloads `<sheet id>.json`.
-2. Put the file in `sheets/`, replacing the old one if the sheet was exported before. On github.com: open the `sheets` folder, then **Add file**, **Upload files**, and commit.
-3. The site updates within a minute or two.
-
-An export holds the sheet's formula, guide notes and sheet notes, its public cards that aren't parked (with their design notes), and its saved boards made only of public cards. Private cards never leave the picker.
-
-To take a sheet down, delete its file from `sheets/`.

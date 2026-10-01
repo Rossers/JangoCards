@@ -145,6 +145,8 @@ details.panel[open] > summary::after { content: "–"; }
 .badge.gdd { background: var(--ink); color: var(--paper); }
 .badge.new { background: var(--warn-soft); color: var(--warn); }
 .badge.parked { background: var(--sunk); color: var(--muted); }
+.badge.friend { background: var(--accent-soft); color: var(--accent-ink); max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.badge.edited { background: none; border: 1px solid var(--rule); color: var(--muted); }
 .badge.check { background: var(--warn); color: var(--surface); }
 .chip.sheet { background: none; border: 1px solid var(--rule); color: var(--muted); }
 .chip.sheet.here { border-color: var(--accent); color: var(--accent-ink); }
@@ -458,7 +460,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       <button data-v="unpicked" aria-pressed="false">Not picked</button>
     </div>
     <select id="f-src" aria-label="Source">
-      <option value="">Any source</option><option value="gdd">From the GDD</option><option value="brainstorm">Brainstorm</option><option value="new">New ideas</option><option value="mine">Added by you</option>
+      <option value="">Any source</option><option value="gdd">From the GDD</option><option value="brainstorm">Brainstorm</option><option value="new">New ideas</option><option value="mine">Added by you</option><option value="community">Made by friends</option>
     </select>
     <select id="f-role" aria-label="Role"><option value="">Any role</option></select>
     <select id="f-type" aria-label="Damage type"><option value="">Any damage type</option></select>
@@ -1175,6 +1177,8 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     if (publicMode) { const slug = String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "sheet"; let id; do { id = slug + "-" + Math.random().toString(36).slice(2, 6); } while (sheets.has(id)); return id; }
     const slug = String(name).toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g, ""); return slug && !sheets.has(slug) ? slug : "s" + Date.now().toString(36);
   }
+  // The name a visitor last put in Made by, for their next sheet
+  const lastAuthor = () => { try { return localStorage.getItem("jango-cards-author") || ""; } catch (e) { return ""; } };
   function uniqueSheetName(base) { const used = new Set(sheetList().map(s => String(s.name || "").toLowerCase())); let n = 1, name = base; while (used.has(name.toLowerCase())) name = `${base} ${++n}`; return name; }
   // Writes a whole new sheet: its document, its 8 chunks, then its boards
   async function writeNewSheet(id, doc, chunks, boards = []) {
@@ -1206,10 +1210,11 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const S0 = f.sheet, name = uniqueSheetName(String(S0.name || file.name.replace(/\.json$/i, "") || "Imported sheet")), id = newSheetId(name);
     const formula = clone(isObj(S0.formula) ? S0.formula : FORMULA_SEED);
     const doc = { name, order: Math.max(0, ...sheetList().map(s => s.order || 0)) + 1, about: String(S0.about || ""), notes: String(S0.notes || ""), from: "", public: false, chunks: CHUNKS,
-      formula, baseline: clone(isObj(S0.baseline) ? S0.baseline : formula), guide: clone(isObj(S0.guide) ? S0.guide : {}), created: new Date().toISOString(), imported: file.name, ...(publicMode ? { mine: true } : {}) };
+      formula, baseline: clone(isObj(S0.baseline) ? S0.baseline : formula), guide: clone(isObj(S0.guide) ? S0.guide : {}), created: new Date().toISOString(), imported: file.name,
+      author: String(S0.author || "").slice(0, 40), ...(publicMode ? { mine: true } : {}) };
     const chunks = new Map(Array.from({ length: CHUNKS }, (_, k) => ["c" + k, {}]));
     let n = 0;
-    Object.entries(f.cards).forEach(([cid, c]) => { if (isObj(c)) { chunks.get(chunkOf(cid))[cid] = { ...storedCard({ ...c, id: cid }), public: publicMode, check: "", from: "" }; n++; } });
+    Object.entries(f.cards).forEach(([cid, c]) => { if (isObj(c)) { chunks.get(chunkOf(cid))[cid] = { ...storedCard(credit({ ...c, id: cid }, doc.author)), public: publicMode, check: "", from: "" }; n++; } });
     const boards = (Array.isArray(f.boards) ? f.boards : []).filter(b => isObj(b) && isObj(b.board)).map((b, i) => ({ name: String(b.name || "Board " + (i + 1)), order: b.order || i, board: b.board }));
     if (!(await writeNewSheet(id, doc, chunks, boards))) return;
     selectSheet(id);
@@ -1226,7 +1231,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const id = newSheetId(name), formula = clone(src ? src.formula || FORMULA_SEED : FORMULA_SEED);
     const doc = { name, order: Math.max(0, ...sheetList().map(s => s.order || 0)) + 1, about: !src ? "" : empty ? `Started empty, with ${src.name}'s formula` : `Copy of ${src.name}`,
       notes: "", from: src ? src.id : "", public: false, chunks: CHUNKS, formula, baseline: empty ? clone(formula) : clone(src.baseline || src.formula || FORMULA_SEED),
-      guide: src ? { ...clone(src.guide || {}), inherited: (src.guide && src.guide.inherited) || src.name } : clone(GUIDE_SEED), created: new Date().toISOString(), ...(publicMode ? { mine: true } : {}) };
+      guide: src ? { ...clone(src.guide || {}), inherited: (src.guide && src.guide.inherited) || src.name } : clone(GUIDE_SEED), created: new Date().toISOString(), ...(publicMode ? { mine: true, author: lastAuthor() } : {}) };
     const chunks = new Map(Array.from({ length: CHUNKS }, (_, k) => ["c" + k, empty ? {} : clone((chunkData.get(src.id) || new Map()).get("c" + k) || {})]));
     if (!(await writeNewSheet(id, doc, chunks, copyBoards && !empty ? buildList() : []))) return;
     // An empty sheet opens on the cards it doesn't have yet, ready to bring some over
@@ -1367,7 +1372,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     if (sheets.size && F.sheet === "shared" && sheetsOf(c.id).length < 2) return false;
     if (sheets.size && F.sheet === "check" && !c.check) return false;
     if (F.q) {
-      const hay = [c.id, c.name, c.effect, c.effectNote, c.notes, c.flavor, c.timing, c.role, c.kind, c.attach, (c.tags || []).join(" "), (c.recipes || []).join(" ")].join(" ").toLowerCase();
+      const hay = [c.id, c.name, c.effect, c.effectNote, c.notes, c.flavor, c.timing, c.role, c.kind, c.attach, c.by, c.editedBy, (c.tags || []).join(" "), (c.recipes || []).join(" ")].join(" ").toLowerCase();
       if (!F.q.toLowerCase().split(/\s+/).every(w => hay.includes(w))) return false;
     }
     return true;
@@ -1391,7 +1396,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       : c.row === "Either" ? `<span class="glyph"><span class="g-ext">${ICON_EXT}</span><span class="g-int">${ICON_INT}</span>Either row</span>` : "";
     const place = c.place && c.row !== "Interior" && c.place !== "" ? `<span>${esc(c.place === "Either" ? "Front or behind armor" : c.place.endsWith(" slot") ? c.place : c.place === "Behind" ? "Behind armor" : "In front of armor")}</span>` : "";
     const role = c.role ? `<span class="chip role">${esc(c.role)}</span>` : c.kind ? `<span class="chip role">${esc(c.kind)}</span>` : (b && !b.card ? `<span class="chip role">${esc(b.label.replace(/s$/, ""))}</span>` : "");
-    const badges = [c.src === "gdd" ? '<span class="badge gdd">GDD</span>' : "", c.src === "new" ? '<span class="badge new">New</span>' : "", c.src === "user" && !publicMode ? '<span class="badge new">Yours</span>' : "", c.parked ? '<span class="badge parked">Parked</span>' : "", !structured(c) && c.effect ? '<span class="badge parked" title="Written before the effect builder. Open it to rebuild the effect.">Old text</span>' : "",
+    const badges = [c.src === "gdd" ? '<span class="badge gdd">GDD</span>' : "", c.src === "new" ? '<span class="badge new">New</span>' : "", c.src === "user" && !publicMode ? '<span class="badge new">Yours</span>' : "", sourceBadges(c), c.parked ? '<span class="badge parked">Parked</span>' : "", !structured(c) && c.effect ? '<span class="badge parked" title="Written before the effect builder. Open it to rebuild the effect.">Old text</span>' : "",
       !off && c.check && !publicMode ? `<span class="badge check" title="${esc(c.check)}. Approving it clears this.">Check</span>` : ""].join("");
     const onList = sheets.size > 1 || off ? sheetsOf(c.id) : [];
     const sheetChips = onList.length || off ? `<div class="c-sheets">${onList.map(s => `<span class="chip sheet ${here && s.id === here.id ? "here" : ""}" title="On ${esc(s.name)}">${esc(shortName(s))}</span>`).join("") || '<span class="chip sheet">On no sheet</span>'}</div>` : "";
@@ -1550,13 +1555,27 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   });
   $("#add").addEventListener("click", () => openEditor(null));
 
+  // ---------- card sources ----------
+  // Where a card came from: the GDD, the brainstorm, new ideas, made in the picker ("user", yours), or made by a visitor in the
+  // public copy ("community", with `by`: the name on their sheet). A visitor who changes a card from elsewhere marks it `edited`
+  // (and `editedBy`). The names are filled from the sheet's Made by when the sheet is exported, and again when a file is opened.
+  const newCardSource = () => publicMode ? { src: "community", by: (activeSheet() || {}).author || "" } : { src: "user" };
+  // On a visitor's own sheet, a card with no name yet is theirs: it takes the sheet's Made by
+  const ownAuthor = () => { const s = activeSheet(); return publicMode && s && s.mine ? s.author || "" : ""; };
+  const sourceText = c => c.src === "gdd" ? "from the GDD" : c.src === "new" ? "new idea" : c.src === "user" ? (publicMode ? "added by the designer" : "added by you")
+    : c.src === "community" ? `made by ${c.by || ownAuthor() || "a visitor"} in the public copy` : "brainstorm";
+  const sourceBadges = c => (c.src === "community" ? `<span class="badge friend" title="${esc(sourceText(c))}">${esc(c.by || ownAuthor() || "Community")}</span>` : "")
+    + (c.edited && c.src !== "community" ? `<span class="badge edited" title="Changed by ${esc(c.editedBy || ownAuthor() || "a visitor")} in the public copy">Edited</span>` : "");
+  // Fills a card's missing names from its sheet's Made by
+  const credit = (c, author) => !author ? c : { ...c, ...(c.src === "community" && !c.by ? { by: author } : {}), ...(c.edited && !c.editedBy ? { editedBy: author } : {}) };
+
   // ---------- editor ----------
   let editing = null, isNew = false;
   const opt = (vals, cur, labelFn = v => v) => vals.map(v => `<option value="${esc(v)}" ${String(v) === String(cur ?? "") ? "selected" : ""}>${esc(labelFn(v))}</option>`).join("");
   function blankCard() {
     const tab = BK[F.tab] ? F.tab : "exterior";
     const maxOrder = Math.max(0, ...[...cards.values()].map(c => c.order || 0));
-    return { id: "U" + Date.now().toString(36).toUpperCase(), src: "user", name: "", bucket: tab, row: tab === "interior" || tab === "economy" ? "Interior" : tab === "exterior" ? "Exterior" : "", place: tab === "exterior" ? "Either" : "", attach: "", kind: "", role: BK[tab].card ? (tab === "economy" ? "Economy" : "Filler") : "", minMark: 1, attack: [], atkVar: false, health: null, mult: 1, charges: null, ammo: null, gearSlots: null, modSlots: null, value: null, tags: [], sources: [], tech: "", recipes: [], timing: "", effect: "", effects: [], effectNote: "", notes: "", flavor: "", pick: false, approved: false, public: false, check: "", bpAdj: null, parked: false, order: maxOrder + 1 };
+    return { id: "U" + Date.now().toString(36).toUpperCase(), ...newCardSource(), name: "", bucket: tab, row: tab === "interior" || tab === "economy" ? "Interior" : tab === "exterior" ? "Exterior" : "", place: tab === "exterior" ? "Either" : "", attach: "", kind: "", role: BK[tab].card ? (tab === "economy" ? "Economy" : "Filler") : "", minMark: 1, attack: [], atkVar: false, health: null, mult: 1, charges: null, ammo: null, gearSlots: null, modSlots: null, value: null, tags: [], sources: [], tech: "", recipes: [], timing: "", effect: "", effects: [], effectNote: "", notes: "", flavor: "", pick: false, approved: false, public: false, check: "", bpAdj: null, parked: false, order: maxOrder + 1 };
   }
   function openEditor(id) {
     isNew = !id;
@@ -1623,7 +1642,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         <div class="checkrow" ${publicMode ? "hidden" : ""}><label><input type="checkbox" id="e-pick" ${c.pick ? "checked" : ""}> Picked for the prototype</label><label><input type="checkbox" id="e-parked" ${c.parked ? "checked" : ""}> Parked</label><label><input type="checkbox" id="e-appr" ${c.approved ? "checked" : ""}> Approved (reviewed)</label><label title="Public cards are exported to the public copy; private ones never leave the picker"><input type="checkbox" id="e-public" ${c.public ? "checked" : ""}> Public (exported)</label></div>
         <div class="field wide" style="margin-top:10px"><label for="e-notes">Design notes</label><textarea id="e-notes" rows="2">${esc(c.notes)}</textarea></div>
       </fieldset>
-      <div class="c-hidden">Id ${esc(c.id)} · ${c.src === "gdd" ? "from the GDD" : c.src === "new" ? "new idea" : c.src === "user" ? "added by you" : "brainstorm"}</div>`;
+      <div class="c-hidden">Id ${esc(c.id)} · ${esc(sourceText(c))}</div>`;
     $("#ed-form").querySelectorAll("input,select,textarea").forEach(el => { el.disabled = readOnly; });
     $("#fx-old-row").innerHTML = converted && converted.effect ? `<div class="fx-old"><b>Written before the effect builder.</b> Keywords were converted; the rest is in Other effects until you rebuild it below. Old text: ${converted.timing && converted.timing !== "None" ? esc(converted.timing) + ": " : ""}${esc(converted.effect)}</div>` : "";
     $("#fx-old-row").hidden = !(converted && converted.effect);
@@ -1765,6 +1784,15 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const data = withCache(readForm());
     if (!data.name) { toast("Give the card a name first."); $("#e-name").focus(); return; }
     const id = editing.id, doc = storedCard({ ...editing, ...data, check: data.approved ? "" : (editing.check || "") });
+    // In the public copy, a visitor's change to a card from elsewhere marks it as edited (and by whom, once their sheet has a name)
+    const was = cards.get(id), plain = c => {
+      // The card's design only: effects as the editor cleans them, no review or picking marks, and empty values dropped
+      const o = storedCard({ ...c, effects: (c.effects || []).map(e => { const { id: _f, ...x } = cleanEffect({ ...e }); return x; }) });
+      ["effect", "edited", "editedBy", "check", "approved", "pick", "parked", "public", "timing", "from"].forEach(k => delete o[k]);
+      Object.keys(o).forEach(k => { const v = o[k]; if (v == null || v === "" || v === false || (Array.isArray(v) && !v.length) || ((k === "mult" || k === "minMark") && Number(v) === 1)) delete o[k]; });
+      return JSON.stringify(canon(o));
+    };
+    if (publicMode && was && doc.src !== "community" && plain(was) !== plain(doc)) { doc.edited = true; doc.editedBy = s.author || was.editedBy || ""; }
     closeEditor();
     writeCards(s.id, { [id]: doc }).then(() => toast(isNew ? "Card added" : "Saved")).catch(() => {});
     renderAll();
@@ -1774,7 +1802,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     if (!editing || readOnly) return;
     const s = activeSheet(); if (!s) return;
     const src = { ...editing, ...withCache(readForm()) }, id = "U" + Date.now().toString(36).toUpperCase();
-    const copy = storedCard({ ...src, src: "user", name: src.name + " (copy)", pick: false, approved: false, public: false, check: "", from: "", order: (src.order || 0) + 0.5 });
+    const copy = storedCard({ ...src, ...newCardSource(), editedBy: "", edited: false, name: src.name + " (copy)", pick: false, approved: false, public: false, check: "", from: "", order: (src.order || 0) + 0.5 });
     writeCards(s.id, { [id]: copy }).then(() => { toast("Copy added"); openEditor(id); }).catch(() => {});
     renderAll();
   });
@@ -1861,7 +1889,8 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const skippedHtml = X && X.skipped.length ? `<p class="muted" style="margin:0 0 8px">Boards left out, because they hold ${publicMode ? "parked" : "private or parked"} cards: ${X.skipped.map(k => `<b>${esc(k.name)}</b> (${esc(k.cards.slice(0, 4).join(", "))}${k.cards.length > 4 ? ` and ${k.cards.length - 4} more` : ""})`).join("; ")}.</p>` : "";
     const exportHtml = !X ? "" : publicMode ? `<fieldset id="sh-export"><legend>Export and share</legend>
         <p class="muted" style="margin:0 0 8px">Export downloads <b>${esc(s.id)}.json</b>: this sheet's formula, guide and notes, its <b>${X.cards}</b> card${X.cards === 1 ? "" : "s"} (parked ones stay out) and its <b>${nb}</b> saved board${nb === 1 ? "" : "s"}. Keep the file: this sheet lives only in this browser, and <b>Open a sheet file</b> (under Sheets) loads it back, here or on another device.</p>
-        <p class="muted" style="margin:0 0 8px">To share it, upload the file to the ${gh ? `<a href="https://github.com/${esc(gh.owner)}/${esc(gh.repo)}/tree/main/sheets" target="_blank" rel="noopener">sheets folder on GitHub</a>` : "public copy's sheets folder on GitHub"} with <b>Add file</b>, then <b>Upload files</b> (a free GitHub account is enough). GitHub turns that into a pull request; once it's accepted, your sheet appears here for everyone.</p>
+        <p class="muted" style="margin:0 0 8px">To share it, upload the file to the ${gh ? `<a href="https://github.com/${esc(gh.owner)}/${esc(gh.repo)}/tree/main/sheets" target="_blank" rel="noopener">sheets folder on GitHub</a>` : "public copy's sheets folder on GitHub"} with <b>Add file</b>, then <b>Upload files</b> (a free GitHub account is enough). GitHub turns that into a pull request; once it's accepted, your sheet appears here for everyone.${gh ? ` <a href="https://github.com/${esc(gh.owner)}/${esc(gh.repo)}#share-your-sheet" target="_blank" rel="noopener">Step-by-step help</a>, including how to share it without GitHub.` : ""}</p>
+        ${s.author ? "" : `<p class="hint" style="margin:0 0 8px">Put your name in <b>Made by</b> (About this sheet, above) so the sheet and the cards you made are credited to you.</p>`}
         ${skippedHtml}
         <div class="fab-row"><button class="btn primary" type="button" id="sh-export-btn" ${X.cards ? "" : "disabled"}>Export ${esc(s.id)}.json</button></div>
         ${X.cards ? "" : `<p class="hint">Add some cards first.</p>`}</fieldset>`
@@ -1878,6 +1907,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       <div class="sheet-note">${counts}</div>
       <fieldset><legend>About this sheet</legend><div class="fgrid">
         <div class="field wide"><label for="sh-name">Name</label><input type="text" id="sh-name" value="${esc(s.name || "")}" ${dis}></div>
+        ${publicMode || s.author ? `<div class="field wide"><label for="sh-author">Made by</label><input type="text" id="sh-author" value="${esc(s.author || "")}" placeholder="${publicMode ? "Your name, shown on this sheet and the cards you make" : ""}" maxlength="40" ${dis}></div>` : ""}
         <div class="field wide"><label for="sh-about">What it tests</label><textarea id="sh-about" rows="2" ${dis}>${esc(s.about || "")}</textarea></div>
         <div class="field wide"><label for="sh-notes">Sheet notes</label><textarea id="sh-notes" rows="3" ${dis}>${esc(s.notes || "")}</textarea><span class="hint">${publicMode && readOnly ? "The designer's notes on this sheet." : "Your notes; they show at the top of the Guide on this sheet."}</span></div>
       </div>${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn" type="button" id="sh-save-meta">Save</button></div>`}</fieldset>
@@ -1951,7 +1981,9 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     if (e.target.closest("#sh-save-meta")) {
       const name = $("#sh-name").value.trim();
       if (!name) { toast("Give the sheet a name."); return; }
-      writeSheet(s.id, { name, about: $("#sh-about").value.trim(), notes: $("#sh-notes").value.trim() }).then(() => toast("Sheet saved")).catch(() => {});
+      const meta = { name, about: $("#sh-about").value.trim(), notes: $("#sh-notes").value.trim() };
+      if ($("#sh-author")) { meta.author = $("#sh-author").value.trim(); if (publicMode && meta.author) try { localStorage.setItem("jango-cards-author", meta.author); } catch (e) {} }
+      writeSheet(s.id, meta).then(() => toast("Sheet saved")).catch(() => {});
       renderSheetBar(); renderGuide(); renderSheetPanel(); return;
     }
     if (e.target.closest("#sh-save-formula")) {
@@ -2099,7 +2131,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       ["Armor / Plating, Plate, Tiles / Bulkhead, Door", "Armor card / exterior Defense / interior Defense"],
       ["Hull", "Only on cards that touch the hull keyword"], ["Pad / Pod, Grapple, Tube", "Teleport boarding / physical boarding"],
     ];
-    const head = s ? `<div class="sheet-note" style="margin-top:10px">Balance sheet <b>${esc(s.name)}</b>${s.about ? ": " + esc(String(s.about).replace(/[.\s]+$/, "")) : ""}. Prices and notes below are this sheet's; the rules sections are the same on every sheet.</div>
+    const head = s ? `<div class="sheet-note" style="margin-top:10px">Balance sheet <b>${esc(s.name)}</b>${s.author ? ` by ${esc(s.author)}` : ""}${s.about ? ": " + esc(String(s.about).replace(/[.\s]+$/, "")) : ""}. Prices and notes below are this sheet's; the rules sections are the same on every sheet.</div>
       ${s.notes ? `<p>${g(s.notes)}</p>` : ""}${G.inherited ? `<p class="sheet-note warn">The measured notes and findings here were copied from ${esc(G.inherited)} and haven't been re-measured on this sheet.</p>` : ""}` : "";
     $("#guide-body").innerHTML = `${head}
       <p>Every card has a budget in <b>budget points (BP)</b>. Health costs 1 BP a point and everything else is priced against it. A card's stats are stored at its lowest mark, and the BP chip on each card compares them with that mark's budget: green within ±${Math.round(FORMULA.tolerance * 100)}%, teal under, orange over.</p>
@@ -3515,9 +3547,9 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       if (bad.length) skipped.push({ name: b.name, cards: bad.map(id => (cardsOfSheet(s.id).get(id) || { name: id }).name) });
       else boards.push({ id: b.id, name: b.name, order: b.order || 0, board: B });
     });
-    const sheet = { id: s.id, name: s.name, order: s.order || 0, about: s.about || "", notes: s.notes || "", formula: clone(s.formula || FORMULA_SEED), baseline: clone(s.baseline || s.formula || FORMULA_SEED), guide: clone(s.guide || {}) };
+    const sheet = { id: s.id, name: s.name, order: s.order || 0, about: s.about || "", notes: s.notes || "", ...(s.author ? { author: s.author } : {}), formula: clone(s.formula || FORMULA_SEED), baseline: clone(s.baseline || s.formula || FORMULA_SEED), guide: clone(s.guide || {}) };
     return {
-      file: { jango: "balance-sheet", format: 1, exported: new Date().toISOString(), vocab: VOCAB.version, sheet, cards: Object.fromEntries(out.map(c => [c.id, storedCard(c)])), boards },
+      file: { jango: "balance-sheet", format: 1, exported: new Date().toISOString(), vocab: VOCAB.version, sheet, cards: Object.fromEntries(out.map(c => [c.id, storedCard(credit(c, s.author))])), boards },
       cards: out.length, privateCards: all.filter(c => !c.public).length, parkedPublic: all.filter(c => c.public && c.parked).length, skipped,
     };
   }
