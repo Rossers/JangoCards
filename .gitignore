@@ -5,3 +5,4 @@ desktop.ini
 .vscode/
 .idea/
 *.tmp
+*.code-workspace
