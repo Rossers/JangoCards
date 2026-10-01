@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 384" width="920" height="384" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" role="img" aria-label="Two ships facing each other: each has an exterior row of Shields, defense, Armor and weapons and an interior row of crew, with its hull at the back. Weapons hit the frontmost enemy card, interior cards boost the card above, and crew can board the enemy ship.">
+<rect x="0.5" y="0.5" width="919" height="383" rx="14" fill="#1A2028" stroke="#2C3440"/>
+<defs><marker id="a-weapon" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#F0775A"/></marker><marker id="a-crew" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#62C987"/></marker><marker id="a-system" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B48CF0"/></marker></defs>
+<rect x="10" y="88" width="44" height="154" rx="8" fill="#E8C35A" fill-opacity="0.12" stroke="#E8C35A" stroke-width="1.5"/>
+<text x="32" y="154" font-size="9.5" fill="#E8C35A" text-anchor="middle" font-weight="700" letter-spacing="1">HULL</text>
+<text x="32" y="176" font-size="16" fill="#E8C35A" text-anchor="middle" font-weight="700">20</text>
+<rect x="382" y="88" width="58" height="64" rx="8" fill="#5AA9F0" fill-opacity="0.16" stroke="#5AA9F0" stroke-width="1.5"/>
+<text x="411" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Shield</text>
+<text x="411" y="133" font-size="9" fill="#5AA9F0" text-anchor="middle">Shields</text>
+<rect x="318" y="88" width="58" height="64" rx="8" fill="#A7B1BC" fill-opacity="0.16" stroke="#A7B1BC" stroke-width="1.5"/>
+<text x="347" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Plating</text>
+<text x="347" y="133" font-size="9" fill="#A7B1BC" text-anchor="middle">Defense</text>
+<rect x="254" y="88" width="58" height="64" rx="8" fill="#A7B1BC" fill-opacity="0.16" stroke="#A7B1BC" stroke-width="1.5"/>
+<text x="283" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Armor</text>
+<text x="283" y="133" font-size="9" fill="#A7B1BC" text-anchor="middle">Armor</text>
+<rect x="190" y="88" width="58" height="64" rx="8" fill="#F0775A" fill-opacity="0.16" stroke="#F0775A" stroke-width="1.5"/>
+<text x="219" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Cannon</text>
+<text x="219" y="133" font-size="9" fill="#F0775A" text-anchor="middle">Weapon</text>
+<rect x="126" y="88" width="58" height="64" rx="8" fill="#F0775A" fill-opacity="0.16" stroke="#F0775A" stroke-width="1.5"/>
+<text x="155" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Laser</text>
+<text x="155" y="133" font-size="9" fill="#F0775A" text-anchor="middle">Weapon</text>
+<rect x="62" y="88" width="58" height="64" rx="8" fill="#F0775A" fill-opacity="0.16" stroke="#F0775A" stroke-width="1.5"/>
+<text x="91" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Tri Gun</text>
+<text x="91" y="133" font-size="9" fill="#F0775A" text-anchor="middle">Weapon</text>
+<rect x="382" y="178" width="58" height="64" rx="8" fill="#A7B1BC" fill-opacity="0.16" stroke="#A7B1BC" stroke-width="1.5"/>
+<text x="411" y="207" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Bulkhead</text>
+<text x="411" y="223" font-size="9" fill="#A7B1BC" text-anchor="middle">Defense</text>
+<rect x="318" y="178" width="58" height="64" rx="8" fill="#62C987" fill-opacity="0.16" stroke="#62C987" stroke-width="1.5"/>
+<text x="347" y="207" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Trooper</text>
+<text x="347" y="223" font-size="9" fill="#62C987" text-anchor="middle">Crew</text>
+<rect x="254" y="178" width="58" height="64" rx="8" fill="none" stroke="#3A4450" stroke-dasharray="4 4"/>
+<rect x="190" y="178" width="58" height="64" rx="8" fill="#62C987" fill-opacity="0.16" stroke="#62C987" stroke-width="1.5"/>
+<text x="219" y="207" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Spotter</text>
+<text x="219" y="223" font-size="9" fill="#62C987" text-anchor="middle">Crew</text>
+<rect x="126" y="178" width="58" height="64" rx="8" fill="#62C987" fill-opacity="0.16" stroke="#62C987" stroke-width="1.5"/>
+<text x="155" y="207" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Sniper</text>
+<text x="155" y="223" font-size="9" fill="#62C987" text-anchor="middle">Crew</text>
+<rect x="62" y="178" width="58" height="64" rx="8" fill="none" stroke="#3A4450" stroke-dasharray="4 4"/>
+<rect x="866" y="88" width="44" height="154" rx="8" fill="#E8C35A" fill-opacity="0.12" stroke="#E8C35A" stroke-width="1.5"/>
+<text x="888" y="154" font-size="9.5" fill="#E8C35A" text-anchor="middle" font-weight="700" letter-spacing="1">HULL</text>
+<text x="888" y="176" font-size="16" fill="#E8C35A" text-anchor="middle" font-weight="700">20</text>
+<rect x="480" y="88" width="58" height="64" rx="8" fill="#5AA9F0" fill-opacity="0.16" stroke="#5AA9F0" stroke-width="1.5"/>
+<text x="509" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Shield</text>
+<text x="509" y="133" font-size="9" fill="#5AA9F0" text-anchor="middle">Shields</text>
+<rect x="544" y="88" width="58" height="64" rx="8" fill="#B48CF0" fill-opacity="0.16" stroke="#B48CF0" stroke-width="1.5"/>
+<text x="573" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Gunport</text>
+<text x="573" y="133" font-size="9" fill="#B48CF0" text-anchor="middle">System</text>
+<rect x="608" y="88" width="58" height="64" rx="8" fill="#A7B1BC" fill-opacity="0.16" stroke="#A7B1BC" stroke-width="1.5"/>
+<text x="637" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Armor</text>
+<text x="637" y="133" font-size="9" fill="#A7B1BC" text-anchor="middle">Armor</text>
+<rect x="672" y="88" width="58" height="64" rx="8" fill="#F0775A" fill-opacity="0.16" stroke="#F0775A" stroke-width="1.5"/>
+<text x="701" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Railgun</text>
+<text x="701" y="133" font-size="9" fill="#F0775A" text-anchor="middle">Weapon</text>
+<rect x="736" y="88" width="58" height="64" rx="8" fill="#F0775A" fill-opacity="0.16" stroke="#F0775A" stroke-width="1.5"/>
+<text x="765" y="117" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Laser</text>
+<text x="765" y="133" font-size="9" fill="#F0775A" text-anchor="middle">Weapon</text>
+<rect x="800" y="88" width="58" height="64" rx="8" fill="none" stroke="#3A4450" stroke-dasharray="4 4"/>
+<rect x="480" y="178" width="58" height="64" rx="8" fill="#62C987" fill-opacity="0.16" stroke="#62C987" stroke-width="1.5"/>
+<text x="509" y="207" font-size="9.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Riot Guard</text>
+<text x="509" y="223" font-size="9" fill="#62C987" text-anchor="middle">Crew</text>
+<rect x="544" y="178" width="58" height="64" rx="8" fill="#62C987" fill-opacity="0.16" stroke="#62C987" stroke-width="1.5"/>
+<text x="573" y="207" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Thug</text>
+<text x="573" y="223" font-size="9" fill="#62C987" text-anchor="middle">Crew</text>
+<rect x="608" y="178" width="58" height="64" rx="8" fill="#62C987" fill-opacity="0.16" stroke="#62C987" stroke-width="1.5"/>
+<text x="637" y="207" font-size="10.5" fill="#E6EAEE" text-anchor="middle" font-weight="600">Medic</text>
+<text x="637" y="223" font-size="9" fill="#62C987" text-anchor="middle">Crew</text>
+<rect x="672" y="178" width="58" height="64" rx="8" fill="none" stroke="#3A4450" stroke-dasharray="4 4"/>
+<rect x="736" y="178" width="58" height="64" rx="8" fill="none" stroke="#3A4450" stroke-dasharray="4 4"/>
+<rect x="800" y="178" width="58" height="64" rx="8" fill="none" stroke="#3A4450" stroke-dasharray="4 4"/>
+<text x="460" y="120" font-size="8.5" fill="#9AA4AE" text-anchor="middle" letter-spacing="1.5" transform="rotate(-90 460 120)">EXTERIOR</text>
+<text x="460" y="210" font-size="8.5" fill="#9AA4AE" text-anchor="middle" letter-spacing="1.5" transform="rotate(-90 460 210)">INTERIOR</text>
+<path d="M219 84 C 269 24, 449 24, 509 82" fill="none" stroke="#F0775A" stroke-width="2" marker-end="url(#a-weapon)"/>
+<text x="372" y="26" font-size="12" fill="#E6EAEE" text-anchor="middle" font-weight="600">Weapons hit the frontmost enemy card</text>
+<path d="M219 175 L219 156" stroke="#B48CF0" stroke-width="2" marker-end="url(#a-system)"/>
+<text x="227" y="169" font-size="9.5" fill="#B48CF0">boosts the card above</text>
+<path d="M347 246 C 377 288, 469 288, 509 248" fill="none" stroke="#62C987" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a-crew)"/>
+<text x="428" y="298" font-size="11" fill="#E6EAEE" text-anchor="middle" font-weight="600">Crew can board and fight inside the enemy ship</text>
+<text x="32" y="336" font-size="9.5" fill="#9AA4AE" text-anchor="middle" font-weight="600" letter-spacing="1.5">BACK</text>
+<text x="888" y="336" font-size="9.5" fill="#9AA4AE" text-anchor="middle" font-weight="600" letter-spacing="1.5">BACK</text>
+<text x="440" y="336" font-size="9.5" fill="#9AA4AE" text-anchor="end" font-weight="600" letter-spacing="1.5">FRONT</text>
+<text x="480" y="336" font-size="9.5" fill="#9AA4AE" font-weight="600" letter-spacing="1.5">FRONT</text>
+<text x="251" y="336" font-size="12" fill="#E6EAEE" text-anchor="middle" font-weight="700">Ship A · faster, acts first</text>
+<text x="669" y="336" font-size="12" fill="#E6EAEE" text-anchor="middle" font-weight="700">Ship B</text>
+<rect x="210" y="356" width="12" height="12" rx="3" fill="#5AA9F0" fill-opacity="0.25" stroke="#5AA9F0"/>
+<text x="228" y="366" font-size="10.5" fill="#9AA4AE">Shields</text>
+<rect x="283.4" y="356" width="12" height="12" rx="3" fill="#A7B1BC" fill-opacity="0.25" stroke="#A7B1BC"/>
+<text x="301.4" y="366" font-size="10.5" fill="#9AA4AE">Armor, defense</text>
+<rect x="400.2" y="356" width="12" height="12" rx="3" fill="#F0775A" fill-opacity="0.25" stroke="#F0775A"/>
+<text x="418.2" y="366" font-size="10.5" fill="#9AA4AE">Weapon</text>
+<rect x="467.4" y="356" width="12" height="12" rx="3" fill="#62C987" fill-opacity="0.25" stroke="#62C987"/>
+<text x="485.4" y="366" font-size="10.5" fill="#9AA4AE">Crew</text>
+<rect x="522.1999999999999" y="356" width="12" height="12" rx="3" fill="#B48CF0" fill-opacity="0.25" stroke="#B48CF0"/>
+<text x="540.1999999999999" y="366" font-size="10.5" fill="#9AA4AE">System</text>
+<rect x="589.4" y="356" width="12" height="12" rx="3" fill="#E8C35A" fill-opacity="0.25" stroke="#E8C35A"/>
+<text x="607.4" y="366" font-size="10.5" fill="#9AA4AE">Hull</text>
+<rect x="644.1999999999999" y="356" width="12" height="12" rx="3" fill="none" stroke="#3A4450" stroke-dasharray="3 2"/>
+<text x="662.1999999999999" y="366" font-size="10.5" fill="#9AA4AE">Empty slot</text>
+</svg>
