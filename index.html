@@ -1038,9 +1038,17 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     builds.clear();
     allBuilds.forEach((b, id) => { if (!s || (b.sheet || (first && first.id)) === s.id) builds.set(id, b); });
   }
+  // In the public copy, a visitor can change only their own sheets; the published ones stay read-only
+  function syncAccess() {
+    if (!publicMode) return;
+    const s = activeSheet();
+    readOnly = !(s && s.mine);
+    $("#add").hidden = readOnly; $("#export-sheet").hidden = readOnly;
+  }
   function rebuildCards() {
     const s = activeSheet();
     if (s) sheetId = s.id;
+    syncAccess();
     cards.clear();
     if (s) cardsOfSheet(s.id).forEach((c, id) => cards.set(id, c));
     rebuildBuilds();
@@ -1162,30 +1170,65 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   }
   const GREEK = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi", "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"];
   function nextSheetName() { const used = new Set(sheetList().map(s => shortName(s).toLowerCase())); const g = GREEK.find(x => !used.has(x.toLowerCase())); return (g || "New") + " Balance"; }
-  function newSheetId(name) { const slug = String(name).toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g, ""); return slug && !sheets.has(slug) ? slug : "s" + Date.now().toString(36); }
-  // A new sheet takes the active one's formula and guide notes (marked as measured elsewhere); with no sheet yet, the built-in
-  // formula and notes. A copy also takes every card as it is on the active sheet, its baseline, and, if asked, its saved boards;
-  // an empty sheet starts with no cards and no boards. New sheets are private.
-  async function createSheet(name, copyBoards, empty = false) {
-    const src = activeSheet();
-    if (!db || readOnly) return;
-    if (!src) empty = true;
-    const id = newSheetId(name), formula = clone(src ? src.formula || FORMULA_SEED : FORMULA_SEED);
-    const doc = { name, order: Math.max(0, ...sheetList().map(s => s.order || 0)) + 1, about: !src ? "" : empty ? `Started empty, with ${src.name}'s formula` : `Copy of ${src.name}`,
-      notes: "", from: src ? src.id : "", public: false, chunks: CHUNKS, formula, baseline: empty ? clone(formula) : clone(src.baseline || src.formula || FORMULA_SEED),
-      guide: src ? { ...clone(src.guide || {}), inherited: (src.guide && src.guide.inherited) || src.name } : clone(GUIDE_SEED), created: new Date().toISOString() };
-    const chunks = new Map(Array.from({ length: CHUNKS }, (_, k) => ["c" + k, empty ? {} : clone((chunkData.get(src.id) || new Map()).get("c" + k) || {})]));
+  // A visitor's sheet in the public copy gets a random suffix, so it can't clash with a published sheet when it is submitted
+  function newSheetId(name) {
+    if (publicMode) { const slug = String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "sheet"; let id; do { id = slug + "-" + Math.random().toString(36).slice(2, 6); } while (sheets.has(id)); return id; }
+    const slug = String(name).toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9]/g, ""); return slug && !sheets.has(slug) ? slug : "s" + Date.now().toString(36);
+  }
+  function uniqueSheetName(base) { const used = new Set(sheetList().map(s => String(s.name || "").toLowerCase())); let n = 1, name = base; while (used.has(name.toLowerCase())) name = `${base} ${++n}`; return name; }
+  // Writes a whole new sheet: its document, its 8 chunks, then its boards
+  async function writeNewSheet(id, doc, chunks, boards = []) {
     sheets.set(id, { ...doc, id }); chunkData.set(id, chunks); sheetCardCache.delete(id);
     try {
       await queueWrite("sheets/" + id, () => db.doc("sheets/" + id).set(doc));
       await Promise.all([...chunks].map(([k, v]) => queueWrite(`sheets/${id}/chunks/${k}`, () => db.doc(`sheets/${id}/chunks/${k}`).set({ cards: v }))));
-    } catch (e) { sheets.delete(id); chunkData.delete(id); renderSheetBar(); return; }
-    const boards = copyBoards && !empty ? buildList() : [];
+    } catch (e) {
+      // Undo what did get written (in the public copy, a sheet too big for the browser's storage)
+      sheets.delete(id); chunkData.delete(id); renderSheetBar();
+      [...chunks.keys()].forEach(k => db.doc(`sheets/${id}/chunks/${k}`).delete().catch(() => {}));
+      db.doc("sheets/" + id).delete().catch(() => {});
+      return false;
+    }
     for (let k = 0; k < boards.length; k++) {
       const b = boards[k], nid = "b" + Date.now().toString(36) + k, nb = { name: b.name, order: b.order || 0, board: clone(b.board), sheet: id };
       allBuilds.set(nid, { ...nb, id: nid });
       await queueWrite("builds/" + nid, () => db.doc("builds/" + nid).set(nb)).catch(() => {});
     }
+    return true;
+  }
+  // Opens an exported sheet file as a new sheet of its own (in the public copy, an editable copy in this browser). Nothing is
+  // replaced: a sheet that is already here gets a second copy under a new id.
+  async function importSheetFile(file) {
+    if (!db || !file || (readOnly && !publicMode)) return;
+    let f;
+    try { f = JSON.parse(await file.text()); } catch (e) { toast("That file isn't a sheet export (it isn't JSON)."); return; }
+    if (!f || f.jango !== "balance-sheet" || !isObj(f.sheet) || !isObj(f.cards)) { toast("That file isn't a sheet export from the Card Picker."); return; }
+    const S0 = f.sheet, name = uniqueSheetName(String(S0.name || file.name.replace(/\.json$/i, "") || "Imported sheet")), id = newSheetId(name);
+    const formula = clone(isObj(S0.formula) ? S0.formula : FORMULA_SEED);
+    const doc = { name, order: Math.max(0, ...sheetList().map(s => s.order || 0)) + 1, about: String(S0.about || ""), notes: String(S0.notes || ""), from: "", public: false, chunks: CHUNKS,
+      formula, baseline: clone(isObj(S0.baseline) ? S0.baseline : formula), guide: clone(isObj(S0.guide) ? S0.guide : {}), created: new Date().toISOString(), imported: file.name, ...(publicMode ? { mine: true } : {}) };
+    const chunks = new Map(Array.from({ length: CHUNKS }, (_, k) => ["c" + k, {}]));
+    let n = 0;
+    Object.entries(f.cards).forEach(([cid, c]) => { if (isObj(c)) { chunks.get(chunkOf(cid))[cid] = { ...storedCard({ ...c, id: cid }), public: publicMode, check: "", from: "" }; n++; } });
+    const boards = (Array.isArray(f.boards) ? f.boards : []).filter(b => isObj(b) && isObj(b.board)).map((b, i) => ({ name: String(b.name || "Board " + (i + 1)), order: b.order || i, board: b.board }));
+    if (!(await writeNewSheet(id, doc, chunks, boards))) return;
+    selectSheet(id);
+    toast(`Opened ${name}: ${n} card${n === 1 ? "" : "s"}${boards.length ? `, ${boards.length} board${boards.length === 1 ? "" : "s"}` : ""}`);
+  }
+  // A new sheet takes the active one's formula and guide notes (marked as measured elsewhere); with no sheet yet, the built-in
+  // formula and notes. A copy also takes every card as it is on the active sheet, its baseline, and, if asked, its saved boards;
+  // an empty sheet starts with no cards and no boards. New sheets are private. In the public copy anyone can make one, from any
+  // sheet; it is theirs (mine), kept in their browser.
+  async function createSheet(name, copyBoards, empty = false) {
+    const src = activeSheet();
+    if (!db || (readOnly && !publicMode)) return;
+    if (!src) empty = true;
+    const id = newSheetId(name), formula = clone(src ? src.formula || FORMULA_SEED : FORMULA_SEED);
+    const doc = { name, order: Math.max(0, ...sheetList().map(s => s.order || 0)) + 1, about: !src ? "" : empty ? `Started empty, with ${src.name}'s formula` : `Copy of ${src.name}`,
+      notes: "", from: src ? src.id : "", public: false, chunks: CHUNKS, formula, baseline: empty ? clone(formula) : clone(src.baseline || src.formula || FORMULA_SEED),
+      guide: src ? { ...clone(src.guide || {}), inherited: (src.guide && src.guide.inherited) || src.name } : clone(GUIDE_SEED), created: new Date().toISOString(), ...(publicMode ? { mine: true } : {}) };
+    const chunks = new Map(Array.from({ length: CHUNKS }, (_, k) => ["c" + k, empty ? {} : clone((chunkData.get(src.id) || new Map()).get("c" + k) || {})]));
+    if (!(await writeNewSheet(id, doc, chunks, copyBoards && !empty ? buildList() : []))) return;
     // An empty sheet opens on the cards it doesn't have yet, ready to bring some over
     if (empty && src) { F.sheet = "off"; F.view = "cards"; saveFilters(); $("#f-sheet").value = "off"; applyView(); }
     selectSheet(id);
@@ -1216,7 +1259,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   function queueWrite(id, fn) {
     const p = (chains[id] || Promise.resolve()).then(fn).catch(err => {
       if (err && (err.code === "invalid_argument")) { setReadOnly(); toast("You can view these cards but not change them."); }
-      else if (err && err.code === "quota_exceeded") toast("The card database is full. Delete a few cards, then try again.");
+      else if (err && err.code === "quota_exceeded") toast(publicMode ? "This browser's storage is full. Export a sheet you don't need, delete it here, then try again." : "The card database is full. Delete a few cards, then try again.");
       else toast("That change didn't save. Check your connection and try again.");
       throw err;
     });
@@ -1291,9 +1334,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 
   // ---------- tabs and filters ----------
   function renderTabs() {
-    const all = [...cards.values()];
+    // Counts what the grid lists: this sheet's cards, or in Not on this sheet, the other sheets' cards it doesn't have
+    const all = sheets.size && F.sheet === "off" ? offSheetCards() : [...cards.values()];
     const n = k => all.filter(c => (k === "parked" ? c.parked : !c.parked && (k === "all" || c.bucket === k))).length;
-    // The public copy shows only the groups its sheet has cards in
+    // The public copy shows only the groups that have cards
     const tabs = [{ key: "all", label: "All" }, ...BUCKETS.filter(b => !publicMode || n(b.key)).map(b => ({ key: b.key, label: b.label }))];
     if (n("parked")) tabs.push({ key: "parked", label: "Parked" });
     if (!tabs.some(t => t.key === F.tab)) F.tab = "all";
@@ -1348,7 +1392,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const place = c.place && c.row !== "Interior" && c.place !== "" ? `<span>${esc(c.place === "Either" ? "Front or behind armor" : c.place.endsWith(" slot") ? c.place : c.place === "Behind" ? "Behind armor" : "In front of armor")}</span>` : "";
     const role = c.role ? `<span class="chip role">${esc(c.role)}</span>` : c.kind ? `<span class="chip role">${esc(c.kind)}</span>` : (b && !b.card ? `<span class="chip role">${esc(b.label.replace(/s$/, ""))}</span>` : "");
     const badges = [c.src === "gdd" ? '<span class="badge gdd">GDD</span>' : "", c.src === "new" ? '<span class="badge new">New</span>' : "", c.src === "user" && !publicMode ? '<span class="badge new">Yours</span>' : "", c.parked ? '<span class="badge parked">Parked</span>' : "", !structured(c) && c.effect ? '<span class="badge parked" title="Written before the effect builder. Open it to rebuild the effect.">Old text</span>' : "",
-      !off && c.check ? `<span class="badge check" title="${esc(c.check)}. Approving it clears this.">Check</span>` : ""].join("");
+      !off && c.check && !publicMode ? `<span class="badge check" title="${esc(c.check)}. Approving it clears this.">Check</span>` : ""].join("");
     const onList = sheets.size > 1 || off ? sheetsOf(c.id) : [];
     const sheetChips = onList.length || off ? `<div class="c-sheets">${onList.map(s => `<span class="chip sheet ${here && s.id === here.id ? "here" : ""}" title="On ${esc(s.name)}">${esc(shortName(s))}</span>`).join("") || '<span class="chip sheet">On no sheet</span>'}</div>` : "";
     const addBtns = off ? `<span class="addrow-sheet">${(off.length ? off : [""]).map(sid => { const src = sheets.get(sid); return `<button class="btn" type="button" data-addto="${esc(c.id)}" data-from="${esc(sid)}" title="${src ? `Copies its numbers from ${esc(src.name)}, rebalances them to this sheet's formula, and marks it for a check` : "Adds it with its stored numbers, marked for a check"}">${src ? "Add from " + esc(shortName(src)) : "Add to this sheet"}</button>`; }).join("")}</span>` : "";
@@ -1369,7 +1413,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       effect = c.effect ? `<div>${timing}${esc(c.effect)}</div>` : `<span class="none">No effect.</span>`;
     }
     const hiddenBits = [(c.sources || []).map(s => SECTOR_NAME[s] || s).join(" / "), c.tech ? c.tech + " tech" : "", (c.recipes || []).join(", ")].filter(Boolean).join(" · ");
-    const pubBtn = readOnly ? "" : `<button class="pub" type="button" data-public="${esc(c.id)}" aria-pressed="${!!c.public}" title="${c.public ? "Public: exported to the public copy (unless parked). Tap to make it private." : "Private: never exported. Tap to make it public."}">${ICON_EYE}${c.public ? "Public" : "Private"}</button>`;
+    const pubBtn = readOnly || publicMode ? "" : `<button class="pub" type="button" data-public="${esc(c.id)}" aria-pressed="${!!c.public}" title="${c.public ? "Public: exported to the public copy (unless parked). Tap to make it private." : "Private: never exported. Tap to make it public."}">${ICON_EYE}${c.public ? "Public" : "Private"}</button>`;
     return `<article class="card ${c.pick && !publicMode ? "picked" : ""} ${c.parked ? "parked" : ""} ${off ? "offsheet" : ""}" data-id="${esc(c.id)}">
       <div class="c-head">
         <label class="pick" title="${c.pick ? "Picked" : "Pick this card"}"><input type="checkbox" ${c.pick ? "checked" : ""} ${readOnly || c.parked || off ? "disabled" : ""} aria-label="Pick ${esc(c.name)}"><span>${ICON_CHECK}</span></label>
@@ -1385,7 +1429,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       ${c.flavor ? `<div class="c-flavor">${esc(c.flavor)}</div>` : ""}
       ${c.notes ? `<div class="c-notes">${esc(c.notes)}</div>` : ""}
       ${off ? `<div class="c-foot">${readOnly ? '<span class="attach">Not on this sheet</span>' : addBtns}</div>`
-        : `<div class="c-foot"><span class="attach">${c.attach ? "Attaches to: " + esc(c.attach) : ""}</span><span class="foot-right">${pubBtn}${readOnly ? "" : `<button class="appr" type="button" data-approve="${esc(c.id)}" aria-pressed="${!!c.approved}" title="Mark that you have reviewed this card">${ICON_CHECK}${c.approved ? "Approved" : "Approve"}</button>`}<button class="edit-btn" type="button" data-edit="${esc(c.id)}">${readOnly ? "Details" : "Edit"}</button></span></div>`}
+        : `<div class="c-foot"><span class="attach">${c.attach ? "Attaches to: " + esc(c.attach) : ""}</span><span class="foot-right">${pubBtn}${readOnly || publicMode ? "" : `<button class="appr" type="button" data-approve="${esc(c.id)}" aria-pressed="${!!c.approved}" title="Mark that you have reviewed this card">${ICON_CHECK}${c.approved ? "Approved" : "Approve"}</button>`}<button class="edit-btn" type="button" data-edit="${esc(c.id)}">${readOnly ? "Details" : "Edit"}</button></span></div>`}
     </article>`;
   }
 
@@ -1419,7 +1463,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     if (!off) {
       pubIds = list.map(c => c.id);
       const priv = list.filter(c => !c.public).length;
-      bulk.hidden = readOnly || !s || !list.length;
+      bulk.hidden = readOnly || publicMode || !s || !list.length;
       if (!bulk.hidden) bulk.innerHTML = priv ? `<button class="btn" type="button" id="bulk-pub" data-v="1">Make ${priv === list.length ? "all " : ""}${priv} shown public</button>` : `<button class="btn" type="button" id="bulk-pub" data-v="0">Make all ${list.length} shown private</button>`;
       return;
     }
@@ -1478,7 +1522,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     $("#status").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === bt)); renderGrid();
   });
   [["#f-src", "src"], ["#f-role", "role"], ["#f-type", "type"], ["#f-sector", "sector"], ["#f-mark", "mark"], ["#f-budget", "budget"], ["#f-review", "review"], ["#f-public", "pub"], ["#f-sheet", "sheet"], ["#f-sort", "sort"]].forEach(([sel, key]) => {
-    $(sel).addEventListener("change", e => { F[key] = e.target.value; saveFilters(); renderGrid(); });
+    $(sel).addEventListener("change", e => { F[key] = e.target.value; saveFilters(); if (key === "sheet") renderTabs(); renderGrid(); });
   });
   // Picks and approvals belong to the sheet's own copy of the card
   $("#grid").addEventListener("change", e => {
@@ -1765,7 +1809,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // ---------- sheet bar and sheet settings ----------
   function renderSheetBar() {
     const list = sheetList(), s = activeSheet(), sel = $("#sheet-sel");
-    sel.innerHTML = list.length ? list.map(x => `<option value="${esc(x.id)}" ${s && x.id === s.id ? "selected" : ""}>${esc(x.name || x.id)}</option>`).join("") : `<option value="">Prototype bank</option>`;
+    sel.innerHTML = list.length ? list.map(x => `<option value="${esc(x.id)}" ${s && x.id === s.id ? "selected" : ""}>${esc(x.name || x.id)}${publicMode && x.mine ? " (yours)" : ""}</option>`).join("") : `<option value="">Prototype bank</option>`;
     sel.disabled = !list.length;
   }
   $("#sheet-sel").addEventListener("change", e => { if (e.target.value) { selectSheet(e.target.value); toast(`Now on ${activeSheet().name}`); } });
@@ -1813,23 +1857,31 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         <div class="preview">${plan.map(({ c, r }) => `<div><span>${esc(c.name)}${r.fits ? "" : " (can't fit)"}</span><span>${esc(statsText(c))} → ${esc(statsText(r.card))}</span></div>`).join("")}</div>
         ${readOnly ? "" : `<div class="fab-row"><button class="btn primary" type="button" id="sh-apply">Apply to ${plan.length} card${plan.length === 1 ? "" : "s"}</button><button class="btn" type="button" id="sh-cancel">Cancel</button></div>`}`
       : `<p class="muted">Every card already fits this formula; nothing would change.</p>${stale && !readOnly ? `<div class="fab-row"><button class="btn" type="button" id="sh-mark">Mark the cards as balanced to this formula</button></div>` : ""}`) : "";
-    const X = readOnly ? null : exportSheet(s), nb = X ? X.file.boards.length : 0;
-    const exportHtml = !X ? "" : `<fieldset id="sh-export"><legend>Public export</legend>
+    const X = readOnly ? null : exportSheet(s), nb = X ? X.file.boards.length : 0, gh = publicRepo();
+    const skippedHtml = X && X.skipped.length ? `<p class="muted" style="margin:0 0 8px">Boards left out, because they hold ${publicMode ? "parked" : "private or parked"} cards: ${X.skipped.map(k => `<b>${esc(k.name)}</b> (${esc(k.cards.slice(0, 4).join(", "))}${k.cards.length > 4 ? ` and ${k.cards.length - 4} more` : ""})`).join("; ")}.</p>` : "";
+    const exportHtml = !X ? "" : publicMode ? `<fieldset id="sh-export"><legend>Export and share</legend>
+        <p class="muted" style="margin:0 0 8px">Export downloads <b>${esc(s.id)}.json</b>: this sheet's formula, guide and notes, its <b>${X.cards}</b> card${X.cards === 1 ? "" : "s"} (parked ones stay out) and its <b>${nb}</b> saved board${nb === 1 ? "" : "s"}. Keep the file: this sheet lives only in this browser, and <b>Open a sheet file</b> (under Sheets) loads it back, here or on another device.</p>
+        <p class="muted" style="margin:0 0 8px">To share it, upload the file to the ${gh ? `<a href="https://github.com/${esc(gh.owner)}/${esc(gh.repo)}/tree/main/sheets" target="_blank" rel="noopener">sheets folder on GitHub</a>` : "public copy's sheets folder on GitHub"} with <b>Add file</b>, then <b>Upload files</b> (a free GitHub account is enough). GitHub turns that into a pull request; once it's accepted, your sheet appears here for everyone.</p>
+        ${skippedHtml}
+        <div class="fab-row"><button class="btn primary" type="button" id="sh-export-btn" ${X.cards ? "" : "disabled"}>Export ${esc(s.id)}.json</button></div>
+        ${X.cards ? "" : `<p class="hint">Add some cards first.</p>`}</fieldset>`
+      : `<fieldset id="sh-export"><legend>Public export</legend>
         <div class="checkrow"><label><input type="checkbox" id="sh-public" ${s.public ? "checked" : ""}> Public: this sheet can be exported</label></div>
         <p class="muted" style="margin:8px 0">Export downloads <b>${esc(s.id)}.json</b> for the public copy: this sheet's formula, guide and sheet notes, its <b>${X.cards}</b> public card${X.cards === 1 ? "" : "s"} with their design notes, and the <b>${nb}</b> saved board${nb === 1 ? "" : "s"} made only of public cards. The ${X.privateCards} private card${X.privateCards === 1 ? "" : "s"}${X.parkedPublic ? ` and ${X.parkedPublic} parked public one${X.parkedPublic === 1 ? "" : "s"}` : ""} stay here. Put the file in the public copy's <b>sheets</b> folder; a newer export of the same sheet replaces it.</p>
-        ${X.skipped.length ? `<p class="muted" style="margin:0 0 8px">Boards left out, because they hold private or parked cards: ${X.skipped.map(k => `<b>${esc(k.name)}</b> (${esc(k.cards.slice(0, 4).join(", "))}${k.cards.length > 4 ? ` and ${k.cards.length - 4} more` : ""})`).join("; ")}.</p>` : ""}
+        ${skippedHtml}
         <div class="fab-row"><button class="btn primary" type="button" id="sh-export-btn" ${s.public && X.cards && dl ? "" : "disabled"}>Export ${esc(s.id)}.json</button></div>
         ${!s.public ? `<p class="hint">Tick Public above to export this sheet.</p>` : !X.cards ? `<p class="hint">No public cards yet. Flip cards to Public on their tiles, in the editor, or all at once with the button above the cards.</p>` : !dl ? `<p class="hint">Downloads aren't available in this view.</p>` : ""}</fieldset>`;
-    const counts = publicMode ? `${on.length} cards · ${boards} shared board${boards === 1 ? "" : "s"}${s.exported ? ` · exported ${esc(String(s.exported).slice(0, 10))}` : ""}`
+    const counts = publicMode && s.mine ? `Your sheet, kept in this browser · ${on.length} card${on.length === 1 ? "" : "s"} · ${boards} saved board${boards === 1 ? "" : "s"}${src ? ` · copied from ${esc(src.name)}` : ""}`
+      : publicMode ? `${on.length} cards · ${boards} shared board${boards === 1 ? "" : "s"}${s.exported ? ` · exported ${esc(String(s.exported).slice(0, 10))}` : ""}. Make your own copy under Sheets to change it.`
       : `${on.length} cards · ${only} only on this sheet · ${check} to check · ${on.filter(c => c.public).length} public · ${boards} saved board${boards === 1 ? "" : "s"}${src ? ` · copied from ${esc(src.name)}` : ""}`;
     body.innerHTML = `
       <div class="sheet-note">${counts}</div>
       <fieldset><legend>About this sheet</legend><div class="fgrid">
         <div class="field wide"><label for="sh-name">Name</label><input type="text" id="sh-name" value="${esc(s.name || "")}" ${dis}></div>
         <div class="field wide"><label for="sh-about">What it tests</label><textarea id="sh-about" rows="2" ${dis}>${esc(s.about || "")}</textarea></div>
-        <div class="field wide"><label for="sh-notes">Sheet notes</label><textarea id="sh-notes" rows="3" ${dis}>${esc(s.notes || "")}</textarea><span class="hint">${publicMode ? "The designer's notes on this sheet." : "Your notes; they show at the top of the Guide on this sheet."}</span></div>
+        <div class="field wide"><label for="sh-notes">Sheet notes</label><textarea id="sh-notes" rows="3" ${dis}>${esc(s.notes || "")}</textarea><span class="hint">${publicMode && readOnly ? "The designer's notes on this sheet." : "Your notes; they show at the top of the Guide on this sheet."}</span></div>
       </div>${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn" type="button" id="sh-save-meta">Save</button></div>`}</fieldset>
-      ${publicMode ? "" : `<fieldset><legend>Auto Apply</legend>
+      ${publicMode && readOnly ? "" : `<fieldset><legend>Auto Apply</legend>
         <p class="muted" style="margin:0 0 8px">${stale ? "The formula has changed since the cards were last balanced to it." : "The cards are balanced to this formula."} Auto Apply rebalances every card on this sheet from the formula they were balanced to: each keeps where it sits against its budget and its split between attack, effects and health; attack scales to its share and health fills the rest. Every card it changes is unapproved.</p>
         ${plan ? planHtml : `<div class="fab-row"><button class="btn ${stale ? "primary" : ""}" type="button" id="sh-plan">Preview Auto Apply</button></div>`}</fieldset>`}
       ${exportHtml}
@@ -1837,12 +1889,12 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         <p class="muted" style="margin:0 0 8px">What everything costs on this sheet, in BP. A highlighted row differs from what the cards were balanced to. Save, then run Auto Apply.</p>
         ${groups}
         ${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn primary" type="button" id="sh-save-formula">Save formula</button><button class="btn" type="button" id="sh-revert" ${stale ? "" : "disabled"}>Back to the balanced formula</button></div>`}</fieldset>
-      ${readOnly ? "" : `<fieldset><legend>Sheets</legend><div class="fgrid">
-        <div class="field wide"><label for="sh-newname">New sheet</label><input type="text" id="sh-newname" value="${esc(nextSheetName())}"></div></div>
+      ${readOnly && !publicMode ? "" : `<fieldset><legend>Sheets</legend>${publicMode ? `<p class="muted" style="margin:0 0 8px">Make a sheet of your own to change cards, the formula and the guide, and to add new cards. It's kept in this browser; export it to keep a copy or to share it.</p>` : ""}<div class="fgrid">
+        <div class="field wide"><label for="sh-newname">New sheet</label><input type="text" id="sh-newname" value="${esc(publicMode ? uniqueSheetName("My Balance") : nextSheetName())}"></div></div>
         <div class="checkrow" style="margin-top:8px"><label><input type="radio" name="sh-start" id="sh-copy" value="copy" checked> A copy of this sheet</label><label><input type="radio" name="sh-start" id="sh-empty" value="empty"> Start empty</label></div>
         <div class="checkrow" style="margin-top:6px"><label><input type="checkbox" id="sh-newboards" checked> Copy its ${boards} saved board${boards === 1 ? "" : "s"} too</label></div>
         <p class="muted" id="sh-start-note">The copy starts with this sheet's formula, guide notes and every card's numbers. Change its formula, then run Auto Apply.</p>
-        <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><span class="spacer"></span><button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button></div></fieldset>`}`;
+        <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}`;
   }
   // The formula as typed in the panel, or null (with a message) when a field isn't a number
   function readFormulaForm() {
@@ -1862,6 +1914,11 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     return f;
   }
   $("#sh-body").addEventListener("change", e => {
+    if (e.target.id === "sh-import") {
+      const file = e.target.files && e.target.files[0]; e.target.value = "";
+      if (file) importSheetFile(file).then(() => { if (!$("#sheet").hidden) renderSheetPanel(); });
+      return;
+    }
     if (e.target.id === "sh-public" && !readOnly && activeSheet()) {
       const s = activeSheet(), v = e.target.checked;
       writeSheet(s.id, { public: v }).then(() => toast(v ? `${s.name} can be exported` : `${s.name} is private`)).catch(() => {});
@@ -1880,6 +1937,16 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSheetPanel(); });
   $("#sh-body").addEventListener("click", e => {
     if (e.target.closest("#sh-first") && !readOnly) { const name = $("#sh-newname").value.trim() || "Alpha Balance"; createSheet(name, false, true).then(closeSheetPanel); return; }
+    // In the public copy a new sheet can be made from any sheet, read-only or not
+    if (e.target.closest("#sh-create") && (!readOnly || publicMode)) {
+      const name = $("#sh-newname").value.trim();
+      if (!name) { toast("Name the new sheet."); return; }
+      if (sheetList().some(x => (x.name || "").toLowerCase() === name.toLowerCase())) { toast("A sheet already has that name."); return; }
+      e.target.closest("#sh-create").disabled = true;
+      const empty = $("#sh-empty").checked;
+      createSheet(name, !empty && $("#sh-newboards").checked, empty).then(() => { if (empty) closeSheetPanel(); else if (!$("#sheet").hidden) renderSheetPanel(); });
+      return;
+    }
     const s = activeSheet(); if (!s || readOnly) return;
     if (e.target.closest("#sh-save-meta")) {
       const name = $("#sh-name").value.trim();
@@ -1904,15 +1971,6 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       const n = SH.plan.length;
       applyPlan(s, SH.plan).then(() => toast(`Auto Apply changed ${n} card${n === 1 ? "" : "s"}`)).catch(() => {});
       SH.plan = null; renderAll(); renderSheetPanel(); return;
-    }
-    if (e.target.closest("#sh-create")) {
-      const name = $("#sh-newname").value.trim();
-      if (!name) { toast("Name the new sheet."); return; }
-      if (sheetList().some(x => (x.name || "").toLowerCase() === name.toLowerCase())) { toast("A sheet already has that name."); return; }
-      e.target.closest("#sh-create").disabled = true;
-      const empty = $("#sh-empty").checked;
-      createSheet(name, !empty && $("#sh-newboards").checked, empty).then(() => { if (empty) closeSheetPanel(); else if (!$("#sheet").hidden) renderSheetPanel(); });
-      return;
     }
     const del = e.target.closest("#sh-delete");
     if (del && sheets.size > 1) {
@@ -2110,12 +2168,15 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       <p>Put what the effect is worth in the card's <b>Effect BP</b> field (it can be negative for drawbacks). <b>Fill health to budget</b> in the editor sets health so the card lands exactly on budget.</p>
       <h3>Balance sheets</h3>
       ${publicMode ? `<ul>
-        <li>This is the public copy of the Card Picker. Each <b>balance sheet</b> is a separate set of cards with its own formula and guide notes; switch sheets at the top. The cards are read-only here: <b>Details</b> shows everything about a card, and <b>Sheet</b> shows the sheet's formula.</li>
+        <li>This is the public copy of the Card Picker. Each <b>balance sheet</b> is a separate set of cards with its own formula and guide notes; switch sheets at the top. The published sheets are read-only: <b>Details</b> shows everything about a card, and <b>Sheet</b> shows the sheet's formula.</li>
+        <li><b>Make your own sheet</b> in <b>Sheet</b>, under Sheets: a copy of the sheet you're on, or an empty one. On your own sheets you can edit cards and add new ones, change the formula (then run <b>Auto Apply</b> to rebalance the cards to it), edit the guide's notes, and bring cards over from other sheets with <b>Not on this sheet</b> in the filters. Your sheets and boards are kept in this browser only.</li>
+        <li><b>To share a sheet</b>, export it (Sheet, Export and share) and upload the file to the sheets folder on GitHub; once it's accepted, it appears here for everyone. Keep the file as your backup: <b>Open a sheet file</b> loads it back, here or on another device.</li>
         <li>In the <b>Simulator</b>, build boards from the sheet's cards and fight them against each other or against the boards shared with the sheet. Boards you save stay in this browser only, on this device.</li>
       </ul>` : `<ul>
         <li>A <b>balance sheet</b> is a complete, separate set of cards with its own formula and guide notes. Every card on it is the sheet's own copy: text, effects, tags, numbers, approval and picks. Editing a card on one sheet never changes another sheet. The rules (engine, keywords, effect vocabulary) are the same everywhere. Switch sheets at the top; <b>Sheet</b> edits the formula, makes a new sheet, or deletes one.</li>
         <li><b>Auto Apply</b> rebalances a sheet's cards after its formula changes. Each card keeps where it sits against its budget and how its BP splits into attack, effects and health, as priced by the formula it was balanced to; attack scales to its share, hand-entered Effect BP scales with it, effects the formula prices get the new price, and health fills the rest. Mult, ammo, charges and effect amounts never change. Every card it changes is unapproved.</li>
         <li><b>Not on this sheet</b> (in the filters) lists other sheets' cards that this sheet doesn't have, with buttons to copy one or every card shown. A copy arrives rebalanced to this sheet's formula, unapproved, and marked <b>Check</b> until you approve it here; from then on it is independent. A copy keeps its card id, so the sheet chips on a card show which sheets have a version of it.</li>
+        <li><b>Open a sheet file</b> (Sheet, under Sheets) adds a sheet from an exported file, such as one a friend made in the public copy, as a new sheet here. Its cards arrive private.</li>
         <li><b>Public and private.</b> Every card starts private. Flip a card to <b>Public</b> on its tile or in the editor, or every card shown at once, when it's ready to share. <b>Export</b> downloads the sheet for the public copy: its formula, guide and sheet notes, its public cards that aren't parked, and its saved boards made only of public cards. Private cards never leave the picker. The sheet has to be marked Public first (Sheet, Public export).</li>
       </ul>`}
       <h3>Placement</h3>
@@ -3443,9 +3504,11 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   });
   // The public export: one sheet as a file for the public copy (sheets/<id>.json there). It holds the sheet's formula, guide and
   // notes, its public cards that aren't parked (design notes included), and its saved boards made only of those cards. Private
-  // and parked cards never leave the picker; boards holding any are left out and listed.
+  // and parked cards never leave the picker; boards holding any are left out and listed. A visitor's own sheet in the public copy
+  // has no private cards: its export holds every card that isn't parked.
+  const exportsAll = s => publicMode && !!(s && s.mine);
   function exportSheet(s) {
-    const all = [...cardsOfSheet(s.id).values()].sort(sorters.order), out = all.filter(c => c.public && !c.parked), ids = new Set(out.map(c => c.id));
+    const all = [...cardsOfSheet(s.id).values()].sort(sorters.order), out = all.filter(c => (c.public || exportsAll(s)) && !c.parked).map(c => ({ ...c, public: true })), ids = new Set(out.map(c => c.id));
     const first = sheetList()[0], boards = [], skipped = [];
     [...allBuilds.values()].filter(b => (b.sheet || (first && first.id)) === s.id).sort((a, b) => (a.order || 0) - (b.order || 0)).forEach(b => {
       const B = buildBoard(b), bad = [...new Set([...B.ext, ...B.int].filter(x => x && !ids.has(x.id)).map(x => x.id))];
@@ -3458,12 +3521,19 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       cards: out.length, privateCards: all.filter(c => !c.public).length, parkedPublic: all.filter(c => c.public && c.parked).length, skipped,
     };
   }
+  // Saves a file: through claude.ai's downloads when there, else as an ordinary browser download (the public copy)
+  async function saveFile(file) {
+    if (dl) return dl.save(file);
+    const url = URL.createObjectURL(new Blob([file.data], { type: "application/json" })), a = document.createElement("a");
+    a.href = url; a.download = file.filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
   async function downloadExport(s) {
     const x = exportSheet(s);
-    if (!dl || !s.public || !x.cards) return;
+    if ((!dl && !publicMode) || (!s.public && !exportsAll(s)) || !x.cards) return;
     try {
-      await dl.save({ filename: `${s.id}.json`, data: JSON.stringify(x.file, null, 1), request: `${s.name} for the public copy: ${x.cards} public card${x.cards === 1 ? "" : "s"} and ${x.file.boards.length} board${x.file.boards.length === 1 ? "" : "s"}` });
-      toast(`${s.id}.json ready: put it in the public copy's sheets folder`);
+      await saveFile({ filename: `${s.id}.json`, data: JSON.stringify(x.file, null, 1), request: `${s.name} for the public copy: ${x.cards} public card${x.cards === 1 ? "" : "s"} and ${x.file.boards.length} board${x.file.boards.length === 1 ? "" : "s"}` });
+      toast(publicMode ? `${s.id}.json saved: upload it to the sheets folder on GitHub to share it` : `${s.id}.json ready: put it in the public copy's sheets folder`);
     } catch (err) { if (!err || err.code !== "declined") toast("The download didn't start. Try again in a moment."); }
   }
   $("#export-sheet").addEventListener("click", () => {
@@ -3483,15 +3553,22 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // sheets/*.json through a small stand-in for the database. Cards and sheets are read-only there; boards a visitor saves stay
   // in their own browser, next to the boards each sheet exported. The files are found through the GitHub API on a github.io
   // site, else sheets/index.json (a list of file names), else the folder listing a local server shows.
-  const LOCAL_BOARDS = "jango-cards-boards";
+  // A visitor's own sheets (with their cards) and boards are kept in this browser, under these keys.
+  const LOCAL_BOARDS = "jango-cards-boards", LOCAL_SHEETS = "jango-cards-mine";
+  // The GitHub owner and repo the public copy is served from, when it is on github.io
+  function publicRepo() {
+    const gh = /^([^.]+)\.github\.io$/i.exec(location.hostname);
+    if (!gh) return null;
+    const seg = location.pathname.split("/").filter(Boolean)[0] || "";
+    return { owner: gh[1], repo: seg && !seg.includes(".") ? seg : gh[1] + ".github.io" };
+  }
   async function sheetFiles() {
-    const gh = /^([^.]+)\.github\.io$/i.exec(location.hostname), seg = location.pathname.split("/").filter(Boolean)[0] || "";
-    const json = n => /\.json$/i.test(n) && n.toLowerCase() !== "index.json";
+    const gh = publicRepo(), json = n => /\.json$/i.test(n) && n.toLowerCase() !== "index.json";
     if (gh) {
       // The API allows a visitor 60 calls an hour; the last list it gave is kept in case it refuses
-      const repo = seg && !seg.includes(".") ? seg : gh[1] + ".github.io", KEY = "jango-cards-files";
+      const KEY = "jango-cards-files";
       try {
-        const r = await fetch(`https://api.github.com/repos/${gh[1]}/${repo}/contents/sheets`);
+        const r = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/sheets`);
         if (r.ok) { const list = (await r.json()).filter(f => f.type === "file" && json(f.name)).map(f => f.name); try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} return list; }
       } catch (e) {}
       try { const kept = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(kept) && kept.length) return kept; } catch (e) {}
@@ -3502,7 +3579,6 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   }
   async function publicDb() {
     const names = await sheetFiles();
-    if (!names.length) return null;
     const files = await Promise.all(names.map(n => fetch("sheets/" + encodeURIComponent(n), { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)));
     const store = { sheets: {}, builds: {} };
     files.forEach((f, k) => {
@@ -3516,24 +3592,53 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       store[`sheets/${id}/chunks`] = Object.fromEntries(Object.entries(ch).map(([key, v]) => [key, { cards: v }]));
       (f.boards || []).forEach((b, i) => { if (isObj(b) && b.board) store.builds[`x-${id}-${b.id || i}`] = { name: b.name || "Board " + (i + 1), order: b.order || i, board: b.board, sheet: id, exported: true }; });
     });
+    const published = new Set(Object.keys(store.sheets));
+    // The visitor's own sheets and boards, from this browser
+    let mine = {}, boards = {}, moved = false;
+    try { mine = JSON.parse(localStorage.getItem(LOCAL_SHEETS) || "{}") || {}; } catch (e) {}
+    try { boards = JSON.parse(localStorage.getItem(LOCAL_BOARDS) || "{}") || {}; } catch (e) {}
+    Object.entries(isObj(mine.sheets) ? mine.sheets : {}).forEach(([id0, meta]) => {
+      if (!isObj(meta)) return;
+      // A published sheet with the same id (this visitor's own sheet, once accepted) keeps the id; the local one moves aside
+      let id = id0;
+      if (published.has(id)) { do { id = id0 + "-" + Math.random().toString(36).slice(2, 6); } while (store.sheets[id]); Object.values(boards).forEach(b => { if (isObj(b) && b.sheet === id0) b.sheet = id; }); moved = true; }
+      store.sheets[id] = { ...meta, mine: true };
+      store[`sheets/${id}/chunks`] = isObj(mine.chunks) && isObj(mine.chunks[id0]) ? mine.chunks[id0] : {};
+    });
     if (!Object.keys(store.sheets).length) return null;
-    try { Object.entries(JSON.parse(localStorage.getItem(LOCAL_BOARDS) || "{}") || {}).forEach(([id, b]) => { if (isObj(b) && !store.builds[id]) store.builds[id] = { ...b, exported: false }; }); } catch (e) {}
-    const keep = () => { try { localStorage.setItem(LOCAL_BOARDS, JSON.stringify(Object.fromEntries(Object.entries(store.builds).filter(([, b]) => !b.exported)))); } catch (e) {} };
+    Object.entries(boards).forEach(([id, b]) => { if (isObj(b) && !store.builds[id]) store.builds[id] = { ...b, exported: false }; });
+    // Throws when the browser's storage is full
+    const keep = () => {
+      const own = Object.keys(store.sheets).filter(id => !published.has(id));
+      localStorage.setItem(LOCAL_BOARDS, JSON.stringify(Object.fromEntries(Object.entries(store.builds).filter(([, b]) => !b.exported))));
+      localStorage.setItem(LOCAL_SHEETS, JSON.stringify({ sheets: Object.fromEntries(own.map(id => [id, store.sheets[id]])), chunks: Object.fromEntries(own.map(id => [id, store[`sheets/${id}/chunks`] || {}])) }));
+    };
+    if (moved) try { keep(); } catch (e) {}
+    // What a visitor may change: their own boards, and their own sheets with those sheets' cards; never what was published
+    const writable = (col, id) => col === "builds" ? !(store.builds[id] && store.builds[id].exported)
+      : col === "sheets" ? !published.has(id)
+      : /^sheets\/[^/]+\/chunks$/.test(col) && !published.has(col.split("/")[1]);
     const subs = [];
     const snapOf = col => ({ metadata: { fromCache: false, hasPendingWrites: false }, docs: Object.entries(store[col] || {}).map(([id, v]) => ({ id, exists: true, data: () => clone(v) })) });
     const tell = col => subs.filter(x => x.col === col).forEach(x => setTimeout(() => x.cb(snapOf(col)), 0));
     const coll = col => ({ path: col, limit() { return this; }, onSnapshot(cb) { subs.push({ col, cb }); setTimeout(() => cb(snapOf(col)), 0); return () => {}; }, get: async () => snapOf(col), doc: id => doc(col + "/" + id) });
     const doc = p => {
       const i = p.lastIndexOf("/"), col = p.slice(0, i), id = p.slice(i + 1), here = () => (store[col] || {})[id];
-      // Only the visitor's own boards can change
-      const write = fn => async v => { if (col !== "builds" || (here() && here().exported)) throw { code: "read_only" }; fn(v); keep(); tell(col); };
+      // A write that doesn't fit in the browser's storage is undone
+      const write = fn => async v => {
+        if (!writable(col, id)) throw { code: "read_only" };
+        const before = clone(here());
+        store[col] = store[col] || {}; fn(v);
+        try { keep(); } catch (e) { if (before === undefined) delete store[col][id]; else store[col][id] = before; throw { code: "quota_exceeded" }; }
+        tell(col);
+      };
       return {
         path: p, id, collection: sub => coll(p + "/" + sub),
         get: async () => ({ id, exists: !!here(), data: () => clone(here()) }),
         onSnapshot(cb) { setTimeout(() => cb({ id, exists: !!here(), data: () => clone(here()) }), 0); return () => {}; },
-        set: write(v => { store.builds[id] = { ...clone(v), exported: false }; }),
-        update: write(v => { store.builds[id] = deepMerge(here() || {}, clone(v)); }),
-        delete: write(() => { delete store.builds[id]; }),
+        set: write(v => { store[col][id] = col === "sheets" ? { ...clone(v), mine: true } : col === "builds" ? { ...clone(v), exported: false } : clone(v); }),
+        update: write(v => { store[col][id] = deepMerge(here() || {}, clone(v)); }),
+        delete: write(() => { delete store[col][id]; }),
       };
     };
     return { collection: coll, doc };
@@ -3592,7 +3697,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     db.collection("sheets").limit(100).onSnapshot(snap => {
       sheets.clear(); snap.docs.forEach(d => { const v = d.data(); if (v) sheets.set(d.id, { ...v, id: d.id }); });
       const s = activeSheet(); applyFormula(s ? s.formula : null);
-      sheetsIn = true; watchChunks(); renderGuide(); afterData();
+      sheetsIn = true; watchChunks(); syncAccess(); renderGuide(); afterData();
     }, () => { $("#grid").innerHTML = `<div class="state">The card list stopped updating. Reload the page to reconnect.</div>`; });
     db.collection("builds").limit(200).onSnapshot(snap => {
       allBuilds.clear(); snap.docs.forEach(d => { const v = d.data(); if (v) allBuilds.set(d.id, { ...v, id: d.id }); });
