@@ -251,6 +251,16 @@ body.public .pick, body.public #status, body.public #f-review, body.public #f-pu
 .guide-body { overflow-y: auto; padding: 4px 18px 40px; font-size: 14.5px; }
 .guide-body h3 { font-family: var(--display); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); margin: 22px 0 8px; font-weight: 600; }
 .guide-body p, .guide-body ul { margin: 0 0 8px; }
+/* The guide editor */
+#ge-form { display: grid; gap: 8px; }
+#ge-form .field textarea { min-height: 44px; font-size: 13.5px; }
+.ge-h { font-family: var(--display); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 10px 0 0; font-weight: 600; }
+.ge-item { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: start; }
+.ge-hand { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ge-hand .field:last-child { grid-column: 1 / -1; }
+.ge-tools { display: inline-flex; flex-direction: column; gap: 4px; }
+.ge-tools .btn { padding: 2px 8px; font-size: 12px; }
+.ge-foot { position: sticky; bottom: -40px; background: var(--surface); padding: 10px 0 12px; border-top: 1px solid var(--rule); display: flex; gap: 8px; z-index: 1; }
 .guide-body ul { padding-left: 18px; }
 .guide-body li { margin-bottom: 4px; }
 .guide-body .formula { font-family: var(--mono); font-size: 13px; background: var(--sunk); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
@@ -418,7 +428,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 </header>
 
 <aside class="guide" id="guide" hidden aria-labelledby="guide-title">
-  <div class="ed-head"><h2 id="guide-title">Card design guide</h2><button class="btn" id="guide-close">Hide</button></div>
+  <div class="ed-head"><h2 id="guide-title">Card design guide</h2><span class="fab-row"><button class="btn" id="guide-edit" hidden title="Edit this sheet's guide notes, prices and findings">Edit</button><button class="btn" id="guide-close">Hide</button></span></div>
   <div class="guide-body" id="guide-body"></div>
 </aside>
 
@@ -1283,8 +1293,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   function renderTabs() {
     const all = [...cards.values()];
     const n = k => all.filter(c => (k === "parked" ? c.parked : !c.parked && (k === "all" || c.bucket === k))).length;
-    const tabs = [{ key: "all", label: "All" }, ...BUCKETS.map(b => ({ key: b.key, label: b.label }))];
+    // The public copy shows only the groups its sheet has cards in
+    const tabs = [{ key: "all", label: "All" }, ...BUCKETS.filter(b => !publicMode || n(b.key)).map(b => ({ key: b.key, label: b.label }))];
     if (n("parked")) tabs.push({ key: "parked", label: "Parked" });
+    if (!tabs.some(t => t.key === F.tab)) F.tab = "all";
     $("#tabs").innerHTML = tabs.map(t => `<button class="tab" role="tab" data-tab="${t.key}" aria-selected="${F.tab === t.key}">${esc(t.label)}<b>${n(t.key)}</b></button>`).join("");
   }
   function fillSelect(sel, values, labelFn = v => v) {
@@ -1998,6 +2010,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     ],
   };
   function renderGuide() {
+    $("#guide-edit").hidden = readOnly || !activeSheet();
+    // While the guide editor is open, keep what's typed and show the editor instead (a sheet switch drops the draft)
+    if (GE) { if (GE.sheet !== (activeSheet() || {}).id) GE = null; else { if ($("#ge-form")) readGuideForm(); renderGuideEditor(); return; } }
+    $("#guide-edit").textContent = "Edit";
     const R = ["I", "II", "III", "IV", "V"];
     const btable = cls => {
       const f = FORMULA[cls];
@@ -2144,6 +2160,76 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       <h3>Naming</h3>
       <table class="gtable"><tr><th>Word</th><th>Means</th></tr>${lex.map(([w, m]) => `<tr><td>${w}</td><td>${m}</td></tr>`).join("")}</table>`;
   }
+
+  // ---------- the guide editor ----------
+  // Edits the active sheet's guide (sheets/{id}.guide): the note beside each price and buff, the hand-priced rows, the buff
+  // points and the findings. The rules sections are part of the page. GE is the draft while the editor is open.
+  let GE = null;
+  const GUIDE_NOTE_GROUPS = [
+    ["Shields and Armor", [["armor", "Armor"], ["shields", "Shields"]]],
+    ["Prices", [["health", "Health"], ["frontHealth", "Health on a front card"], ["attackExt", "Attack, exterior"], ["attackInt", "Attack and health, interior"], ["extraHitExt", "Extra hit, exterior"], ["extraHitInt", "Extra hit, interior"], ["typeExt", "Damage type, exterior"], ["plasmaInt", "Plasma, interior"], ["thermalInt", "Thermal or Radiation, interior"], ["pierce", "Pierce N"], ["splash", "Splash N"], ["ammo", "Ammo N, exterior"], ["bigHit", "Big hits, exterior"], ["maxHealth", "+max health for the fight"], ["regen", "Regen N"], ["resist", "Resist N"], ["block", "Block N"], ["reflect", "Reflect N"], ["vuln", "Vulnerable (type)"], ["restore", "Restore N"], ["hull", "Hull"]]],
+    ["Buff prices, exterior", [["buffIntro", "Introduction"], ["m.activate", "Activate a neighbor"], ["m.doubleOnFront", "Double damage to the weapon in front"], ["m.doubleOnBehind", "Double damage to the weapon behind"], ["m.attackOne", "+attack to one weapon"], ["m.attackAdjacent", "+attack to adjacent weapons"], ["m.attackAdjacentMult", "+attack to adjacent mult weapons"]]],
+    ["Buff prices, interior", [["intBuffIntro", "Introduction"], ["mi.mult", "+mult to the weapon above"], ["mi.activate", "Activate the weapon above"], ["mi.double", "Double damage to the weapon above"], ["mi.attack", "+attack to the weapon above"], ["mi.aim", "The weapon above aims elsewhere"], ["mi.healthRepair", "+health, repair"], ["mi.resistPierce", "Resist or Pierce"], ["mi.ammoMax", "+max ammo"], ["mi.shieldsRound", "Shield points each round"], ["mi.hull", "Hull"], ["buffOther", "Other buffs"]]],
+  ];
+  function openGuideEditor() {
+    const s = activeSheet(); if (!s || readOnly) return;
+    const G = { ...GUIDE_SEED, ...clone(s.guide || {}) };
+    GE = { sheet: s.id, notes: { ...clone(GUIDE_SEED.notes), ...clone((s.guide && s.guide.notes) || {}) }, handPrices: clone(G.handPrices || []), buffPoints: clone(G.buffPoints || []), findings: clone(G.findings || []), inherited: G.inherited || "", keepInherited: !!G.inherited };
+    renderGuide();
+    $("#guide-body").scrollTop = 0;
+  }
+  function readGuideForm() {
+    document.querySelectorAll("#ge-form [data-gnote]").forEach(el => { GE.notes[el.dataset.gnote] = el.value; });
+    GE.handPrices = [...document.querySelectorAll("#ge-form .ge-hand")].map(r => [...r.querySelectorAll("[data-ghp]")].map(i => i.value));
+    GE.buffPoints = [...document.querySelectorAll("#ge-form [data-gbp]")].map(el => el.value);
+    GE.findings = [...document.querySelectorAll("#ge-form [data-gfind]")].map(el => el.value);
+    const inh = $("#ge-inh"); if (inh) GE.keepInherited = inh.checked;
+  }
+  function renderGuideEditor() {
+    const s = activeSheet(), known = new Set(GUIDE_NOTE_GROUPS.flatMap(([, rows]) => rows.map(r => r[0])));
+    const other = Object.keys(GE.notes).filter(k => !known.has(k)).map(k => [k, k]);
+    const note = ([k, label]) => `<div class="field"><label for="gn-${esc(k)}">${esc(label)}</label><textarea id="gn-${esc(k)}" data-gnote="${esc(k)}" rows="2">${esc(GE.notes[k] || "")}</textarea></div>`;
+    const tools = (list, i, n) => `<span class="ge-tools"><button class="btn" type="button" data-gmove="${list}:${i}:-1" ${i === 0 ? "disabled" : ""} aria-label="Move up">↑</button><button class="btn" type="button" data-gmove="${list}:${i}:1" ${i === n - 1 ? "disabled" : ""} aria-label="Move down">↓</button><button class="btn danger" type="button" data-gdel="${list}:${i}" aria-label="Remove">✕</button></span>`;
+    const textList = (list, attr, items, label) => items.map((t, i) => `<div class="ge-item"><div class="field"><textarea data-${attr}="${i}" rows="3" aria-label="${label} ${i + 1}">${esc(t)}</textarea></div>${tools(list, i, items.length)}</div>`).join("");
+    const hand = GE.handPrices.map((r, i) => `<div class="ge-item"><div class="ge-hand">${["What", "BP", "Note"].map((h, j) => `<div class="field"><label>${h}</label><input type="text" data-ghp="${j}" value="${esc(r[j] || "")}"></div>`).join("")}</div>${tools("handPrices", i, GE.handPrices.length)}</div>`).join("");
+    $("#guide-edit").textContent = "Editing";
+    $("#guide-body").innerHTML = `<div id="ge-form">
+      <div class="sheet-note" style="margin-top:10px">Editing the guide of <b>${esc(s.name)}</b>. These notes are this sheet's only, and go out with its export. Write <b>**bold**</b> for bold, and <b>{shields}</b>, <b>{armor}</b>, <b>{hull}</b>, <b>{atkExt}</b>, <b>{ammoRounds}</b>, <b>{restore}</b>, <b>{vulnK}</b> or <b>{vulnOther}</b> for live values, <b>{guess}</b> for a guess tag. The rules sections (placement, keywords, card text) are part of the page; ask Claude to change those.</div>
+      ${GE.inherited ? `<label class="checkrow"><span><input type="checkbox" id="ge-inh" ${GE.keepInherited ? "checked" : ""}> Keep the warning that these notes were copied from ${esc(GE.inherited)} and not re-measured here</span></label>` : ""}
+      <h3>What the simulator found</h3>${textList("findings", "gfind", GE.findings, "Finding")}<div><button class="btn" type="button" data-gadd="findings">Add a finding</button></div>
+      <h3>Notes beside the prices</h3>${[...GUIDE_NOTE_GROUPS, ...(other.length ? [["Other notes", other]] : [])].map(([h, rows]) => `<div class="ge-h">${esc(h)}</div>${rows.map(note).join("")}`).join("")}
+      <h3>Priced by hand</h3>${hand}<div><button class="btn" type="button" data-gadd="handPrices">Add a row</button></div>
+      <h3>Buff points</h3>${textList("buffPoints", "gbp", GE.buffPoints, "Buff point")}<div><button class="btn" type="button" data-gadd="buffPoints">Add a point</button></div>
+      <div class="ge-foot"><button class="btn primary" type="button" id="ge-save">Save guide</button><button class="btn" type="button" id="ge-cancel">Cancel</button></div>
+    </div>`;
+  }
+  $("#guide-edit").addEventListener("click", () => { if (!GE) openGuideEditor(); });
+  $("#guide-body").addEventListener("click", e => {
+    if (!GE || readOnly) return;
+    const add = e.target.closest("[data-gadd]"), del = e.target.closest("[data-gdel]"), mv = e.target.closest("[data-gmove]");
+    if (add || del || mv) {
+      readGuideForm();
+      if (add) GE[add.dataset.gadd].push(add.dataset.gadd === "handPrices" ? ["", "", ""] : "");
+      if (del) { const [list, i] = del.dataset.gdel.split(":"); GE[list].splice(Number(i), 1); }
+      if (mv) { const [list, si, d] = mv.dataset.gmove.split(":"), i = Number(si), j = i + Number(d), L = GE[list]; if (L[j] !== undefined) [L[i], L[j]] = [L[j], L[i]]; }
+      const top = $("#guide-body").scrollTop; renderGuideEditor(); $("#guide-body").scrollTop = top;
+      return;
+    }
+    if (e.target.closest("#ge-cancel")) { GE = null; renderGuide(); return; }
+    if (e.target.closest("#ge-save")) {
+      readGuideForm();
+      const s = sheets.get(GE.sheet), trim = t => String(t || "").trim();
+      const guide = {
+        notes: Object.fromEntries(Object.entries(GE.notes).map(([k, v]) => [k, trim(v)])),
+        handPrices: GE.handPrices.map(r => r.map(trim)).filter(r => r.some(Boolean)),
+        buffPoints: GE.buffPoints.map(trim).filter(Boolean), findings: GE.findings.map(trim).filter(Boolean),
+        inherited: GE.keepInherited && GE.inherited ? GE.inherited : null,
+      };
+      GE = null;
+      if (s) writeSheet(s.id, { guide }).then(() => toast("Guide saved")).catch(() => {});
+      renderGuide();
+    }
+  });
 
   // ---------- simulator engine ----------
   // ENGINE START

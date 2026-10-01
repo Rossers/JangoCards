@@ -1,0 +1,2153 @@
+{
+ "jango": "balance-sheet",
+ "format": 1,
+ "exported": "2026-10-01T06:56:48.063Z",
+ "vocab": 5,
+ "sheet": {
+  "id": "alpha",
+  "name": "Alpha Balance",
+  "order": 1,
+  "about": "The measured formula as of commit cc1585a (Card Picker v37, 2026-09-30): one BP scale for both rows, measured exterior prices, interior buffs priced on the weapon above.",
+  "notes": "",
+  "formula": {
+   "ammoRounds": 7,
+   "ammoWorth": [
+    0,
+    0.25,
+    0.45,
+    0.65,
+    0.8,
+    0.9,
+    0.95,
+    1
+   ],
+   "bigHit": {
+    "above": 6,
+    "rate": 2.5
+   },
+   "blockBehind": 3,
+   "blockFront": 3,
+   "buff": {
+    "activate": 20,
+    "activateFront": 8,
+    "attackAdjacent": 10,
+    "attackAdjacentMult": 20,
+    "attackOne": 5,
+    "doubleOnBehind": 16,
+    "doubleOnFront": 22
+   },
+   "ext": {
+    "atk": 4,
+    "base": 24,
+    "label": "Exterior",
+    "pad": 0,
+    "step": 6
+   },
+   "extraHit": 3,
+   "extraHitExt": 6,
+   "frontHealth": 2,
+   "frontOffset": 8,
+   "int": {
+    "atk": 3,
+    "base": 24,
+    "label": "Interior",
+    "pad": 0,
+    "step": 6
+   },
+   "intBuff": {
+    "aim": 15,
+    "ammoMax": 3,
+    "health": 1,
+    "hull": 0.5,
+    "mult": 20,
+    "multExtra": 15,
+    "repair": 1,
+    "shieldsRound": 2.5
+   },
+   "pierce": 1,
+   "plasma": 1,
+   "radiationInt": 1,
+   "reflectBehind": 2,
+   "reflectFront": 5,
+   "regen": 2,
+   "resistBehind": 5,
+   "resistFront": 12,
+   "resistShields": 8,
+   "restore": 4,
+   "shieldRestore": 2,
+   "ship": {
+    "hull": 20,
+    "maelstrom": 12,
+    "speed": 50
+   },
+   "splash": 3,
+   "thermalInt": 1,
+   "tolerance": 0.1,
+   "typeExt": {
+    "Electric": -2,
+    "Kinetic": 0,
+    "Plasma": 0,
+    "Radiation": -1,
+    "Thermal": 0
+   },
+   "vulnKinetic": -2,
+   "vulnOther": -1
+  },
+  "baseline": {
+   "ammoRounds": 7,
+   "ammoWorth": [
+    0,
+    0.25,
+    0.45,
+    0.65,
+    0.8,
+    0.9,
+    0.95,
+    1
+   ],
+   "bigHit": {
+    "above": 6,
+    "rate": 2.5
+   },
+   "blockBehind": 3,
+   "blockFront": 3,
+   "buff": {
+    "activate": 20,
+    "activateFront": 8,
+    "attackAdjacent": 10,
+    "attackAdjacentMult": 20,
+    "attackOne": 5,
+    "doubleOnBehind": 16,
+    "doubleOnFront": 22
+   },
+   "ext": {
+    "atk": 4,
+    "base": 24,
+    "label": "Exterior",
+    "pad": 0,
+    "step": 6
+   },
+   "extraHit": 3,
+   "extraHitExt": 6,
+   "frontHealth": 2,
+   "frontOffset": 8,
+   "int": {
+    "atk": 3,
+    "base": 24,
+    "label": "Interior",
+    "pad": 0,
+    "step": 6
+   },
+   "intBuff": {
+    "aim": 15,
+    "ammoMax": 3,
+    "health": 1,
+    "hull": 0.5,
+    "mult": 20,
+    "multExtra": 15,
+    "repair": 1,
+    "shieldsRound": 2.5
+   },
+   "pierce": 1,
+   "plasma": 1,
+   "radiationInt": 1,
+   "reflectBehind": 2,
+   "reflectFront": 5,
+   "regen": 2,
+   "resistBehind": 5,
+   "resistFront": 12,
+   "resistShields": 8,
+   "restore": 4,
+   "shieldRestore": 2,
+   "ship": {
+    "hull": 20,
+    "maelstrom": 12,
+    "speed": 50
+   },
+   "splash": 3,
+   "thermalInt": 1,
+   "tolerance": 0.1,
+   "typeExt": {
+    "Electric": -2,
+    "Kinetic": 0,
+    "Plasma": 0,
+    "Radiation": -1,
+    "Thermal": 0
+   },
+   "vulnKinetic": -2,
+   "vulnOther": -1
+  },
+  "guide": {
+   "buffPoints": [
+    "**A buff is worth what it adds to its target.** +1 attack is worth 4 BP per hit it boosts, so on a mult 3 gun it is worth three times as much. Weapons are priced as if unbuffed, and the buff card pays for its leverage; mult weapons are the best targets for per-hit buffs.",
+    "**+1 mult** is worth about 6 × the target's attack + 2 (5 to 31 at Mk I); **double damage** about the target's attack BP when it buffs two weapons, more for one; **an extra activation each round** about 1.5 × the target's attack BP.",
+    "**Placement matters.** A buff that must sit in front of the armor, or that shields its target, dies early and is worth far less. If an effect costs more than the card can afford, give the card a weakness: charges, low health, or a condition.",
+    "Measured at the card's best spot; a player won't always manage that, so prices sit a little under the measured mean."
+   ],
+   "findings": [
+    "**The exterior formula (2026-09-30).** A weapon's worth, measured by swapping one slot in mirrored boards: behind the armor about 4 × attack + 1 × health; in front of it about 4 × attack + 1.9 × health − 7. Health's worth depends on how early the card gets hit: a 24-health wall is worth about 41 in front, 24 right behind the armor, and 10 at the back. Each card is priced for the best place it may stand, so moving the armor around gains nothing.",
+    "Where cards go: sturdy weapons right behind the armor (a 4/16 is worth 38 there, 29 at the back), glass cannons at the back (a 5/4 is worth 22 right behind the armor, 25.5 at the back).",
+    "Buffs favor mult: with +1 attack on every weapon, 1-attack ×3 shapes rise from about 43% to 62% and big single shots fall to about 43%. Weapons are priced unbuffed; buff cards pay for their leverage (Buff prices).",
+    "With Shields {shields}, Armor {armor}, hull {hull} and a 25% support bonus (a stand-in for the interior, since removed), fights ran about 8 rounds with four weapons a side and 7 with six: on target. With no support they run about 9.",
+    "Pricing attack cheaper shortens fights when card shapes stay fixed, because the same budget buys more attack and more health. At {atkExt} BP, fights land on target and balanced, attack-heavy and multi-hit shapes come out even. Cheaper, and attack-heavy shapes pull ahead.",
+    "Put every weapon behind the Armor. A gun in front of the Armor dies before the Armor does and loses its damage early: one Cannon among three Lasers won 80% behind the Armor and 44% in front of it.",
+    "Health-heavy weapons (1 attack to 3 health) lose at every price. The front line already supplies the time, so a weapon's damage matters far more than its health. At Mk I, keep a plain weapon's attack at 4 or more. A tanky weapon needs a defensive effect to earn its slot.",
+    "Under the old row phases the ship that acts first wins 85% to 90% of even fights. Alternating card by card, faster ship first, cuts that to about 55%.",
+    "Weapons with 1 or 2 attack lose to nearly everything at every exchange rate tested: every ship's large front line makes health cheap and damage precious.",
+    "A ship whose exterior row is gone has no guns, so hull only buys time. It matters against boarders, Pierce, hull hitters and the Maelstrom.",
+    "**The interior (2026-09-30).** Prices assume the reference enemy (DESIGN 6.8.2): an interior of two support cards and one defender, and boarders in half of all fights (30% one, 20% two).",
+    "**Boarding is about numbers, not stats.** The defender acts first on its own ship, so equal crews stall: one boarder against one defender is worth about 0 at every crew size tested. Two or three boarding cards against the reference interior are worth 9–15; against an empty interior, a 4-attack boarder or two boarders are worth about 60. Boarders that beat the defense go on to the hull.",
+    "**Interior defense matters only against two or more boarders:** a defender is worth 2–7 against one boarder and 10–58 against two. Walls and defenders are about equal.",
+    "**Always-on buffs end with their card** (DESIGN 7.3.4), so boarders that kill support cards take their buffs away; one slow boarder rarely gets there before the buffed weapon dies anyway.",
+    "**Measure with reference weapons, not plate health.** A plain plate's health behind the armor is worth less than 1 BP a point and breaks against aim effects and boarders, so prices measured in plate health run about 25% high (the exterior buff table was measured that way). Raw win rates on mirrored boards saturate: one extra 12 BP plate wins 99%."
+   ],
+   "handPrices": [
+    [
+     "Taunt, Guard",
+     "Effect BP",
+     "Depend on where the card sits; see Defensive keywords"
+    ],
+    [
+     "Speed",
+     "0.5 a point {guess}",
+     "Initiative is worth about 12 BP of board; a point's worth depends on how often it flips initiative"
+    ],
+    [
+     "Charges",
+     "effect × charges",
+     "Price a limited effect per use"
+    ],
+    [
+     "Per-round effect",
+     "value × 6",
+     "× 3 on front-line cards, which die sooner"
+    ],
+    [
+     "Once per fight",
+     "value × 1",
+     "Fight Start × 1.25, On Death × 0.75"
+    ],
+    [
+     "On Attacked, React",
+     "value × hits taken",
+     "About 3 for front cards, 1 behind armor"
+    ],
+    [
+     "Conditional (if, while)",
+     "× 0.5 to 0.75",
+     ""
+    ],
+    [
+     "Permanent growth",
+     "start near 70% of budget",
+     "Breaks even after about two fights; up to about 4 BP of growth a fight at Mk I"
+    ],
+    [
+     "Economy",
+     "gives up about half its budget",
+     "Should earn about its price back each cycle {guess}"
+    ]
+   ],
+   "notes": {
+    "ammo": "Measured on four weapon shapes, all within a few points of this table: the first volleys land while it matters most. The interior keeps attack × N ÷ {ammoRounds} until it is measured",
+    "armor": "**Armor** at Mk I is {armor} health with no effect. It has **Vulnerable (Plasma)**, worth about {vulnOther} BP because Plasma is rarer than Kinetic (assuming about 15% of weapons are Plasma).",
+    "attackExt": "Measured: 2/8 worth 14, 4/8 worth 24, 6/8 worth 31",
+    "attackInt": "A chosen scale, not a measured one: crew only fight boarders, and those fights are thresholds (the defender acts first, so equal crews stall), so a point of crew attack or health is worth almost nothing at the margin. At this scale a plain Mk I crew card is about 4/12",
+    "bigHit": "More of a big hit is wasted to overkill: worth per point measured 3.9 at 6 per hit, 3.3 at 12, 3.1 at 16",
+    "block": "Stops an attack outright; about 3 health each, in front or behind",
+    "buffIntro": "Measured in the simulator (Mk I, exterior rows, 2026-09-30): what a buff is worth in health BP, next to 24 BP weapons of every shape. The card editor prices these effects on its own, by the card's placement; everything else goes in Effect BP.",
+    "buffOther": "Other buffs measured the same way: +1 attack to all your weapons about 30 (5 a weapon). A full interior of six +1 mult cards shortens mirrored fights from about 13 rounds to 7.",
+    "extraHitExt": "An extra hit is worth more the harder it hits: 1×3 measured 16 in attack, 3×2 measured 31. It evens out ×1, ×2 and ×3 shapes (51, 49, 47% in random mixes)",
+    "extraHitInt": "Kept from the older rule: crew fights are thresholds (Attack and health, interior)",
+    "frontHealth": "A card that must sit in front of the armor, or an exterior Defense card with no attack. Health there is hit first and buys the most time: a 24-health wall is worth about 41. Replaces the old +6 budget for front-only weapons",
+    "health": "Behind the armor. Measured: 1 a point on average, more right behind the armor, almost nothing at the back",
+    "hull": "Measured: +2 and +3 hull worth about 1, +10 about 2. In exterior fights hull only buys time, and against boarders more hull barely helps either",
+    "intBuffIntro": "**Interior buffs on the weapon above** (measured 2026-09-30 against reference weapons, Mk I, on a 24 BP weapon right behind the Armor and at the back). An interior card's only adjacent weapon is the one above it, so \"adjacent\" effects on an interior card are priced as one weapon. They are worth about what the same buff is worth beside an exterior weapon, so the two tables agree.",
+    "m.activate": "19–34 behind the armor (about 1.5 × the target's attack BP); 4–10 in front, where its target is exposed too",
+    "m.attackAdjacent": "8–10 next to single-hit weapons, 21–33 next to multi-hit ones",
+    "m.attackAdjacentMult": "21–33",
+    "m.attackOne": "4 per point per hit; about 5 on multi-hit targets, which waste less damage",
+    "m.doubleOnBehind": "17–24: the card shields its target but dies sooner, and the buff ends with it",
+    "m.doubleOnFront": "23–34: the card sits safe behind its target",
+    "maxHealth": "Same as health",
+    "mi.activate": "13–22",
+    "mi.aim": "13–18",
+    "mi.ammoMax": "0–4",
+    "mi.attack": "2–5 on single hits, 10–20 on a 1×3",
+    "mi.double": "11–17",
+    "mi.healthRepair": "+3 health 2–4; repair 2 a round 1–3",
+    "mi.hull": "+2 or +3: 1; +10: 2",
+    "mi.mult": "+1: 16–23 (13 in front of the Armor, 10 on a 2×2, 4–9 on a 1×3); +2: 30–44",
+    "mi.resistPierce": "Resist 1: 2–6; Pierce: about 0",
+    "mi.shieldsRound": "+2 a round: 5",
+    "pierce": "Measured about 0: it hits the card under its target, and for the first rounds that is under the Shields, the front card and the Armor. By the time it reaches a support card under a weapon, the weapon is dying anyway. Pierce needs a new job before it is worth more",
+    "plasmaInt": "Kept from the older rule: crew fights are thresholds (Attack and health, interior)",
+    "reflect": "Reflect 1 on the Armor was worth about 4.5 health; Reflect 2 about 13, because it kills small multi-hit weapons",
+    "regen": "Repairs or heals N each time it activates while alive; never brings a destroyed card back. Read from the effect text",
+    "resist": "Every instance of damage is N lower. Measured: 10–16 a point on a front wall, 7–10 on a front weapon, about 8 on the Armor, 4–6 behind the armor. Resist 2 is worth more than twice Resist 1, and more against multi-hit, low-attack enemies",
+    "restore": "After a round with no damage, restores N each time it activates, even from 0 on a card that goes down rather than being destroyed. Every Shields card has Restore 1 per mark",
+    "shields": "Restore 1 is worth about {restore} BP: at equal points, a restoring Shields card beats a non-restoring one 70% of the time, restoring 3 to 4 times a fight, and each restored point swallows a whole attack. **Vulnerable (Kinetic)** costs about {vulnK}. Net, a plain Shields card is {shields} shield points.",
+    "splash": "Not measured yet",
+    "thermalInt": "Fire burns inside only; radiation reaches Biological crew",
+    "typeExt": "Against Kinetic, whose +1 against Shields is already in the attack rate. Plasma's bonus against armor and hull only matches it; Radiation needs Biological targets; each Electric hit on a surviving Shields card gives it a shield point back",
+    "vuln": "A printed weakness; read from the card text"
+   }
+  }
+ },
+ "cards": {
+  "D01": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Cannon",
+   "notes": "",
+   "order": 0,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D02": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Thermal"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Laser",
+   "notes": "",
+   "order": 1,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "UMULY6849": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Thermal"
+    }
+   ],
+   "bpAdj": 4,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "After Attack: Gain +1 thermal.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "source": "value",
+     "stat": "Thermal",
+     "target": "self",
+     "trigger": "after_attack"
+    }
+   ],
+   "flavor": "Mining is sturdy, beams ramp up damage over time.",
+   "from": "",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Mining Beam",
+   "notes": "",
+   "order": 1.5,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D04": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 4,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 2,
+   "name": "Twin Cannon",
+   "notes": "",
+   "order": 3,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D05": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 3,
+   "name": "Tri Gun",
+   "notes": "",
+   "order": 4,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D06": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 2,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Vulnerable (Kinetic). Restore 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Vulnerable",
+     "target": "self",
+     "trigger": "",
+     "type": "Kinetic"
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "keyword": "Restore",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 20,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Stock Shield",
+   "notes": "The starter ship's shields.",
+   "order": 5,
+   "parked": false,
+   "pick": false,
+   "place": "Shields slot",
+   "public": true,
+   "recipes": [
+    "starting_item"
+   ],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Shields"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D07": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Vulnerable (Plasma).",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Vulnerable",
+     "target": "self",
+     "trigger": "",
+     "type": "Plasma"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 25,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Stock Armor",
+   "notes": "The starter ship's armor.",
+   "order": 6,
+   "parked": false,
+   "pick": false,
+   "place": "Armor slot",
+   "public": true,
+   "recipes": [
+    "starting_item"
+   ],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Armor"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D08": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 4,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Fight Start: Your ship gains +8 hull.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_hull",
+     "amount": 8,
+     "target": "ship",
+     "trigger": "fight_start"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 14,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Core Plating",
+   "notes": "",
+   "order": 7,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial",
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D10": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "On Activate: Activate the weapon behind this.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "activate",
+     "target": "behind_weapon",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Gunport",
+   "notes": "",
+   "order": 9,
+   "parked": false,
+   "pick": false,
+   "place": "Front",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "System"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D12": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": true,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 16,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "Fight Start: Gain attack equal to the number of your weapons. Adjacent weapons gain +1 attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "source": "weapons",
+     "stat": "attack",
+     "target": "self",
+     "trigger": "fight_start"
+    },
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "source": "value",
+     "stat": "attack",
+     "target": "adjacent_weapons",
+     "trigger": "fight_start"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Aggro Array",
+   "notes": "",
+   "order": 11,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Tag payoff",
+   "row": "Exterior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "X01": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Thermal"
+    }
+   ],
+   "bpAdj": 0,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "Resist 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 1,
+     "keyword": "Resist",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Sturdy and slow, built to crack rock and deflect debris.",
+   "from": "",
+   "gearSlots": null,
+   "health": 11,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Mining Laser",
+   "notes": "",
+   "order": 13,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "X02": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 3,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "Fight Start: Activate this card.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "activate",
+     "target": "self",
+     "trigger": "fight_start"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 11,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 2,
+   "name": "Autocannon",
+   "notes": "",
+   "order": 14,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "X08": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Plasma"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 3,
+   "name": "Rotary Blaster",
+   "notes": "Blasters are Plasma throughout this list.",
+   "order": 20,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "trade"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "X29": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Bulwark Plating",
+   "notes": "",
+   "order": 41,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "X35": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 12,
+   "bucket": "exterior",
+   "charges": 2,
+   "check": "",
+   "effect": "On Attacked: Spend a charge: block the attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "block_attack",
+     "cost": "charge",
+     "costCount": 1,
+     "target": "attack",
+     "trigger": "on_attacked"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 10,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Ablative Tiles",
+   "notes": "",
+   "order": 47,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "research"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "X51": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Adjacent weapons with mult 2 or more gain +1 attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "source": "value",
+     "stat": "attack",
+     "target": "adjacent_multi_weapons",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 4,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Recoil Damper",
+   "notes": "",
+   "order": 63,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "System"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D14": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Trooper",
+   "notes": "",
+   "order": 122,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [
+    "military"
+   ],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D15": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 6,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 6,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Thug",
+   "notes": "",
+   "order": 123,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Crew",
+    "Biological",
+    "Melee"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D16": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 8,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 1,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Sniper",
+   "notes": "",
+   "order": 124,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D17": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 4,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Attack the backmost enemy card.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "retarget",
+     "aim": "backmost",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Assassin",
+   "notes": "",
+   "order": 125,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Crew",
+    "Biological",
+    "Melee"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "D18": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 24,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Bulkhead",
+   "notes": "",
+   "order": 126,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D20": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 4,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "On Activate: Board the nearest crew behind this.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "board",
+     "target": "nearest_crew_behind",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 20,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Teleporter",
+   "notes": "",
+   "order": 128,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "gdd",
+   "tags": [
+    "Boarding"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "I03": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 9,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 2,
+   "name": "Gunslinger",
+   "notes": "",
+   "order": 137,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "I08": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 24,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Riot Guard",
+   "notes": "A wall that can wear gear.",
+   "order": 142,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I12": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 4,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Guard.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Guard",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 14,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Bodyguard",
+   "notes": "",
+   "order": 146,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I20": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 4,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Fight Start: Board the enemy ship.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "board",
+     "target": "self",
+     "trigger": "fight_start"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": 0,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Xeno Hound",
+   "notes": "",
+   "order": 154,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Crew",
+    "Biological",
+    "Creature",
+    "Melee"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "I23": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Resist 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Resist",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 14,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Blast Door",
+   "notes": "",
+   "order": 157,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I35": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 4,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Adjacent crew gain +2 attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 2,
+     "source": "value",
+     "stat": "attack",
+     "target": "adjacent_crew",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Drill Sergeant",
+   "notes": "",
+   "order": 169,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [
+    "military"
+   ],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I42": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 0,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "The weapon above this attacks the enemy card with the lowest health.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "retarget",
+     "aim": "lowest_health",
+     "target": "above_weapon",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 9,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Spotter",
+   "notes": "",
+   "order": 176,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "brainstorm",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I93": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Electric"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Arc Welder",
+   "notes": "Electric crew: charges the card it hits, then one beside it.",
+   "order": 227,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "new",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I94": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Radiation"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 11,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Rad Trooper",
+   "notes": "Radiation crew: strong against Biological boarders.",
+   "order": 228,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [
+    "military"
+   ],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "new",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I95": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Thermal"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 11,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Flamer Crew",
+   "notes": "Thermal crew: sets interior cards on fire.",
+   "order": 229,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "new",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  }
+ },
+ "boards": [
+  {
+   "id": "b1",
+   "name": "Build 1",
+   "order": 1,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "D08",
+      "mark": 1
+     },
+     {
+      "id": "D10",
+      "mark": 1
+     },
+     {
+      "id": "D01",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "X01",
+      "mark": 1
+     },
+     {
+      "id": "D12",
+      "mark": 1
+     },
+     {
+      "id": "UMULY6849",
+      "mark": 1
+     }
+    ],
+    "int": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "armor": "D07",
+    "armorMark": 1,
+    "armorPos": 3,
+    "shields": "D06",
+    "shieldsMark": 1,
+    "slots": [
+     {
+      "id": "D08",
+      "mark": 1
+     },
+     {
+      "id": "D10",
+      "mark": 1
+     },
+     {
+      "id": "D01",
+      "mark": 1
+     },
+     {
+      "id": "X01",
+      "mark": 1
+     },
+     {
+      "id": "D12",
+      "mark": 1
+     },
+     {
+      "id": "UMULY6849",
+      "mark": 1
+     }
+    ],
+    "speed": 50
+   }
+  },
+  {
+   "id": "b2",
+   "name": "Build 2",
+   "order": 2,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "X01",
+      "mark": 1
+     },
+     {
+      "id": "D01",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "X02",
+      "mark": 1
+     },
+     {
+      "id": "D04",
+      "mark": 1
+     },
+     {
+      "id": "D12",
+      "mark": 1
+     },
+     {
+      "id": "D05",
+      "mark": 1
+     }
+    ],
+    "int": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "armor": "D07",
+    "armorMark": 1,
+    "armorPos": 2,
+    "shields": "D06",
+    "shieldsMark": 1,
+    "slots": [
+     {
+      "id": "X01",
+      "mark": 1
+     },
+     {
+      "id": "D01",
+      "mark": 1
+     },
+     {
+      "id": "X02",
+      "mark": 1
+     },
+     {
+      "id": "D04",
+      "mark": 1
+     },
+     {
+      "id": "D12",
+      "mark": 1
+     },
+     {
+      "id": "D05",
+      "mark": 1
+     }
+    ],
+    "speed": 50
+   }
+  },
+  {
+   "id": "bmunn6zu8",
+   "name": "My First Test Board",
+   "order": 1790744759792,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "X35",
+      "mark": 1
+     },
+     {
+      "id": "X29",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "D05",
+      "mark": 1
+     },
+     {
+      "id": "X51",
+      "mark": 1
+     },
+     {
+      "id": "X08",
+      "mark": 1
+     },
+     {
+      "id": "UMULY6849",
+      "mark": 1
+     }
+    ],
+    "int": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   }
+  }
+ ]
+}
