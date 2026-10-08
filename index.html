@@ -456,6 +456,11 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .bp-parts tr.tot td { font-weight: 600; border-bottom: 0; }
 .bp-un, .bp-live .fx-err { flex-basis: 100%; font-family: var(--body); font-size: 13px; }
 .bp-un ul { margin: 4px 0 0; padding-left: 18px; }
+/* design notes: one per formula row and per section of the Sheet panel */
+textarea.dnote-f { display: block; width: 100%; box-sizing: border-box; margin: 2px 0 0; padding: 3px 4px; border: 0; border-bottom: 1px dashed var(--rule); border-radius: 0; background: transparent; color: var(--ink); font: 13px/1.5 var(--body); resize: none; overflow: hidden; min-height: 26px; }
+textarea.dnote-f:focus { outline: none; border-bottom-color: var(--accent); background: var(--paper); }
+textarea.dnote-f::placeholder { color: var(--faint); font-style: italic; }
+.dnote { font-size: 13px; color: var(--muted); border-left: 2px solid var(--accent-soft); padding-left: 8px; margin: 4px 0; }
 </style>
 
 <header class="tally">
@@ -2280,8 +2285,20 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   function fxRowHtml(r, was, ro) {
     const cur = FORMULA.rows[r.id] || {}, b = (was.rows || {})[r.id] || {};
     return `<div class="frm-row" id="frm-${r.id}"><div class="frm-head"><b>${esc(r.label)}</b><code>${r.id}</code>${r.factor ? `<span class="hint">a factor</span>` : ""}<span class="hint">${esc(r.what)}</span></div>
-      ${(r.tiers ? ["base", "dumb", "smart"] : ["base"]).map(t => fxFieldHtml(r.id, t, cur[t], b[t], ro)).join("")}</div>`;
+      ${(r.tiers ? ["base", "dumb", "smart"] : ["base"]).map(t => fxFieldHtml(r.id, t, cur[t], b[t], ro)).join("")}${noteBox(r.id, r.label, ro, "why this price?")}</div>`;
   }
+  // Design notes: one per formula row (keyed by row id) and one per section of the Sheet panel. They are the sheet's guide
+  // notes, so the Guide shows them and its editor edits them too, and they go out with the sheet's export.
+  const secKey = name => "sec." + String(name).toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-+|-+$/g, "");
+  const NOTE_SECTIONS = ["Budget", ...FGROUPS, "Targeting styles", "Ship and fight"].map(n => [secKey(n), n]);
+  const sheetNotes = s => s && isObj(s.guide) && isObj(s.guide.notes) ? s.guide.notes : GUIDE_SEED.notes;
+  const noteMd = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+  function noteBox(key, label, ro, ask) {
+    const v = String(sheetNotes(activeSheet())[key] || "");
+    if (ro) return v ? `<p class="dnote">${noteMd(v)}</p>` : "";
+    return `<textarea class="dnote-f" data-dnote="${esc(key)}" rows="1" aria-label="Design notes: ${esc(label)}" placeholder="Design notes (optional): ${esc(ask)}">${esc(v)}</textarea>`;
+  }
+  const fitNote = el => { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; };
   // How formulas work: for the Sheet panel and the Guide
   function fxGuideHtml() {
     return `<p>Each price is a <b>formula</b> for the total BP, written with numbers, variables, <code>+ - * /</code> and parentheses. A plain number is a flat price; a price per point is written <code>4*N</code>. A card's parts are added at full precision and its total is rounded once, half up.</p>
@@ -2312,11 +2329,11 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const num = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" inputmode="decimal" data-fpath="${p}" value="${esc(v)}" ${dis}></label>`; };
     const groups = `<details class="fx-help"><summary>How formulas work</summary>${fxGuideHtml()}</details>
       ${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}
-      <div class="fgroup"><h4>Budget</h4>${num("budget.B", "B: the Mk I budget")}${num("budget.p", "p: more per floor step (0.125 is 12.5%)")}${num("budget.tolerance", "On budget within (0.1 is ±10%)")}
+      <div class="fgroup"><h4>Budget</h4>${noteBox(secKey("Budget"), "Budget", ro, "the thinking behind the budget")}${num("budget.B", "B: the Mk I budget")}${num("budget.p", "p: more per floor step (0.125 is 12.5%)")}${num("budget.tolerance", "On budget within (0.1 is ±10%)")}
         <p class="hint">budget = mark × B × (1 + p × floor steps). At each card's lowest mark: ${MARKS.map((m, i) => `Mk ${m}+ ${budgetAt("ext", i + 1, i + 1)}`).join(", ")}.</p></div>
-      ${FGROUPS.map((h, gi) => `<div class="fgroup"><h4>${esc(h)}</h4>${FROWS.filter(r => r.g === gi).map(r => fxRowHtml(r, was, ro)).join("")}</div>`).join("")}
-      <div class="fgroup"><h4>Targeting styles</h4><p class="hint">A targeted effect costs its tier's formula × its style × its trigger (After Attack: × X).</p>${FSTYLES.map(st => num("styles." + st.k, `${st.label}: ${esc(st.text)}`)).join("")}</div>
-      <div class="fgroup"><h4>Ship and fight</h4>${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}</div>`;
+      ${FGROUPS.map((h, gi) => `<div class="fgroup"><h4>${esc(h)}</h4>${noteBox(secKey(h), h, ro, "the thinking behind this section")}${FROWS.filter(r => r.g === gi).map(r => fxRowHtml(r, was, ro)).join("")}</div>`).join("")}
+      <div class="fgroup"><h4>Targeting styles</h4>${noteBox(secKey("Targeting styles"), "Targeting styles", ro, "the thinking behind these multipliers")}<p class="hint">A targeted effect costs its tier's formula × its style × its trigger (After Attack: × X).</p>${FSTYLES.map(st => num("styles." + st.k, `${st.label}: ${esc(st.text)}`)).join("")}</div>
+      <div class="fgroup"><h4>Ship and fight</h4>${noteBox(secKey("Ship and fight"), "Ship and fight", ro, "the thinking behind these numbers")}${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}</div>`;
     const stale = !sameFormula(s.formula, s.baseline || s.formula);
     const plan = SH.plan;
     const planHtml = plan ? (plan.length ? `<p class="muted">${plan.length} card${plan.length === 1 ? "" : "s"} will be unapproved${plan.some(x => x.r.check) ? `; ${plan.filter(x => x.r.check).length} will also be marked for a check` : ""}. Effects are priced first, by the formulas; attack and health share the rest in each card's current ratio. Mult, ammo, charges, effect amounts and Effect BP stay as they are.</p>
@@ -2354,7 +2371,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         ${plan ? planHtml : `<div class="fab-row"><button class="btn ${stale ? "primary" : ""}" type="button" id="sh-plan">Preview Auto Apply</button></div>`}</fieldset>`}
       ${exportHtml}
       <fieldset><legend>Formula</legend>
-        <p class="muted" style="margin:0 0 8px">What everything costs on this sheet, in BP. A highlighted row differs from what the cards were balanced to. Save, then run Auto Apply.</p>
+        <p class="muted" style="margin:0 0 8px">What everything costs on this sheet, in BP. A highlighted row differs from what the cards were balanced to. Save, then run Auto Apply. ${readOnly ? "" : "Design notes save as soon as you leave them, and show in the Guide."}</p>
         ${groups}
         ${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn primary" type="button" id="sh-save-formula">Save formula</button><button class="btn" type="button" id="sh-revert" ${stale ? "" : "disabled"}>Back to the balanced formula</button></div>`}</fieldset>
       ${readOnly && !publicMode ? "" : `<fieldset><legend>Sheets</legend>${publicMode ? `<p class="muted" style="margin:0 0 8px">Make a sheet of your own to change cards, the formula and the guide, and to add new cards. It's kept in this browser; export it to keep a copy or to share it.</p>` : ""}<div class="fgrid">
@@ -2363,6 +2380,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         <div class="checkrow" style="margin-top:6px"><label><input type="checkbox" id="sh-newboards" checked> Copy its ${boards} saved board${boards === 1 ? "" : "s"} too</label></div>
         <p class="muted" id="sh-start-note">The copy starts with this sheet's formula, guide notes and every card's numbers. Change its formula, then run Auto Apply.</p>
         <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}`;
+    body.querySelectorAll("[data-dnote]").forEach(fitNote);
   }
   // The formula as typed in the panel, or null (with a message) when a field isn't right
   function readFormulaForm() {
@@ -2436,6 +2454,15 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       const fd = t.closest(".ffield"), g = t.closest(".ffgrid");
       g.querySelector(".fg-tab").innerHTML = fxGridTable(fd.querySelector(".ffin").value, fd.dataset.row, draftRows(), gridVals(g));
     }
+  });
+  $("#sh-body").addEventListener("input", e => { if (e.target.dataset && e.target.dataset.dnote !== undefined) fitNote(e.target); });
+  $("#sh-body").addEventListener("change", e => {
+    const t = e.target; if (!(t.dataset && t.dataset.dnote !== undefined) || readOnly) return;
+    const s = activeSheet(); if (!s) return;
+    const v = t.value.trim(), had = isObj(s.guide) && isObj(s.guide.notes);
+    // A sheet without notes of its own was showing the built-in ones: keep them when it gets its first note
+    writeSheet(s.id, { guide: { notes: { ...(had ? {} : clone(GUIDE_SEED.notes)), [t.dataset.dnote]: v } } }).then(() => toast(v ? "Note saved" : "Note cleared")).catch(() => {});
+    renderGuide();
   });
   // A grid fills in when it opens (toggle doesn't bubble, so listen while capturing)
   $("#sh-body").addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("ffgrid") && e.target.open) ffRefresh(e.target.closest(".ffield")); }, true);
@@ -2596,12 +2623,13 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const g = t => esc(t || "").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\{(\w+)\}/g, (m, k) => k in V ? V[k] : m).replace(/\n/g, "<br>");
     const n = k => g(N[k]);
     const note = r => N[r.id] ? g(N[r.id]) : LEGACY_NOTE[r.id] && N[LEGACY_NOTE[r.id]] ? g(N[LEGACY_NOTE[r.id]]) : "";
+    const sn = name => N[secKey(name)] ? `<p class="dnote">${g(N[secKey(name)])}</p>` : "";
     const price = (item, bp, nt = "") => `<tr><td>${item}</td><td>${bp}</td><td>${nt}</td></tr>`;
     const fcode = src => `<span class="fx-code">${fxPills(src, false)}</span>`;
     const rowTable = gi => `<table class="gtable"><tr><th>Price</th><th>Formula</th><th>Examples</th></tr>${FROWS.filter(r => r.g === gi).map(r => {
       const X = FORMULA.rows[r.id] || {};
       const fs = ["base", "dumb", "smart"].filter(t => t === "base" || String(X[t] || "").trim()).map(t => `<div data-row="${r.id}" data-tier="${t}">${t === "base" ? "" : `<span class="hint">${t}:</span> `}${fcode(X[t])}<details class="ffgrid"><summary>Grid</summary><div class="ffgrid-body"></div></details></div>`).join("");
-      return `<tr><td><b>${esc(r.label)}</b><div class="hint">${esc(r.what)}${note(r) ? ". " + note(r) : ""}</div></td><td>${fs}</td><td class="hint">${fxHint(X.base, r.id, FORMULA.rows)}</td></tr>`;
+      return `<tr><td><b>${esc(r.label)}</b><div class="hint">${esc(r.what)}</div>${note(r) ? `<div class="dnote">${note(r)}</div>` : ""}</td><td>${fs}</td><td class="hint">${fxHint(X.base, r.id, FORMULA.rows)}</td></tr>`;
     }).join("")}</table>`;
     const lex = [
       ["Blaster, Plasma ___", "Plasma damage"], ["Laser, Beam, Flame", "Thermal damage"], ["Ion, Arc, Tesla, Shock, Storm", "Electric damage"],
@@ -2620,7 +2648,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const R0 = FORMULA.rows, f0 = id => fcode((R0[id] || {}).base);
     $("#guide-body").innerHTML = `${head}
       <p>Every card has a budget in <b>budget points (BP)</b>, and everything on it costs BP by this sheet's formulas. A card is priced at its lowest mark: its parts are added at full precision and the total is rounded once, half up. The BP chip on each card compares it with its budget: green within ±${tol}%, teal under, orange over. The design behind every formula is in docs/BALANCE.md.</p>
-      <h3>Budget</h3>
+      <h3>Budget</h3>${sn("Budget")}
       <div class="formula">budget = mark × B × (1 + p × floor steps)</div>
       <p>B = ${BB.B}, p = ${round2(BB.p * 100)}%. Floor steps is how far a card's lowest mark sits above Mk I, and the extra is permanent: a fresh Mk III+ card (${budgetAt("ext", 3, 3)}) beats a Mk I+ card raised to Mk III (${budgetAt("ext", 1, 3)}), so spend the extra on effects more than raw numbers. Interior and exterior cards share one budget and one set of prices.</p>
       ${btable}
@@ -2632,9 +2660,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       </ul>
       <h3>How formulas work</h3>
       ${fxGuideHtml()}
-      <h3>Targeting styles</h3>
+      <h3>Targeting styles</h3>${sn("Targeting styles")}
       <table class="gtable"><tr><th>Style</th><th>Reaches</th><th class="n">×</th></tr>${FSTYLES.map(st => `<tr><td>${st.label}</td><td>${esc(st.text)}</td><td class="n">${FORMULA.styles[st.k] ?? st.seed}</td></tr>`).join("")}</table>
-      ${FGROUPS.map((h, gi) => `<h3>${esc(h)}</h3>${rowTable(gi)}`).join("")}
+      <h3>Ship and fight</h3>${sn("Ship and fight")}<p>Hull ${FORMULA.ship.hull}, speed ${FORMULA.ship.speed}, the Maelstrom from round ${FORMULA.ship.maelstrom}.</p>
+      ${FGROUPS.map((h, gi) => `<h3>${esc(h)}</h3>${sn(h)}${rowTable(gi)}`).join("")}
       ${(G.handPrices || []).length ? `<h3>Priced by hand</h3><table class="gtable"><tr><th>Item</th><th>BP</th><th>Note</th></tr>${G.handPrices.map(([a, b, c]) => price(g(a), g(b), g(c))).join("")}</table>` : ""}
       ${(G.buffPoints || []).length ? `<h3>Pricing principles</h3><ul>${G.buffPoints.map(t => `<li>${g(t)}</li>`).join("")}</ul>` : ""}
       <p>Effects no formula covers go in the card's <b>Effect BP</b> (negative for drawbacks); the editor lists them under the card's price. <b>Fill health to budget</b> sets health so the card lands on budget.</p>
@@ -2704,6 +2733,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   let GE = null;
   const GUIDE_NOTE_GROUPS = [
     ["Shields and Armor", [["armor", "Armor"], ["shields", "Shields"]]],
+    ["Sections", NOTE_SECTIONS],
     ...FGROUPS.map((h, gi) => [h, FROWS.filter(r => r.g === gi).map(r => [r.id, r.label])]),
   ];
   function openGuideEditor() {
