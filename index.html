@@ -405,6 +405,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .slot.dead { opacity: .4; }
 .slot.dead .mn { text-decoration: line-through; }
 .slot .fin { font-size: 10.5px; color: var(--muted); padding: 0 7px 5px; }
+.slot .ord { position: absolute; top: 4px; right: 4px; min-width: 16px; padding: 0 4px; border-radius: 999px; background: var(--sunk); color: var(--muted); font: 600 10.5px/16px var(--mono); text-align: center; }
+.slot.active .ord { background: var(--accent); color: var(--surface); }
+.slot.has-ord .mini .mn { padding-right: 22px; }
+.ord-note { font-size: 12.5px; margin: 0; }
 .flash { animation: flash .7s ease-out; border-radius: 3px; }
 @keyframes flash { 0% { background: var(--accent); color: #fff; box-shadow: 0 0 0 3px var(--accent); } 100% { background: transparent; box-shadow: 0 0 0 0 transparent; } }
 .log .now { background: var(--accent-soft); }
@@ -3063,6 +3067,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const fire = (c, trigger, depth = 0, ctx = null) => (c.effects || []).reduce((h, e) => (e.trigger === trigger ? runFx(e, c, depth, ctx) : false) || h, false);
     const first = o.aFirst ? 0 : 1;
     const log = o.log || o.trace ? [] : null, trace = o.trace ? [] : null;
+    const turns = o.trace ? [] : null; // every card's turn, in order, idle ones included: { round, uid, at }
     let round = 0, winner = null, actor = null;
     let sequence = new Set(); // "source>target" pairs: which card's effects activated which card since this resolution sequence began
     const roundBuffs = []; // "this round" gains, removed at the end of the round
@@ -3209,14 +3214,17 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     }
     // Walks the activation order once, calling fn on each card at most once, where it stands when the order reaches it.
     // Lists are read live, so a crew card that boards mid-round is found in its new column if that battlefield is still to come.
-    function runOrder(fn) {
+    // record: note each card's turn as it starts (the activation pass, for playback's order numbers)
+    function runOrder(fn, record = false) {
       const done = new Set();
       const next = L => L.find(x => x && !done.has(x) && (x.hp > 0 || x.kind === "S")); // a down Shields card still activates
       const alternate = (a, b) => {
         for (let turn = 0; winner === null; turn = 1 - turn) {
           let x = next(turn ? b() : a());
           if (!x) { turn = 1 - turn; x = next(turn ? b() : a()); if (!x) return; }
-          done.add(x); sequence = new Set(); actor = x; fn(x); actor = null; // each card in the order starts a new resolution sequence
+          done.add(x); sequence = new Set(); actor = x;
+          if (record && turns) turns.push({ round, uid: x.uid, at: trace.length }); // at: the trace step its turn starts at
+          fn(x); actor = null; // each card in the order starts a new resolution sequence
         }
       };
       const F = S[first], W = S[1 - first];
@@ -3232,7 +3240,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     runOrder(c => { if (alive(c)) fire(c, "fight_start"); });
     while (winner === null && round < 60) {
       round++;
-      runOrder(c => activate(c));
+      runOrder(c => activate(c), true);
       if (winner !== null) break;
       runOrder(c => { if (alive(c)) fire(c, "end_of_round"); });
       roundBuffs.splice(0).forEach(b => { const a = b.t.atk.find(x => x.type === b.type); if (a) a.amt = Math.max(0, a.amt - b.n); });
@@ -3249,7 +3257,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (winner === null) winner = -1;
     const stat = c => ({ uid: c.uid, id: c.id, name: c.name, kind: c.kind, homeZone: c.homeZone, homeIdx: c.homeIdx, zone: c.zone, hp: c.hp, max: c.max,
       alive: c.hp > 0 || c.kind === "S", dealt: c.dealt, overkill: c.overkill, hullDmg: c.hullDmg, kills: c.kills, taken: c.taken, died: c.diedIn, pierced: c.pierced, boarded: c.boarded });
-    return { winner, rounds: round, first, hull: S.map(s => s.hull), cards: S.map(s => s.all.map(stat)), log, trace };
+    return { winner, rounds: round, first, hull: S.map(s => s.hull), cards: S.map(s => s.all.map(stat)), log, trace, turns };
   }
   // ENGINE END
 
@@ -3856,7 +3864,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const ms = Number(SIM.fight.speed) || 450;
     play.timer = setTimeout(() => { play.k++; renderStage(); schedule(); }, ms);
   }
-  function stageShip(side) {
+  function stageShip(side, ord = new Map()) {
     const P = play, r = P.r, step = r.trace[P.k], prev = P.k > 0 ? r.trace[P.k - 1].state : null, st = step.state, rows = st.rows[side];
     const spec = side ? P.B : P.A, byUid = {}, other = side ? P.A : P.B, end = P.k >= r.trace.length - 1 && !P.playing;
     [["A", P.A], ["B", P.B]].forEach(([lab, sp]) => ["ext", "int"].forEach(z => sp[z].forEach((x, i) => { if (x) byUid[lab + (z === "ext" ? "e" : "i") + i] = x; })));
@@ -3866,7 +3874,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       const x = byUid[uid], s = st.cards[uid], p = prev && prev.cards[uid], dead = s.hp <= 0 && x.kind !== "S";
       const f2 = fin[uid];
       const extra = f2 ? `<div class="fin">${dead ? "Destroyed" : x.kind === "S" && s.hp <= 0 ? "Down" : "Alive"} · dealt ${f2.dealt} · took ${f2.taken}</div>` : "";
-      return `<div class="slot filled${step.active === uid ? " active" : ""}${dead ? " dead" : ""}">${mini(x, s, p, (x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "") + (uid[0] !== (side ? "B" : "A") ? " foe" : ""))}${extra}</div>`;
+      const o = ord.get(uid);
+      return `<div class="slot filled${step.active === uid ? " active" : ""}${dead ? " dead" : ""}${o ? " has-ord" : ""}">${o ? `<span class="ord" title="Its turn this round: ${o}">${o}</span>` : ""}${mini(x, s, p, (x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "") + (uid[0] !== (side ? "B" : "A") ? " foe" : ""))}${extra}</div>`;
     };
     const n = Math.max(rows.ext.length, rows.int.length);
     const row = (z, label) => `<div class="rowlabel">${label}</div>` + Array.from({ length: n }, (_, i) => i < rows[z].length ? card(rows[z][i]) : `<div class="noslot"></div>`).join("");
@@ -3880,6 +3889,10 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const r = P.r, step = r.trace[P.k], last = P.k >= r.trace.length - 1;
     const logLines = r.trace.slice(1, P.k + 1).map((t, j) => `<div class="${j === P.k - 1 ? "now" : ""}">${esc("R" + t.round + "  " + t.text)}</div>`).join("");
     const first = P.aFirst ? "A" : "B";
+    // Each card's turn number this round, shown once its turn has come. A card with nothing to do takes its turn without a
+    // step of its own, so its number appears with the next step.
+    const ord = new Map();
+    (r.turns || []).filter(t => t.round === step.round).forEach((t, i) => { if (t.at <= P.k) ord.set(t.uid, i + 1); });
     const verdict = r.winner === -1 ? "Draw" : `${r.winner ? "B" : "A"} · ${esc(P.names[r.winner])} wins`;
     const endBox = last && !P.playing ? `<div class="box endbox"><div class="verdict">${verdict} in ${r.rounds} round${r.rounds === 1 ? "" : "s"}</div>
       <div class="summary"><span>A hull <b>${Math.max(0, r.hull[0])}</b> / ${P.A.hull}</span><span>B hull <b>${Math.max(0, r.hull[1])}</b> / ${P.B.hull}</span>${r.rounds >= SIM.maelstrom ? "<span>Reached the Maelstrom</span>" : ""}</div>
@@ -3891,7 +3904,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <div class="controls"><button class="btn" type="button" id="f-restart" title="Back to the start">⏮</button><button class="btn primary" type="button" id="f-play">${P.playing ? "Pause" : last ? "Replay" : "Play"}</button><button class="btn" type="button" id="f-step" ${last ? "disabled" : ""}>Step</button>
         <label>Speed<select id="f-speed">${[[900, "Slow"], [450, "Normal"], [180, "Fast"], [60, "Fastest"]].map(([v, l]) => `<option value="${v}" ${Number(SIM.fight.speed) === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
         <span class="round">Round ${step.round}</span><span class="muted">${first} goes first ${P.why}</span></div>
-      <div class="stage">${stageShip(1)}${stageShip(0)}</div>
+      <div class="stage">${stageShip(1, ord)}${stageShip(0, ord)}</div>
+      <p class="muted ord-note">Numbers show each card's turn this round. A card with nothing to do (a wall, a Shields card that's up, a support card) still takes its turn, without a step of its own, so its number appears together with the next card's.</p>
       <div class="log" id="f-log">${logLines || '<span class="muted">The fight is about to start.</span>'}</div></div>${endBox}`;
     const lg = $("#f-log"); if (lg) lg.scrollTop = lg.scrollHeight;
   }
