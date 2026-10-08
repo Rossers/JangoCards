@@ -417,6 +417,30 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .ord-note { font-size: 12.5px; margin: 0; }
 .flash { animation: flash .7s ease-out; border-radius: 3px; }
 @keyframes flash { 0% { background: var(--accent); color: #fff; box-shadow: 0 0 0 3px var(--accent); } 100% { background: transparent; box-shadow: 0 0 0 0 transparent; } }
+/* health, shield points and hull: red when they drop, green when they rise */
+.flash.dmg { animation-name: flash-dmg; }
+.flash.heal { animation-name: flash-heal; }
+@keyframes flash-dmg { 0% { background: var(--bad); color: #fff; box-shadow: 0 0 0 3px var(--bad); } 100% { background: transparent; box-shadow: 0 0 0 0 transparent; } }
+@keyframes flash-heal { 0% { background: var(--health); color: #fff; box-shadow: 0 0 0 3px var(--health); } 100% { background: transparent; box-shadow: 0 0 0 0 transparent; } }
+.stage .slot.filled, #stage .slot[data-card] { cursor: pointer; }
+.stage .slot.filled:focus-visible, #stage .slot[data-card]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.th-sort { all: unset; cursor: pointer; }
+.th-sort:hover { color: var(--ink); }
+.th-sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* the card details pop-up */
+#cp-scrim { z-index: 44; }
+.cardpop { position: fixed; z-index: 45; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow-y: auto; background: var(--surface); color: var(--ink); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.3); padding: 14px 16px 16px; }
+.cardpop .cp-head { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.cardpop h3 { margin: 0; font-family: var(--display); font-size: 19px; }
+.cardpop .cp-where { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.cardpop .cp-sec { margin-top: 12px; }
+.cardpop .cp-sec h4 { margin: 0 0 4px; font: 600 11px/1.4 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cardpop .cp-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; }
+.cardpop .cp-stats .atk { margin-right: 2px; }
+.cardpop .cp-status { font-weight: 600; color: var(--bad); }
+.cardpop dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; font-size: 13.5px; }
+.cardpop dt { font-weight: 600; }
+.cardpop dd { margin: 0; }
 .log .now { background: var(--accent-soft); }
 #f-log { max-height: 240px; }
 .endbox .verdict { font-size: 18px; }
@@ -588,6 +612,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   <div id="br-list"></div>
   <div id="br-preview" hidden><div class="box" id="br-info"></div></div>
 </aside>
+<div class="scrim" id="cp-scrim" hidden></div>
+<div class="cardpop" id="cardpop" role="dialog" aria-modal="true" aria-labelledby="cp-title" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -1411,7 +1437,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   const fidOf = (e, i) => e.id || "f" + (i + 1);
   const newFid = () => "f" + Math.random().toString(36).slice(2, 7);
   const sheetList = () => [...sheets.values()].sort((a, b) => (a.order || 0) - (b.order || 0) || String(a.id).localeCompare(String(b.id)));
-  // With no sheet chosen yet, the page opens on a sheet marked `start` (Ross Examples), else Ross Balance, else the first
+  // With no sheet chosen yet, the page opens on a sheet marked `start` (the Example Sheet), else Ross Balance, else the first
   const activeSheet = () => sheets.get(sheetId) || sheetList().find(x => x.start) || sheets.get("ross") || sheetList()[0] || null;
   const shortName = s => s ? String(s.name || s.id).split(/\s+/)[0] : "";
   const onSheet = (s, id) => !!(s && cardsOfSheet(s.id).has(id));
@@ -2639,6 +2665,30 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       "To re-check: fight length with plain Shields at {shields} and Armor at {armor}.",
     ],
   };
+  // The rules behind the keywords and damage types, for the Guide's table and the Fight Sim's card pop-up
+  const kwRules = () => ({
+    Resist: "Every instance of damage it takes is N lower, never below 0: hits, splash, pierce, stack damage and the Maelstrom alike.",
+    Block: "Completely stops the next N attacks against this card each fight: no damage and nothing the attack would trigger. Block never scales with mark, and doesn't stop the Maelstrom, which isn't an attack.",
+    Reflect: "Each time an attack hits this card, the attacker takes N damage, untyped.",
+    "Self-Heal": "When the card activates, it restores N of its own health: Self-Heal on a Biological card, Self-Repair on anything else.",
+    Heal: "When the card activates, it passes N health to its neighbors, each point to the first that is damaged: below, then behind, then in front (from an interior card above, behind, in front). Heal reaches Biological cards, Repair the rest.",
+    Regen: "Shields only: a Shields card that is up gains N shield points each activation, after any Restore.",
+    Restore: "A down Shields card comes back with N shield points when it activates after a round with no damage. Every Shields card has Restore equal to its mark for free." + (FORMULA.ship.emp !== false ? " On this sheet Restore stops once the Maelstrom starts." : ""),
+    Vulnerable: "Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable (Kinetic), every Armor card Vulnerable (Plasma); any card can carry one as a weakness.",
+    Taunt: "Attacks against its row target this card first, wherever it sits.",
+    Guard: "An attack aimed at the card directly in front of or behind it, in the same row or boarder column, hits this card instead.",
+    Flank: "Its attacks target the backmost enemy card in its layer. Taunt still draws them first.",
+    Execute: "Its attacks target the enemy card with the lowest health in its layer. Taunt still draws them first.",
+    Pierce: "Each hit also deals N to the interior card below its target.",
+    Splash: "Each hit also deals N to the cards in front of and behind its target; past the last card in the row, to the hull.",
+    Discharge: "Gives N charges to the cards beside this one, each to the first that takes it: below, then behind, then in front (from an interior card: above, behind, in front).",
+  });
+  const TYPE_RULES = {
+    Thermal: "Each hit adds a heat stack; at 5 the card overheats for 2 damage. Inside a ship a hit also starts a fire: 1 damage at the start of the card's turn, then it burns out.",
+    Electric: "A card that survives an Electric hit gains a charge (on a Shields card, a shield point).",
+    Plasma: "+1 damage against the hull.",
+    Radiation: "Biological cards it hits gain a radiation stack: 1 damage each at the end of the card's turn, for the rest of the fight.",
+  };
   // Notes written for a sheet's old number fields, shown beside the formula row that replaced them
   const LEGACY_NOTE = { Health: "health", Attack: "attackExt", Mult: "extraHitExt", Pierce: "pierce", Splash: "splash", Ammo: "ammo", Resist: "resist", Block: "block", Reflect: "reflect",
     Restore: "restore", Repair: "regen", VulnKinetic: "vuln", Activate: "m.activate", DoubleDamage: "m.doubleOnBehind", GrantAttack: "m.attackOne", GrantMult: "mi.mult", MaxAmmo: "mi.ammoMax" };
@@ -2679,7 +2729,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     ];
     const head = s ? `<div class="sheet-note" style="margin-top:10px">Balance sheet <b>${esc(s.name)}</b>${s.author ? ` by ${esc(s.author)}` : ""}${s.about ? ": " + esc(String(s.about).replace(/[.\s]+$/, "")) : ""}. Prices and notes below are this sheet's; the rules sections are the same on every sheet.</div>
       ${s.notes ? `<p>${g(s.notes)}</p>` : ""}${G.inherited ? `<p class="sheet-note warn">The notes and findings here were copied from ${esc(G.inherited)} and haven't been re-measured on this sheet.</p>` : ""}${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}` : "";
-    const R0 = FORMULA.rows, f0 = id => fcode((R0[id] || {}).base);
+    const R0 = FORMULA.rows, f0 = id => fcode((R0[id] || {}).base), KR = kwRules();
     $("#guide-body").innerHTML = `${head}
       <p>Every card has a budget in <b>budget points (BP)</b>, and everything on it costs BP by this sheet's formulas. A card is priced at its lowest mark: its parts are added at full precision and the total is rounded once, half up. The BP chip on each card compares it with its budget: green within ±${tol}%, teal under, orange over. The design behind every formula is in docs/BALANCE.md.</p>
       <h3>Budget</h3>${sn("Budget")}
@@ -2718,22 +2768,22 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <ul>
         <li>Armor always has a card slot on each side and never touches the Shields, so something always stands in front of it. Put the card that soaks the most for the least damage lost there (a defense card, a front-only weapon, or the sturdiest gun), then the Armor, then the other weapons with the most fragile at the back.</li>
         <li>Cards that belong in front: defensive cards (Resist, Block, Reflect, Taunt), cards with On Death effects, and cards whose buffs matter most in the first round.</li>
-        <li>In a fight, every card shows its place in the activation order, so who acts when is always visible.</li>
+        <li>In a fight, every card shows its place in the activation order and lights up on its turn, so who acts when is always visible. Click a card to see what it does.</li>
       </ul>
       <h3>Keyword rules</h3>
       <table class="gtable"><tr><th>Keyword</th><th>Rule</th><th>Formula</th></tr>
-        <tr><td>Resist N</td><td>Every instance of damage it takes is N lower, never below 0: hits, splash, pierce, stack damage and the Maelstrom alike.</td><td>${f0("Resist")}</td></tr>
-        <tr><td>Block N</td><td>Completely stops the next N attacks against this card each fight: no damage and nothing the attack would trigger. Block never scales with mark, and doesn't stop the Maelstrom, which isn't an attack.</td><td>${f0("Block")}</td></tr>
-        <tr><td>Reflect N</td><td>Each time an attack hits this card, the attacker takes N damage, untyped.</td><td>${f0("Reflect")}</td></tr>
-        <tr><td>Self-Heal N, Self-Repair N</td><td>When the card activates, it restores N of its own health: Self-Heal on a Biological card, Self-Repair on anything else.</td><td>${f0("Heal")}</td></tr>
-        <tr><td>Heal N, Repair N</td><td>When the card activates, it passes N health to its neighbors, each point to the first that is damaged: below, then behind, then in front (from an interior card above, behind, in front). Heal reaches Biological cards, Repair the rest.</td><td>Their rows' smart formulas</td></tr>
-        <tr><td>Regen N</td><td>Shields only: a Shields card that is up gains N shield points each activation, after any Restore.</td><td>${f0("Regen")}</td></tr>
-        <tr><td>Restore N</td><td>A down Shields card comes back with N shield points when it activates after a round with no damage. Every Shields card has Restore equal to its mark for free.${FORMULA.ship.emp !== false ? " On this sheet Restore stops once the Maelstrom starts." : ""}</td><td>${f0("Restore")}, N above the free Restore</td></tr>
-        <tr><td>Vulnerable (type)</td><td>Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable (Kinetic), every Armor card Vulnerable (Plasma); any card can carry one as a weakness.</td><td>Gives BP back: ${f0("VulnKinetic")} for Kinetic</td></tr>
-        <tr><td>Taunt</td><td>Attacks against its row target this card first, wherever it sits.</td><td>${f0("Taunt")}</td></tr>
-        <tr><td>Guard</td><td>An attack aimed at the card directly in front of or behind it, in the same row or boarder column, hits this card instead.</td><td>${f0("Guard")}</td></tr>
-        <tr><td>Flank</td><td>Its attacks target the backmost enemy card in its layer. Taunt still draws them first.</td><td>${f0("Flank")}</td></tr>
-        <tr><td>Execute</td><td>Its attacks target the enemy card with the lowest health in its layer. Taunt still draws them first.</td><td>${f0("Execute")}</td></tr>
+        <tr><td>Resist N</td><td>${KR.Resist}</td><td>${f0("Resist")}</td></tr>
+        <tr><td>Block N</td><td>${KR.Block}</td><td>${f0("Block")}</td></tr>
+        <tr><td>Reflect N</td><td>${KR.Reflect}</td><td>${f0("Reflect")}</td></tr>
+        <tr><td>Self-Heal N, Self-Repair N</td><td>${KR["Self-Heal"]}</td><td>${f0("Heal")}</td></tr>
+        <tr><td>Heal N, Repair N</td><td>${KR.Heal}</td><td>Their rows' smart formulas</td></tr>
+        <tr><td>Regen N</td><td>${KR.Regen}</td><td>${f0("Regen")}</td></tr>
+        <tr><td>Restore N</td><td>${KR.Restore}</td><td>${f0("Restore")}, N above the free Restore</td></tr>
+        <tr><td>Vulnerable (type)</td><td>${KR.Vulnerable}</td><td>Gives BP back: ${f0("VulnKinetic")} for Kinetic</td></tr>
+        <tr><td>Taunt</td><td>${KR.Taunt}</td><td>${f0("Taunt")}</td></tr>
+        <tr><td>Guard</td><td>${KR.Guard}</td><td>${f0("Guard")}</td></tr>
+        <tr><td>Flank</td><td>${KR.Flank}</td><td>${f0("Flank")}</td></tr>
+        <tr><td>Execute</td><td>${KR.Execute}</td><td>${f0("Execute")}</td></tr>
       </table>
       <p>A keyword on the card itself is priced by its row's base formula. Given to other cards ("Adjacent cards have Resist 1."), it is priced by its dumb or smart formula × the targeting style.</p>
       <h3>Writing card text</h3>
@@ -3093,7 +3143,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const first = o.aFirst ? 0 : 1;
     const log = o.log || o.trace ? [] : null, trace = o.trace ? [] : null;
     const turns = o.trace ? [] : null; // every card's turn, in order, idle ones included: { round, uid, at }
-    let round = 0, winner = null, actor = null, storming = false;
+    let round = 0, winner = null, actor = null, storming = false, curTurn = null; // curTurn: the turn number in this round's activation pass
     let sequence = new Set(); // "source>target" pairs: which card's effects activated which card since this resolution sequence began
     const roundBuffs = []; // "this round" gains, removed at the end of the round
     const nm = c => c.own.label + " " + c.name;
@@ -3102,7 +3152,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       hull: S.map(s => s.hull), rows: S.map(s => ({ ext: s.ext.map(x => x && x.uid), int: s.int.map(x => x && x.uid), col: s.col.map(x => x.uid) })),
       cards: Object.fromEntries(S.flatMap(s => s.all).map(x => [x.uid, { hp: x.hp, max: x.max, atk: x.atk.map(a => [a.type, a.amt]), mult: x.mult, ammo: x.ammoLeft, charges: x.chargesLeft, fire: x.fire, rad: x.rad, heat: x.heat }])),
     });
-    const say = t => { if (!log) return; log.push("R" + round + "  " + t); if (trace) trace.push({ round, active: actor ? actor.uid : null, text: t, state: snap() }); };
+    const say = t => { if (!log) return; log.push("R" + round + "  " + t); if (trace) trace.push({ round, active: actor ? actor.uid : null, turn: curTurn, text: t, state: snap() }); };
     const hullResist = ship => ship.hullResist.filter(x => x.src.hp > 0).reduce((t, x) => t + x.n, 0); // "Your ship has Resist 1." while that card lives
     function hullHit(att, ship, dmg, how) {
       dmg = Math.max(0, dmg - hullResist(ship));
@@ -3270,17 +3320,22 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     }
     // Walks the activation order once, calling fn on each card at most once, where it stands when the order reaches it.
     // Lists are read live, so a crew card that boards mid-round is found in its new column if that battlefield is still to come.
-    // record: note each card's turn as it starts (the activation pass, for playback's order numbers)
+    // record: note each card's turn as it starts (the activation pass, for playback's order numbers). With a trace, a turn
+    // that logs nothing gets a quiet step of its own, so playback can show every card taking its turn.
     function runOrder(fn, record = false) {
       const done = new Set();
+      let turnNo = 0;
       const next = L => L.find(x => x && !done.has(x) && (x.hp > 0 || x.kind === "S")); // a down Shields card still activates
       const alternate = (a, b) => {
         for (let turn = 0; winner === null; turn = 1 - turn) {
           let x = next(turn ? b() : a());
           if (!x) { turn = 1 - turn; x = next(turn ? b() : a()); if (!x) return; }
           done.add(x); sequence = new Set(); actor = x;
-          if (record && turns) turns.push({ round, uid: x.uid, at: trace.length }); // at: the trace step its turn starts at
+          if (record) { curTurn = ++turnNo; if (turns) turns.push({ round, uid: x.uid, n: turnNo, at: trace.length }); } // at: the trace step its turn starts at
+          const before = trace ? trace.length : 0;
           fn(x); actor = null; // each card in the order starts a new resolution sequence
+          if (record && trace && trace.length === before) trace.push({ round, active: x.uid, turn: turnNo, quiet: true, text: "", state: snap() });
+          if (record) curTurn = null;
         }
       };
       const F = S[first], W = S[1 - first];
@@ -3505,8 +3560,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // A compact card: name, attack, health (or shield points), mult, and pips. s is live numbers; prev (optional) flashes what changed.
   function mini(x, s, prev, cls = "", attrs = "") {
     const flash = k => prev && JSON.stringify(prev[k]) !== JSON.stringify(s[k]) ? " flash" : "";
+    const hpFlash = !prev || prev.hp === s.hp ? "" : s.hp < prev.hp ? " flash dmg" : " flash heal"; // damage red, healing green
     const atk = (s.atk || []).filter(a => a[1] > 0).map(([t, n]) => `<span class="atk t-${esc(t)}">${n}</span>`).join("");
-    const hp = x.kind === "S" ? `<span class="sp${flash("hp")}" title="Shield points">${ICON_SHIELD}${Math.max(0, s.hp)}</span>` : `<span class="hp${flash("hp")}" title="Health">${ICON_HEART}${Math.max(0, s.hp)}</span>`;
+    const hp = x.kind === "S" ? `<span class="sp${hpFlash}" title="Shield points">${ICON_SHIELD}${Math.max(0, s.hp)}</span>` : `<span class="hp${hpFlash}" title="Health">${ICON_HEART}${Math.max(0, s.hp)}</span>`;
     const pip = (n, max, c2, word) => max ? `<span class="pips ${c2}${flash(word)}" title="${n}/${max} ${word}">${Array.from({ length: Math.min(max, 6) }, (_, k) => `<i class="${k < n ? "" : "off"}"></i>`).join("")}</span>` : "";
     const stacks = [s.fire ? `<b class="st fire${flash("fire")}" title="Fire stacks">fire ${s.fire}</b>` : "", s.rad ? `<b class="st rad${flash("rad")}" title="Radiation stacks">rad ${s.rad}</b>` : "", s.heat ? `<b class="st heat${flash("heat")}" title="Heat stacks">heat ${s.heat}</b>` : ""].join("");
     return `<div class="mini ${cls}" ${attrs}><div class="mn">${esc(x.name)}${x.mark > 1 ? `<small> Mk ${MARKS[x.mark - 1]}</small>` : ""}</div>
@@ -3882,7 +3938,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // face: "top" or "bottom" draws the board as the Fight Sim does, facing the other ship (see stageShip)
   function boardPreview(b, label, face = "") {
     const B = buildBoard(b), st = boardStats(B), errs = validate(B);
-    const slot = (z, i) => { const s = B[z][i], x = s && specOf(s.id, s.mark); return x ? `<div class="slot filled">${mini(x, liveOf(x), null, x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "")}</div>` : `<div class="slot empty dim"></div>`; };
+    const slot = (z, i) => { const s = B[z][i], x = s && specOf(s.id, s.mark); return x ? `<div class="slot filled" data-card="${esc(s.id)}@${s.mark}" data-where="${esc(`${label ? label + " · " : ""}${b.name} · ${rowName(z)} slot ${i + 1}`)}" role="button" tabindex="0" aria-label="${esc(x.name)}: details">${mini(x, liveOf(x), null, x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "")}</div>` : `<div class="slot empty dim"></div>`; };
     const head = `<div class="fhead"><b>${label ? label + " · " : ""}${warnIcon(errs)}${esc(b.name)}</b><span class="muted">${sizeOf(B)} · ${st.n} cards · ${st.bp} BP · speed ${st.speed} · hull ${st.hull}</span></div>`;
     const grid = `<div class="board-scroll">${shipGrid(B, slot, face === "top")}</div>`;
     return `<div class="box${face ? " face-" + face : ""}">${face === "bottom" ? grid + head : head + grid}</div>`;
@@ -3913,15 +3969,29 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const aFirst = f.first === "a" ? true : f.first === "b" ? false : A.speed >= B.speed;
     const r = simFight(A, B, { ...simOpts(aFirst), trace: true });
     stopPlay();
-    play = { r, A, B, names: [a.name, b.name], aFirst, why: f.first !== "speed" ? "(chosen)" : A.speed === B.speed ? "(equal speed: the board on the left)" : "(faster)", k: 0, playing: true, timer: null };
+    play = { r, A, B, names: [a.name, b.name], aFirst, why: f.first !== "speed" ? "(chosen)" : A.speed === B.speed ? "(equal speed: the board on the left)" : "(faster)", k: 0, playing: true, timer: null, labels: stepLabels(r.trace), sort: null };
     renderStage(); schedule();
   }
   function schedule() {
     stopPlay();
     if (!play || !play.playing) return;
     if (play.k >= play.r.trace.length - 1) { play.playing = false; renderStage(); return; }
-    const ms = Number(SIM.fight.speed) || 450;
+    // A card's turn with nothing to do is a quiet step: it lights up, but more briefly
+    const ms = (Number(SIM.fight.speed) || 450) * (play.r.trace[play.k + 1].quiet ? 0.4 : 1);
     play.timer = setTimeout(() => { play.k++; renderStage(); schedule(); }, ms);
+  }
+  // The log's step labels: "A03" for the third turn of the round, "A03a", "A03b" … when that turn logs more than one line;
+  // "Start" before round 1 and "End" after a round's turns (end-of-round effects, the Maelstrom). Quiet steps get none.
+  function stepLabels(trace) {
+    const key = t => t.round + ":" + t.turn, count = new Map(), seen = new Map();
+    const letters = i => (i >= 26 ? letters(Math.floor(i / 26) - 1) : "") + String.fromCharCode(97 + i % 26);
+    trace.forEach(t => { if (t.text && !t.quiet && t.turn) count.set(key(t), (count.get(key(t)) || 0) + 1); });
+    return trace.map(t => {
+      if (!t.text || t.quiet) return "";
+      if (!t.turn) return t.round === 0 ? "Start" : "End";
+      const i = seen.get(key(t)) || 0; seen.set(key(t), i + 1);
+      return "A" + String(t.turn).padStart(2, "0") + (count.get(key(t)) > 1 ? letters(i) : "");
+    });
   }
   function stageShip(side, ord = new Map()) {
     const P = play, r = P.r, step = r.trace[P.k], prev = P.k > 0 ? r.trace[P.k - 1].state : null, st = step.state, rows = st.rows[side];
@@ -3934,11 +4004,11 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       const f2 = fin[uid];
       const extra = f2 ? `<div class="fin">${dead ? "Destroyed" : x.kind === "S" && s.hp <= 0 ? "Down" : "Alive"} · dealt ${f2.dealt} · took ${f2.taken}</div>` : "";
       const o = ord.get(uid);
-      return `<div class="slot filled${step.active === uid ? " active" : ""}${dead ? " dead" : ""}${o ? " has-ord" : ""}">${o ? `<span class="ord" title="Its turn this round: ${o}">${o}</span>` : ""}${mini(x, s, p, (x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "") + (uid[0] !== (side ? "B" : "A") ? " foe" : ""))}${extra}</div>`;
+      return `<div class="slot filled${step.active === uid ? " active" : ""}${dead ? " dead" : ""}${o ? " has-ord" : ""}" data-uid="${uid}" role="button" tabindex="0" aria-label="${esc(x.name)}: details">${o ? `<span class="ord" title="Its turn this round: ${o}">${o}</span>` : ""}${mini(x, s, p, (x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "") + (uid[0] !== (side ? "B" : "A") ? " foe" : ""))}${extra}</div>`;
     };
     const n = Math.max(rows.ext.length, rows.int.length);
     const row = (z, label) => `<div class="rowlabel">${label}</div>` + Array.from({ length: n }, (_, i) => i < rows[z].length ? card(rows[z][i]) : `<div class="noslot"></div>`).join("");
-    const hullFlash = prev && prev.hull[side] !== st.hull[side] ? " flash" : "";
+    const hullFlash = !prev || prev.hull[side] === st.hull[side] ? "" : st.hull[side] < prev.hull[side] ? " flash dmg" : " flash heal";
     // The two ships face each other: B, on top, is drawn interior first so the exterior rows meet in the middle. Only the
     // drawing flips; above and below (adjacency, pierce) are the ship's own, unchanged.
     const top = side === 1;
@@ -3947,20 +4017,33 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const body = `<div class="board-scroll"><div class="fbody">${col}<div class="shipgrid" style="--n:${n}">${top ? row("int", "Interior") + row("ext", "Exterior") : row("ext", "Exterior") + row("int", "Interior")}</div></div></div>`;
     return `<div class="fship ${top ? "top" : "bottom"}">${top ? head + body : body + head}</div>`;
   }
+  // The end-of-fight table for one ship, sorted by play.sort ({ key, dir }) or in board order
+  const END_COLS = [["name", null], ["end", "End"], ["hp", "Health"], ["dealt", "Dealt"], ["taken", "Taken"], ["hullDmg", "To hull"], ["boarded", "Boarded"]];
+  const endRank = c => c.alive ? (c.kind === "S" && c.hp <= 0 ? 500 : 1000) : (c.died || 0); // alive, then down, then destroyed latest first
+  const endVal = (c, k) => k === "name" ? String(c.name).toLowerCase() : k === "end" ? endRank(c) : k === "hp" ? Math.max(0, c.hp) : Number(c[k]) || 0;
+  function endTable(side) {
+    const P = play, S2 = P.sort, list = P.r.cards[side].map((c, i) => ({ c, i }));
+    if (S2) list.sort((a, b) => { const x = endVal(a.c, S2.key), y = endVal(b.c, S2.key); return (x < y ? -1 : x > y ? 1 : 0) * (S2.dir === "asc" ? 1 : -1) || a.i - b.i; });
+    const th = ([k, label]) => {
+      const on = S2 && S2.key === k, arrow = on ? (S2.dir === "asc" ? " ▲" : " ▼") : "";
+      return `<th aria-sort="${on ? (S2.dir === "asc" ? "ascending" : "descending") : "none"}"><button type="button" class="th-sort" data-sort="${k}" title="Sort by ${k === "name" ? "card name" : esc(label.toLowerCase())}">${label || `${side ? "B" : "A"} · ${esc(P.names[side])}`}${arrow}</button></th>`;
+    };
+    return `<div class="table-wrap"><table class="simtable"><tr>${END_COLS.map(th).join("")}</tr>
+      ${list.map(({ c }) => `<tr><td>${esc(c.name)}</td><td>${c.alive ? (c.kind === "S" && c.hp <= 0 ? "down" : "alive") : "destroyed R" + c.died}</td><td>${Math.max(0, c.hp)} / ${c.max}</td><td>${c.dealt}</td><td>${c.taken}</td><td>${c.hullDmg}</td><td>${c.boarded ? "yes" : ""}</td></tr>`).join("")}</table></div>`;
+  }
   function renderStage() {
     const P = play, st = $("#stage"); if (!P || !st) return;
     const r = P.r, step = r.trace[P.k], last = P.k >= r.trace.length - 1;
-    const logLines = r.trace.slice(1, P.k + 1).map((t, j) => `<div class="${j === P.k - 1 ? "now" : ""}">${esc("R" + t.round + "  " + t.text)}</div>`).join("");
+    const logLines = r.trace.slice(1, P.k + 1).map((t, j) => t.quiet || !t.text ? "" : `<div class="${j === P.k - 1 ? "now" : ""}">${esc("R" + t.round + " " + P.labels[j + 1] + "  " + t.text)}</div>`).join("");
     const first = P.aFirst ? "A" : "B";
-    // Each card's turn number this round, shown once its turn has come. A card with nothing to do takes its turn without a
-    // step of its own, so its number appears with the next step.
+    // Each card's turn number this round, shown once its turn has come (a card with nothing to do has a quiet step of its own)
     const ord = new Map();
-    (r.turns || []).filter(t => t.round === step.round).forEach((t, i) => { if (t.at <= P.k) ord.set(t.uid, i + 1); });
+    (r.turns || []).filter(t => t.round === step.round).forEach((t, i) => { if (t.at <= P.k) ord.set(t.uid, t.n || i + 1); });
     const verdict = r.winner === -1 ? "Draw" : `${r.winner ? "B" : "A"} · ${esc(P.names[r.winner])} wins`;
     const endBox = last && !P.playing ? `<div class="box endbox"><div class="verdict">${verdict} in ${r.rounds} round${r.rounds === 1 ? "" : "s"}</div>
       <div class="summary"><span>A hull <b>${Math.max(0, r.hull[0])}</b> / ${P.A.hull}</span><span>B hull <b>${Math.max(0, r.hull[1])}</b> / ${P.B.hull}</span>${r.rounds >= SIM.maelstrom ? "<span>Reached the Maelstrom</span>" : ""}</div>
-      ${[0, 1].map(s => `<div class="table-wrap"><table class="simtable"><tr><th>${s ? "B" : "A"} · ${esc(P.names[s])}</th><th>End</th><th>Health</th><th>Dealt</th><th>Taken</th><th>To hull</th><th>Boarded</th></tr>
-        ${r.cards[s].map(c => `<tr><td>${esc(c.name)}</td><td>${c.alive ? (c.kind === "S" && c.hp <= 0 ? "down" : "alive") : "destroyed R" + c.died}</td><td>${Math.max(0, c.hp)} / ${c.max}</td><td>${c.dealt}</td><td>${c.taken}</td><td>${c.hullDmg}</td><td>${c.boarded ? "yes" : ""}</td></tr>`).join("")}</table></div>`).join("")}
+      <p class="hint" style="margin:8px 0 0">Click a column to sort; each board's cards stay in their own table.</p>
+      ${[0, 1].map(s => endTable(s)).join("")}
       <div class="fab-row"><button class="btn primary" type="button" id="f-replay">Replay</button><button class="btn" type="button" id="f-new">Pick new boards</button></div>
       ${unsimNote([...P.A.ext, ...P.A.int, ...P.B.ext, ...P.B.int])}</div>` : "";
     st.innerHTML = `<div class="box">
@@ -3968,7 +4051,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         <label>Speed<select id="f-speed">${[[900, "Slow"], [450, "Normal"], [180, "Fast"], [60, "Fastest"]].map(([v, l]) => `<option value="${v}" ${Number(SIM.fight.speed) === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
         <span class="round">Round ${step.round}</span><span class="muted">${first} goes first ${P.why}</span></div>
       <div class="stage">${stageShip(1, ord)}${stageShip(0, ord)}</div>
-      <p class="muted ord-note">Numbers show each card's turn this round. A card with nothing to do (a wall, a Shields card that's up, a support card) still takes its turn, without a step of its own, so its number appears together with the next card's.</p>
+      <p class="muted ord-note">Numbers show each card's turn this round, and every card lights up on its turn. One with nothing to do (a wall, a Shields card that's up, crew with no boarders to fight) lights up briefly and adds no line to the log, so the log's turn numbers (A01, A02 …) can skip it. Click a card to see what it does.</p>
       <div class="log" id="f-log">${logLines || '<span class="muted">The fight is about to start.</span>'}</div></div>${endBox}`;
     const lg = $("#f-log"); if (lg) lg.scrollTop = lg.scrollHeight;
   }
@@ -3987,7 +4070,99 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (e.target.closest("#f-restart")) { play.k = 0; renderStage(); schedule(); return; }
     if (e.target.closest("#f-replay")) { play.k = 0; play.playing = true; renderStage(); schedule(); return; }
     if (e.target.closest("#f-new")) { stopPlay(); play = null; renderFightSim(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    const so = e.target.closest("[data-sort]");
+    if (so) { // first click: most first (names A to Z), second: the other way, third: back to board order
+      const k = so.dataset.sort, first = k === "name" ? "asc" : "desc", S2 = play.sort;
+      play.sort = !S2 || S2.key !== k ? { key: k, dir: first } : S2.dir === first ? { key: k, dir: first === "asc" ? "desc" : "asc" } : null;
+      renderStage(); const b = document.querySelector(`#stage [data-sort="${k}"]`); if (b) b.focus();
+    }
   });
+
+  // ---------- card details pop-up (Fight Sim and board previews) ----------
+  // What a card is doing: its numbers now, its card text, and the rules behind every keyword and mechanic on it
+  function cardTerms(c, x) {
+    const K = kwRules(), out = new Map(), add = (k, t) => { if (t && !out.has(k)) out.set(k, t); };
+    if (x.kind === "S") add("Shields", "Has shield points, not health. It is never destroyed: at 0 it is down, can't be targeted, and still takes its turn. A down Shields card comes back with its Restore after a round with no damage" + (FORMULA.ship.emp !== false ? ", until the Maelstrom starts" : "") + ". Every charge it gets is a shield point, even while it is down.");
+    if ((x.tags || []).includes("Crew")) add("Crew", "At home, crew attack only enemy boarders on their ship; with none there, they don't attack. Crew that board attack the enemy interior, then its hull.");
+    (x.atk || []).forEach(a => add(a.type, TYPE_RULES[a.type]));
+    if (x.mult > 1) add("Mult", `Attacks ${x.mult} times each turn.`);
+    if (x.ammo) add("Ammo", "Each turn's attacks spend 1 ammo, however many hits. With none left the card still takes its turn but doesn't attack.");
+    if (x.charges) add("Charges", "Pips the card fills and spends. Electric hits, Recharge and Discharge fill them; anything past the maximum is wasted.");
+    ((c && c.effects) || x.effects || []).forEach(e => {
+      if (e.action === "keyword" && e.keyword) { const k = e.keyword === "Self-Repair" ? "Self-Heal" : e.keyword === "Repair" ? "Heal" : e.keyword; add(k === "Self-Heal" ? "Self-Heal, Self-Repair" : k === "Heal" ? "Heal, Repair" : k, K[k]); }
+      if (e.action === "recharge") add("Recharge", "Gives charges to its target. A Shields card takes each as 1 shield point, even while down; a card with no charges, or full ones, wastes it.");
+      if (e.action === "discharge") add("Discharge", K.Discharge);
+      if (e.action === "reload") add("Reload", "Gives ammo to its target, up to its maximum; a card with no ammo wastes it.");
+      if (e.action === "activate") add("Activate", "Makes another card take an extra turn now. A card whose On Activate effect does this ends its own turn there.");
+      if (e.action === "board") add("Board", "Sends crew across to the enemy ship, where they fight its crew and then its hull.");
+    });
+    return [...out];
+  }
+  let cardPop = null; // { resume }: whether to restart playback when it closes
+  function openCardPop(x, live, where) {
+    if (!x) return;
+    const c = cards.get(x.id), resume = !!(play && play.playing && SIM.tab === "fight");
+    if (resume) { play.playing = false; stopPlay(); renderStage(); }
+    cardPop = { resume };
+    const lines = c && structured(c) ? effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${esc(l.text)}</div>`).join("") + (c.effectNote ? `<div class="fx-note">${esc(c.effectNote)}</div>` : "")
+      : c && c.effect ? `<div>${esc(c.effect)}</div>` : "";
+    const L = live || liveOf(x), down = L.hp <= 0;
+    const atk = (L.atk || []).filter(a => a[1] > 0).map(([t, n]) => `<span class="atk t-${esc(t)}">${n}</span> ${esc(t)}`).join(" + ");
+    const stats = [atk ? `<span>Attack ${atk}${L.mult > 1 ? ` ×${L.mult}` : ""}</span>` : `<span class="muted">No attack</span>`,
+      `<span>${x.kind === "S" ? "Shield points" : "Health"} <b>${Math.max(0, L.hp)}</b> / ${L.max ?? x.hp}</span>`,
+      x.charges ? `<span>Charges ${L.charges || 0} / ${x.charges}</span>` : "", x.ammo ? `<span>Ammo ${L.ammo || 0} / ${x.ammo}</span>` : "",
+      L.fire ? `<span>Fire ${L.fire}</span>` : "", L.rad ? `<span>Radiation ${L.rad}</span>` : "", L.heat ? `<span>Heat ${L.heat}</span>` : ""].join("");
+    const terms = cardTerms(c, x), place = c && (c.row === "Exterior" || c.row === "Either") && c.place ? c.place : "";
+    const pop = $("#cardpop");
+    pop.innerHTML = `<div class="cp-head"><div><h3 id="cp-title">${esc(x.name)}${x.mark > 1 ? ` <small>Mk ${MARKS[x.mark - 1]}</small>` : ""}</h3>
+        <div class="cp-where">${esc(where || "")}</div>
+        <div class="c-meta">${esc([c ? c.row : "", place, (x.tags || []).join(", ")].filter(Boolean).join(" · "))}</div></div>
+        <button class="btn" type="button" id="cp-close">Close</button></div>
+      ${live && down ? `<div class="cp-sec cp-status">${x.kind === "S" ? "Down" : "Destroyed"}</div>` : ""}
+      <div class="cp-sec"><h4>${live ? "Now" : "Stats"}</h4><div class="cp-stats">${stats}</div></div>
+      <div class="cp-sec"><h4>Card text</h4><div class="c-effect">${lines || `<span class="none">No effect.</span>`}</div>${c && x.mark > (c.minMark || 1) ? `<p class="hint">The text is at its lowest mark; at Mk ${MARKS[x.mark - 1]} its numbers scale up.</p>` : ""}</div>
+      ${(x.unsim || []).length ? `<div class="cp-sec"><h4>Not simulated</h4>${x.unsim.map(t => `<div class="hint">${esc(t)}</div>`).join("")}</div>` : ""}
+      ${terms.length ? `<div class="cp-sec"><h4>How it works</h4><dl>${terms.map(([k, t]) => `<dt>${esc(k)}</dt><dd>${esc(t)}</dd>`).join("")}</dl></div>` : ""}`;
+    pop.hidden = false; $("#cp-scrim").hidden = false;
+    $("#cp-close").focus();
+  }
+  function closeCardPop() {
+    if (!cardPop) return;
+    const { resume } = cardPop; cardPop = null;
+    $("#cardpop").hidden = true; $("#cp-scrim").hidden = true;
+    if (resume && play && SIM.tab === "fight") { play.playing = true; renderStage(); schedule(); }
+  }
+  // Where a card stands in the fight right now, for the pop-up's heading
+  function stageWhere(uid) {
+    const P = play, step = P.r.trace[P.k], R = step.state.rows, own = uid[0] === "B" ? 1 : 0;
+    let at = "";
+    for (const side of [0, 1]) {
+      const rw = R[side];
+      if (rw.ext.includes(uid)) at = `exterior slot ${rw.ext.indexOf(uid) + 1}`;
+      else if (rw.int.includes(uid)) at = `interior slot ${rw.int.indexOf(uid) + 1}`;
+      else if (rw.col.includes(uid)) at = `boarding ${side ? "B" : "A"}`;
+    }
+    const t = (P.r.turns || []).find(x => x.round === step.round && x.uid === uid && x.at <= P.k);
+    return `${own ? "B" : "A"} · ${P.names[own]}${at ? " · " + at : ""}${t ? ` · its turn this round: ${t.n}` : ""}`;
+  }
+  const specByUid = uid => { const P = play, side = uid[0] === "B" ? P.B : P.A, z = uid[1] === "e" ? "ext" : "int"; return side[z][Number(uid.slice(2))]; };
+  function openFromSlot(el) {
+    if (el.dataset.uid && play) { const uid = el.dataset.uid; openCardPop(specByUid(uid), play.r.trace[play.k].state.cards[uid], stageWhere(uid)); }
+    else if (el.dataset.card) { const [id, m] = el.dataset.card.split("@"); openCardPop(specOf(id, Number(m) || 1), null, el.dataset.where); }
+  }
+  // Playback redraws the board every step, so a click can lose its card between press and release: remember the press
+  let slotDown = null;
+  $("#sim-body").addEventListener("pointerdown", e => { const el = e.target.closest("[data-uid], [data-card]"); slotDown = el ? { uid: el.dataset.uid, card: el.dataset.card, where: el.dataset.where, x: e.clientX, y: e.clientY, t: Date.now() } : null; });
+  $("#sim-body").addEventListener("click", e => {
+    let el = e.target.closest("#sim-body [data-uid], #sim-body [data-card]");
+    if (!el && slotDown && Date.now() - slotDown.t < 800 && Math.abs(e.clientX - slotDown.x) < 8 && Math.abs(e.clientY - slotDown.y) < 8) el = { dataset: slotDown };
+    slotDown = null;
+    if (el) openFromSlot(el);
+  });
+  $("#sim-body").addEventListener("keydown", e => { if (e.key !== "Enter" && e.key !== " ") return; const el = e.target.closest("[data-uid], [data-card]"); if (el) { e.preventDefault(); openFromSlot(el); } });
+  $("#cp-scrim").addEventListener("click", closeCardPop);
+  $("#cardpop").addEventListener("click", e => { if (e.target.closest("#cp-close")) closeCardPop(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && cardPop) { e.stopPropagation(); closeCardPop(); } }, true);
 
   // ---------- Mass Sim ----------
   function renderMass() {

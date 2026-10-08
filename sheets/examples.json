@@ -1,15 +1,14 @@
 {
  "jango": "balance-sheet",
  "format": 1,
- "exported": "2026-10-08T05:25:57.139Z",
+ "exported": "2026-10-08T05:50:22.662Z",
  "vocab": 6,
  "sheet": {
-  "id": "ross-examples",
-  "name": "Ross Examples",
+  "id": "examples",
+  "name": "Example Sheet",
   "order": 4,
-  "about": "Example cards for Ross Balance's formulas: one card per formula, each note showing how its BP adds up",
+  "about": "Example cards and boards to learn the tool with: one card for each formula, each note showing how its BP adds up. They are examples, not a balanced or recommended deck.",
   "notes": "Prices are formulas: open Sheet to see them, with examples and a grid under each. To try your own ideas, make a sheet of your own under Sheet (a copy, or start empty with these formulas).",
-  "author": "Ross",
   "start": true,
   "formula": {
    "budget": {
@@ -1857,6 +1856,55 @@
    "tech": "high",
    "timing": "",
    "value": null
+  },
+  "R11": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": 80,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "On Activate: Board the nearest crew behind this.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "board",
+     "target": "nearest_crew_behind",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 4,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Teleporter",
+   "notes": "Boarding has no formula row, so it is priced by hand: Effect BP 80, a guess (DESIGN's Teleporter, 4 health, scaled to 96). Health 16 + 80 = 96. It boards one crew a turn, the nearest behind it.",
+   "order": 25,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "System",
+    "Boarding"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
   }
  },
  "boards": [
@@ -2092,6 +2140,85 @@
      },
      {
       "id": "I12",
+      "mark": 1
+     }
+    ]
+   }
+  },
+  {
+   "id": "bexd",
+   "name": "Test Board D",
+   "order": 4,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "R04",
+      "mark": 1
+     },
+     {
+      "id": "R03",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "R09",
+      "mark": 1
+     },
+     {
+      "id": "D01",
+      "mark": 1
+     },
+     {
+      "id": "R01",
+      "mark": 1
+     },
+     {
+      "id": "X102",
+      "mark": 1
+     },
+     {
+      "id": "R10",
+      "mark": 1
+     }
+    ],
+    "int": [
+     {
+      "id": "R11",
+      "mark": 1
+     },
+     {
+      "id": "R05",
+      "mark": 1
+     },
+     {
+      "id": "D17",
+      "mark": 1
+     },
+     {
+      "id": "I12",
+      "mark": 1
+     },
+     {
+      "id": "D23",
+      "mark": 1
+     },
+     {
+      "id": "I38",
+      "mark": 1
+     },
+     {
+      "id": "R06",
+      "mark": 1
+     },
+     {
+      "id": "R07",
       "mark": 1
      }
     ]

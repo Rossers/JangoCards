@@ -16,13 +16,13 @@ Browse existing cards, read the design guide, and arrange boards of cards to fig
 - **Fights are deterministic.** The larger a ship is (the more card slots), the slower it is, and the faster ship acts first. Each round, the two exterior rows take turns, card by card; then each ship's interior plays out, with its crew fighting any enemy boarders, defenders first.
 - **Attacks hit the frontmost enemy card.** Once a row is empty, they hit the hull. Last ship with an intact hull wins!
 - **Shields** never die: at 0 they go down, and recover after a round without damage. **Armor** is a sturdy wall. Shields are weak to Kinetic damage, Armor to Plasma.
-- **The Maelstrom** starts at a set round (10 on Ross Examples) and hits both ships every round, harder each time: the frontmost card first, what it can't take carrying on to the next, and the hull last. The interior takes half. Once it starts, Shields stop recovering, so no fight ends in a stalemate.
+- **The Maelstrom** starts at a set round (10 on the Example Sheet) and hits both ships every round, harder each time: the frontmost card first, what it can't take carrying on to the next, and the hull last. The interior takes half. Once it starts, Shields stop recovering, so no fight ends in a stalemate.
 
 ## Using the tool
 
 ### Balance sheets
 
-A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on **Ross Examples**: one example card for each of the main design sheet's formulas. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
+A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on the **Example Sheet**: one example card for each formula, and four example boards. They are there to learn the tool with, not a balanced or recommended deck. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
 
 ### Cards
 
@@ -56,11 +56,12 @@ The **Cards** view shows the sheet's cards. The tabs split them by group, the se
 
 Sheets can come with boards to fight against, marked "Shared". Boards you save stay in your browser.
 
-**Example boards.** Ross Examples comes with three full ships to start from, 8 cards in each row with five guns, built from the example cards and arranged the way a player would, with the crew in the interior row placed under the cards they help:
+**Example boards.** The Example Sheet comes with four full ships to start from, 8 cards in each row with five guns, built from the example cards and arranged the way a player would, with the crew in the interior row placed under the cards they help:
 
 - **Test Board A, hold the line:** a Decoy Buoy draws fire in front of the Armor, patched by the Repair Droid below it; a Power Cell feeds the Stock Shield a point every round; the Gunner, Weapons Tech and Loader each boost the gun above them.
 - **Test Board B, shields and charges:** a Flux Shield kept topped up by the Shield Technician; the Arc Projector discharges into the Ablative Tiles behind it, which the Power Cell also recharges; the Gunner gives the Plasma Lance a second hit.
 - **Test Board C, five guns:** Patchwork Plating repairs itself in front of the Armor, with five guns behind it; the Weapons Tech, Loader and Gunner each boost the gun above them.
+- **Test Board D, boarders:** the Teleporter at the front of the interior sends the crew behind it across to the enemy ship, one each turn, fighters first. Watch them in the Fight Sim: boarders stand in a column beside the enemy's interior row and fight its crew, then its hull.
 
 Try them: open one in the **Board Builder** to see how a ship is put together (tap a card to see it), watch two of them in the **Fight Sim**, or pick one as the target in the **Mass Sim**. To change one, edit it and use **Save as new**; your copy stays in your browser.
 
