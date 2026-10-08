@@ -22,7 +22,7 @@ Browse existing cards, read the design guide, and arrange boards of cards to fig
 
 ### Balance sheets
 
-A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on the **Example Sheet**: one example card for each formula, and four example boards. They are there to learn the tool with, not a balanced or recommended deck. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
+A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on the **Example Sheet**: one example card for each formula, and four example boards. They are there to learn the tool with, not a balanced or recommended deck. **Ross Balance** is the designer's working sheet: an early, unfinished set of Mk I cards on the current pricing. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
 
 ### Cards
 
