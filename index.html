@@ -211,6 +211,8 @@ legend { font-family: var(--display); font-size: 12px; letter-spacing: .12em; te
 .frow { display: grid; grid-template-columns: 1fr 96px; gap: 8px; align-items: center; font-size: 13.5px; }
 .frow input { width: 100%; border: 1px solid var(--rule); background: var(--paper); border-radius: 5px; padding: 4px 6px; font-family: var(--mono); font-size: 13px; }
 .frow input.wide { grid-column: 1 / -1; }
+.frow.fx-flag { grid-template-columns: auto 1fr; }
+.frow.fx-flag input { width: auto; margin: 0; }
 .frow.changed span { color: var(--accent-ink); font-weight: 500; }
 .preview { display: grid; gap: 2px; max-height: 340px; overflow-y: auto; font-size: 13px; background: var(--sunk); border-radius: 6px; padding: 6px 8px; }
 .preview div { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; border-bottom: 1px solid var(--rule); }
@@ -1030,7 +1032,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     return t;
   })();
   const FORMULA_SEED = {
-    v: 2, budget: { B: 96, p: 0.125, tolerance: 0.1 }, ship: { hull: 20, speed: 50, maelstrom: 12 },
+    v: 2, budget: { B: 96, p: 0.125, tolerance: 0.1 }, ship: { hull: 20, speed: 50, maelstrom: 10, storm: "24*M*max(0.5, N-1)", emp: true },
     rows: Object.fromEntries(FROWS.map(r => [r.id, { base: r.base, dumb: r.dumb || "", smart: r.smart || "" }])),
     styles: Object.fromEntries(FSTYLES.map(s => [s.k, s.seed])),
   };
@@ -1159,6 +1161,12 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     catch (e) { return { v: 0, tier: f.tier, err: e.msg || String(e) }; }
   }
   const round2 = x => Math.round(x * 100) / 100;
+  // The Maelstrom's damage in its k-th round at a cycle, from the sheet's formula (N: k; M: the cycle), rounded once
+  function stormDmg(k, cycle = 1, F = FORMULA) {
+    const src = String((F.ship || {}).storm || "").trim() || FORMULA_SEED.ship.storm;
+    try { return Math.max(0, Math.round(fxEval(src, { N: k, M: cycle }, F.rows || FORMULA.rows))); }
+    catch (e) { return Math.max(0, Math.round(24 * cycle * Math.max(0.5, k - 1))); }
+  }
 
   // ---------- pricing a card ----------
   const tagged = (c, t) => (c.tags || []).includes(t);
@@ -1362,7 +1370,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const k = (x, v) => { const n = Number(x) || 0; return n ? `${+n.toFixed(4)}*${v}` : "0"; }, row = (base, dumb = "", smart = "") => ({ base, dumb, smart });
     const vo = k(o.vulnOther, "M"), rp = k(o.intBuff.repair, "N"), T = o.typeExt || {};
     return {
-      v: 2, legacy: true, budget: { B: o.ext.base + (o.ext.pad || 0), p: o.ext.base ? o.ext.step / o.ext.base : 0, tolerance: o.tolerance }, ship: clone(o.ship),
+      v: 2, legacy: true, budget: { B: o.ext.base + (o.ext.pad || 0), p: o.ext.base ? o.ext.step / o.ext.base : 0, tolerance: o.tolerance }, ship: { ...clone(FORMULA_SEED.ship), ...clone(o.ship) },
       styles: clone(FORMULA_SEED.styles),
       rows: {
         Attack: row(k(o.ext.atk, "A")), Health: row("H"), Mult: row(`${+o.extraHitExt}*A*(X-1)`), Ammo: row("min(1, 0.05+0.2*Pa)"), MaxCharges: row("0"),
@@ -1431,7 +1439,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (!sheets.has(id)) return;
     sheetId = id; try { localStorage.setItem(publicMode ? "jango-cards-sheet" : "jango-picker-sheet", id); } catch (e) {}
     applyFormula(activeSheet().formula);
-    SIM.maelstrom = FORMULA.ship.maelstrom;
+    syncSimMaelstrom(true);
     stopPlay(); play = null; lastMass = null;
     rebuildCards(); syncDraftSheet(); renderGuide();
     if (!loaded) return;
@@ -2339,13 +2347,16 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const check = on.filter(c => c.check).length, boards = builds.size, src = s.from && sheets.get(s.from);
     const was = upgradeFormula(s.baseline || s.formula), ro = !!readOnly;
     const num = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" inputmode="decimal" data-fpath="${p}" value="${esc(v)}" ${dis}></label>`; };
+    const txt = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" class="wide" data-fstr="${p}" value="${esc(v)}" spellcheck="false" ${dis}></label>`; };
+    const flag = (p, label) => `<label class="frow fx-flag"><input type="checkbox" data-fbool="${p}" ${getPath(FORMULA, p) !== false ? "checked" : ""} ${dis}><span>${label}</span></label>`;
     const groups = `<details class="fx-help"><summary>How formulas work</summary>${fxGuideHtml()}</details>
       ${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}
       <div class="fgroup"><h4>Budget</h4>${noteBox(secKey("Budget"), "Budget", ro, "the thinking behind the budget")}${num("budget.B", "B: the Mk I budget")}${num("budget.p", "p: more per floor step (0.125 is 12.5%)")}${num("budget.tolerance", "On budget within (0.1 is ±10%)")}
         <p class="hint">budget = mark × B × (1 + p × floor steps). At each card's lowest mark: ${MARKS.map((m, i) => `Mk ${m}+ ${budgetAt("ext", i + 1, i + 1)}`).join(", ")}.</p></div>
       ${FGROUPS.map((h, gi) => `<div class="fgroup"><h4>${esc(h)}</h4>${noteBox(secKey(h), h, ro, "the thinking behind this section")}${FROWS.filter(r => r.g === gi).map(r => fxRowHtml(r, was, ro)).join("")}</div>`).join("")}
       <div class="fgroup"><h4>Targeting styles</h4>${noteBox(secKey("Targeting styles"), "Targeting styles", ro, "the thinking behind these multipliers")}<p class="hint">A targeted effect costs its tier's formula × its style × its trigger (After Attack: × X).</p>${FSTYLES.map(st => num("styles." + st.k, `${st.label}: ${esc(st.text)}`)).join("")}</div>
-      <div class="fgroup"><h4>Ship and fight</h4>${noteBox(secKey("Ship and fight"), "Ship and fight", ro, "the thinking behind these numbers")}${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}</div>`;
+      <div class="fgroup"><h4>Ship and fight</h4>${noteBox(secKey("Ship and fight"), "Ship and fight", ro, "the thinking behind these numbers")}${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}${txt("ship.storm", "Maelstrom damage: N is its round (1 for the first), M the cycle")}
+        <p class="hint">Each round it deals this to each ship's exterior row (front to back, then the hull) and half, rounded down, to its interior. At cycle 1: ${[1, 2, 3, 4, 5].map(k => stormDmg(k)).join(", ")} …</p>${flag("ship.emp", "Shields stop restoring once the Maelstrom starts (their shield points, Regen and charges still work)")}</div>`;
     const stale = !sameFormula(s.formula, s.baseline || s.formula);
     const plan = SH.plan;
     const planHtml = plan ? (plan.length ? `<p class="muted">${plan.length} card${plan.length === 1 ? "" : "s"} will be unapproved${plan.some(x => x.r.check) ? `; ${plan.filter(x => x.r.check).length} will also be marked for a check` : ""}. Effects are priced first, by the formulas; attack and health share the rest in each card's current ratio. Mult, ammo, charges, effect amounts and Effect BP stay as they are.</p>
@@ -2403,6 +2414,12 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       if (raw === "" || isNaN(n)) { toast("Every number field needs a number."); el.focus(); return null; }
       setPath(f, el.dataset.fpath, n);
     }
+    for (const el of document.querySelectorAll("#sh-body [data-fstr]")) {
+      const v = el.value.replace(/\s+/g, " ").trim(), chk = v ? fxCheck(v, f.rows) : { ok: false, msg: "write a formula" };
+      if (!chk.ok) { toast(`Maelstrom damage: ${chk.msg}`); el.focus(); return null; }
+      setPath(f, el.dataset.fstr, v);
+    }
+    document.querySelectorAll("#sh-body [data-fbool]").forEach(el => setPath(f, el.dataset.fbool, el.checked));
     document.querySelectorAll("#sh-body .ffield").forEach(fd => { const ta = fd.querySelector(".ffin"); if (ta) setPath(f, `rows.${fd.dataset.row}.${fd.dataset.tier}`, ta.value.replace(/\s+/g, " ").trim()); });
     for (const r of FROWS) for (const t of r.tiers ? ["base", "dumb", "smart"] : ["base"]) {
       const src = String((f.rows[r.id] || {})[t] || "").trim();
@@ -2533,7 +2550,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (e.target.closest("#sh-save-formula")) {
       const f = readFormulaForm(); if (!f) return;
       writeSheet(s.id, { formula: f }).then(() => toast("Formula saved")).catch(() => {});
-      applyFormula(activeSheet().formula); SIM.maelstrom = FORMULA.ship.maelstrom; rebuildCards(); renderGuide(); renderAll(); SH.plan = null; renderSheetPanel(); return;
+      applyFormula(activeSheet().formula); syncSimMaelstrom(true); rebuildCards(); renderGuide(); renderAll(); SH.plan = null; renderSheetPanel(); return;
     }
     if (e.target.closest("#sh-revert")) {
       writeSheet(s.id, { formula: upgradeFormula(s.baseline || s.formula) }).then(() => toast("Back to the balanced formula")).catch(() => {});
@@ -2609,7 +2626,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       "**Effects on a card that dies early** (self-healing, Taunt, Guard) are priced low.",
     ],
     findings: [
-      "**The 6/12 shape.** Mirror matches, 6v6 and 8v8 exterior rows, with and without a Shields (22) and Armor (25) pair, hull 20, Maelstrom from round 12: 6 attack, 12 health is the only shape that stays in or near 6 to 8 rounds in every configuration. Leaning to health runs into the Maelstrom; leaning to attack ends in about two rounds.",
+      "**The 6/12 shape.** Mirror matches, 6v6 and 8v8 exterior rows, with and without a Shields (22) and Armor (25) pair, hull 20, the old Maelstrom (from round 12, 1 more to each hull a round): 6 attack, 12 health is the only shape that stays in or near 6 to 8 rounds in every configuration. Leaning to health runs into the Maelstrom; leaning to attack ends in about two rounds.",
+      "**Fight length (2026-10-08).** Full 8×8 boards with 5 guns each and the Maelstrom from round 10 (hitting cards): the example boards' fights end in 6 to 10 rounds. With 3 guns in 6 exterior slots and the old Maelstrom they ran 11 to 12: the fight was decided by about round 5 and the rest was mop-up.",
       "Damage matters most early, so weapons belong behind the Armor.",
       "The first mover wins about 55% of even fights.",
       "Boarding is about numbers: equal crews stall, and boarding pays off against a thin interior.",
@@ -2667,14 +2685,14 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <h3>Shields and Armor</h3>
       <ul>
         <li>${n("armor")}</li>
-        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free). <b>Regen</b> tops up a Shields card that is up. Every Shields card has <b>Vulnerable (Kinetic)</b>.</li>
+        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free)${FORMULA.ship.emp !== false ? ", until the Maelstrom starts" : ""}. <b>Regen</b> tops up a Shields card that is up. Every charge a Shields card is given (Recharge, Discharge, an Electric hit) is a shield point, even while it is down, so a down Shields card can be charged back up. Every Shields card has <b>Vulnerable (Kinetic)</b>.</li>
         <li>${n("shields")}</li>
       </ul>
       <h3>How formulas work</h3>
       ${fxGuideHtml()}
       <h3>Targeting styles</h3>${sn("Targeting styles")}
       <table class="gtable"><tr><th>Style</th><th>Reaches</th><th class="n">×</th></tr>${FSTYLES.map(st => `<tr><td>${st.label}</td><td>${esc(st.text)}</td><td class="n">${FORMULA.styles[st.k] ?? st.seed}</td></tr>`).join("")}</table>
-      <h3>Ship and fight</h3>${sn("Ship and fight")}<p>Hull ${FORMULA.ship.hull}, speed ${FORMULA.ship.speed}, the Maelstrom from round ${FORMULA.ship.maelstrom}.</p>
+      <h3>Ship and fight</h3>${sn("Ship and fight")}<p>Hull ${FORMULA.ship.hull}, speed ${FORMULA.ship.speed}. The Maelstrom starts at the end of round ${FORMULA.ship.maelstrom} and hits both ships every round after that, at the same time: <code>${esc(FORMULA.ship.storm || FORMULA_SEED.ship.storm)}</code> (N is its round, M the cycle; ${[1, 2, 3, 4].map(k => stormDmg(k)).join(", ")} … at cycle 1) to the exterior row and half, rounded down, to the interior. It hits the frontmost card first, carries what a card can't take on to the next, and reaches the hull last. It isn't an attack: Block, Reflect, Taunt and Guard don't stop it, and Resist lowers each hit. An empty row lets it all through to the hull, so a ship with nothing left in a row loses fast.${FORMULA.ship.emp !== false ? " Once it starts, Shields no longer restore after a quiet round; their shield points, Regen and charges still work." : ""} The Simulator's <b>Cycle</b> setting sets M (1 unless you change it).</p>
       ${FGROUPS.map((h, gi) => `<h3>${esc(h)}</h3>${sn(h)}${rowTable(gi)}`).join("")}
       ${(G.handPrices || []).length ? `<h3>Priced by hand</h3><table class="gtable"><tr><th>Item</th><th>BP</th><th>Note</th></tr>${G.handPrices.map(([a, b, c]) => price(g(a), g(b), g(c))).join("")}</table>` : ""}
       ${(G.buffPoints || []).length ? `<h3>Pricing principles</h3><ul>${G.buffPoints.map(t => `<li>${g(t)}</li>`).join("")}</ul>` : ""}
@@ -2700,13 +2718,13 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       </ul>
       <h3>Keyword rules</h3>
       <table class="gtable"><tr><th>Keyword</th><th>Rule</th><th>Formula</th></tr>
-        <tr><td>Resist N</td><td>Every instance of damage it takes is N lower, never below 0: hits, splash, pierce and stack damage alike.</td><td>${f0("Resist")}</td></tr>
-        <tr><td>Block N</td><td>Completely stops the next N attacks against this card each fight: no damage and nothing the attack would trigger. Block never scales with mark.</td><td>${f0("Block")}</td></tr>
+        <tr><td>Resist N</td><td>Every instance of damage it takes is N lower, never below 0: hits, splash, pierce, stack damage and the Maelstrom alike.</td><td>${f0("Resist")}</td></tr>
+        <tr><td>Block N</td><td>Completely stops the next N attacks against this card each fight: no damage and nothing the attack would trigger. Block never scales with mark, and doesn't stop the Maelstrom, which isn't an attack.</td><td>${f0("Block")}</td></tr>
         <tr><td>Reflect N</td><td>Each time an attack hits this card, the attacker takes N damage, untyped.</td><td>${f0("Reflect")}</td></tr>
         <tr><td>Self-Heal N, Self-Repair N</td><td>When the card activates, it restores N of its own health: Self-Heal on a Biological card, Self-Repair on anything else.</td><td>${f0("Heal")}</td></tr>
         <tr><td>Heal N, Repair N</td><td>When the card activates, it passes N health to its neighbors, each point to the first that is damaged: below, then behind, then in front (from an interior card above, behind, in front). Heal reaches Biological cards, Repair the rest.</td><td>Their rows' smart formulas</td></tr>
         <tr><td>Regen N</td><td>Shields only: a Shields card that is up gains N shield points each activation, after any Restore.</td><td>${f0("Regen")}</td></tr>
-        <tr><td>Restore N</td><td>A down Shields card comes back with N shield points when it activates after a round with no damage. Every Shields card has Restore equal to its mark for free.</td><td>${f0("Restore")}, N above the free Restore</td></tr>
+        <tr><td>Restore N</td><td>A down Shields card comes back with N shield points when it activates after a round with no damage. Every Shields card has Restore equal to its mark for free.${FORMULA.ship.emp !== false ? " On this sheet Restore stops once the Maelstrom starts." : ""}</td><td>${f0("Restore")}, N above the free Restore</td></tr>
         <tr><td>Vulnerable (type)</td><td>Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable (Kinetic), every Armor card Vulnerable (Plasma); any card can carry one as a weakness.</td><td>Gives BP back: ${f0("VulnKinetic")} for Kinetic</td></tr>
         <tr><td>Taunt</td><td>Attacks against its row target this card first, wherever it sits.</td><td>${f0("Taunt")}</td></tr>
         <tr><td>Guard</td><td>An attack aimed at the card directly in front of or behind it, in the same row or boarder column, hits this card instead.</td><td>${f0("Guard")}</td></tr>
@@ -2811,7 +2829,10 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // ---------- simulator engine ----------
   // ENGINE START
   // One fight. A ship spec is { hull, ext: [card|null], int: [card|null] }: null is an empty card slot, kept as a real
-  // position so adjacency and splash stay right. A card spec is what simCard() returns. o: { aFirst, maelstrom, log, trace }.
+  // position so adjacency and splash stay right. A card spec is what simCard() returns.
+  // o: { aFirst, maelstrom, cycle, storm, emp, log, trace }: maelstrom is the round the Maelstrom starts; storm(k) its damage
+  // in its k-th round (by default 24 × cycle × max(½, k − 1): 12, 24, 48, 72 … at cycle 1); emp (default on) stops Shields
+  // restoring once it has started.
   // Activation order is data (DESIGN 6.2.1, 12.2): the exterior rows alternate, faster ship first; then each ship's interior
   // resolves as one battlefield, its defenders alternating with the enemy boarders standing on it, defender first, the
   // faster ship's battlefield first. A card activates at most once per round, where it stands when the order reaches it.
@@ -3068,7 +3089,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const first = o.aFirst ? 0 : 1;
     const log = o.log || o.trace ? [] : null, trace = o.trace ? [] : null;
     const turns = o.trace ? [] : null; // every card's turn, in order, idle ones included: { round, uid, at }
-    let round = 0, winner = null, actor = null;
+    let round = 0, winner = null, actor = null, storming = false;
     let sequence = new Set(); // "source>target" pairs: which card's effects activated which card since this resolution sequence began
     const roundBuffs = []; // "this round" gains, removed at the end of the round
     const nm = c => c.own.label + " " + c.name;
@@ -3078,8 +3099,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       cards: Object.fromEntries(S.flatMap(s => s.all).map(x => [x.uid, { hp: x.hp, max: x.max, atk: x.atk.map(a => [a.type, a.amt]), mult: x.mult, ammo: x.ammoLeft, charges: x.chargesLeft, fire: x.fire, rad: x.rad, heat: x.heat }])),
     });
     const say = t => { if (!log) return; log.push("R" + round + "  " + t); if (trace) trace.push({ round, active: actor ? actor.uid : null, text: t, state: snap() }); };
+    const hullResist = ship => ship.hullResist.filter(x => x.src.hp > 0).reduce((t, x) => t + x.n, 0); // "Your ship has Resist 1." while that card lives
     function hullHit(att, ship, dmg, how) {
-      dmg = Math.max(0, dmg - ship.hullResist.filter(x => x.src.hp > 0).reduce((t, x) => t + x.n, 0)); // "Your ship has Resist 1." while that card lives
+      dmg = Math.max(0, dmg - hullResist(ship));
       if (dmg <= 0) return 0;
       ship.hull -= dmg; att.dealt += dmg; att.hullDmg += dmg;
       say(`${nm(att)} ${how} ${ship.label} hull for ${dmg} (${Math.max(0, ship.hull)} left)`);
@@ -3172,6 +3194,35 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       }
       if (att.pierce && winner === null && alive(below)) att.pierced += cardHit(att, below, att.pierce, "pierces", att.pierceType ? [att.pierceType] : types);
     }
+    // The Maelstrom (DESIGN 6.2.1): from the end of its first round, every round, it hits both ships at once. On each ship it
+    // runs down the exterior row, front to back, then the hull; and down the interior (the enemy boarders on it, frontmost
+    // first, then the defenders, front to back), then the hull, at half damage, rounded down. Damage past what a card had
+    // left goes on to the next. It isn't an attack (no Block, Reflect, Taunt, Guard or On Attacked) and it's untyped;
+    // Resist lowers each hit. A down Shields card lets it through.
+    const stormAt = k => Math.max(0, Math.round(Number(o.storm ? o.storm(k) : 24 * (o.cycle || 1) * Math.max(0.5, k - 1)) || 0));
+    function storm(k) {
+      const d = stormAt(k), half = Math.floor(d / 2), hurt = [];
+      say(`The Maelstrom deals ${d} to each exterior row and ${half} to each interior`);
+      S.forEach(s => [[s.ext, d], [[...s.col, ...s.int], half]].forEach(([L, dmg]) => {
+        let left = dmg;
+        for (const t of L) {
+          if (left <= 0) break;
+          if (!alive(t)) continue;
+          const r = t.resist || 0;
+          if (left <= r) { left = 0; break; } // Resist soaks the rest
+          const got = Math.min(t.hp, left - r);
+          left -= got + r; t.hp -= got; t.taken += got; t.lastHit = round; hurt.push(t);
+          say(`The Maelstrom hits ${nm(t)} for ${got}` + (t.hp <= 0 ? (t.kind === "S" ? ", shields down" : ", destroyed") : ` (${t.hp} left)`));
+        }
+        const h = left > 0 ? Math.max(0, left - hullResist(s)) : 0;
+        if (h > 0) { s.hull -= h; say(`The Maelstrom hits ${s.label} hull for ${h} (${Math.max(0, s.hull)} left)`); }
+      }));
+      // It all lands at once: a hull at 0 ends the fight (both at 0 is a draw); otherwise the cards react, the survivors
+      // with On Damaged, the rest with On Death (or shields down)
+      const d0 = S[0].hull <= 0, d1 = S[1].hull <= 0;
+      if (d0 || d1) { winner = d0 && d1 ? -1 : d0 ? 1 : 0; return; }
+      hurt.forEach(t => { if (winner !== null) return; if (t.hp > 0) fire(t, "on_damaged"); else { if (t.diedIn === null) t.diedIn = round; died(t); } });
+    }
     function activate(c, depth = 0) {
       if (winner !== null) return;
       const prev = actor; actor = c; // the card acting, for playback
@@ -3186,8 +3237,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     }
     function act(c, depth) {
       // Shields are never destroyed: at 0 they are down and still activate. A down Shields card that took no damage last
-      // round (or this one so far) comes back with its Restore; one that is up tops up with Regen, after any Restore.
-      if (c.kind === "S" && c.restore && c.hp <= 0 && c.lastHit < round - 1) {
+      // round (or this one so far) comes back with its Restore, until the Maelstrom stops that; one that is up tops up with
+      // Regen, after any Restore.
+      if (c.kind === "S" && c.restore && c.hp <= 0 && c.lastHit < round - 1 && !(storming && o.emp !== false)) {
         c.hp = Math.min(c.max, c.restore);
         say(`${nm(c)} restores to ${c.hp}`);
       }
@@ -3245,14 +3297,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       runOrder(c => { if (alive(c)) fire(c, "end_of_round"); });
       roundBuffs.splice(0).forEach(b => { const a = b.t.atk.find(x => x.type === b.type); if (a) a.amt = Math.max(0, a.amt - b.n); });
       if (winner !== null) break;
-      if (round === o.maelstrom) runOrder(c => { if (alive(c)) fire(c, "on_maelstrom"); });
-      if (round >= o.maelstrom) {
-        const m = round - o.maelstrom + 1;
-        S[0].hull -= m; S[1].hull -= m;
-        say(`Maelstrom deals ${m} to both hulls (A ${Math.max(0, S[0].hull)}, B ${Math.max(0, S[1].hull)} left)`);
-        const d0 = S[0].hull <= 0, d1 = S[1].hull <= 0;
-        winner = d0 && d1 ? -1 : d0 ? 1 : d1 ? 0 : null;
-      }
+      if (round === o.maelstrom) { storming = true; say(o.emp !== false ? "The Maelstrom starts: Shields no longer restore" : "The Maelstrom starts"); runOrder(c => { if (alive(c)) fire(c, "on_maelstrom"); }); }
+      if (round >= o.maelstrom && winner === null) storm(round - o.maelstrom + 1);
     }
     if (winner === null) winner = -1;
     const stat = c => ({ uid: c.uid, id: c.id, name: c.name, kind: c.kind, homeZone: c.homeZone, homeIdx: c.homeIdx, zone: c.zone, hp: c.hp, max: c.max,
@@ -3425,9 +3471,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   }
 
   // ---------- simulator: state ----------
-  const SIM = { tab: "builder", maelstrom: FORMULA.ship.maelstrom, draft: null, fight: { a: "", b: "", speed: 450, first: "speed" }, mass: { target: "", vs: "saved", sameSize: true, n: 200, pool: "all", strength: "mark", mark: 1, bpMin: 60, bpMax: 200, speedVar: 10 } };
-  try { const s = JSON.parse(localStorage.getItem("jango-picker-sim-v3") || "{}"); Object.assign(SIM, s, { fight: { ...SIM.fight, ...(s.fight || {}) }, mass: { ...SIM.mass, ...(s.mass || {}) } }); } catch (e) {}
-  const saveSim = () => { try { localStorage.setItem("jango-picker-sim-v3", JSON.stringify({ tab: SIM.tab, maelstrom: SIM.maelstrom, draft: SIM.draft, draftSheet: SIM.draftSheet, drafts: SIM.drafts, fight: SIM.fight, mass: SIM.mass })); } catch (e) {} };
+  const SIM = { tab: "builder", maelstrom: FORMULA.ship.maelstrom, cycle: 1, draft: null, fight: { a: "", b: "", speed: 450, first: "speed" }, mass: { target: "", vs: "saved", sameSize: true, n: 200, pool: "all", strength: "mark", mark: 1, bpMin: 60, bpMax: 200, speedVar: 10 } };
+  try { const s = JSON.parse(localStorage.getItem("jango-picker-sim-v3") || "{}"); delete s.maelstrom; Object.assign(SIM, s, { fight: { ...SIM.fight, ...(s.fight || {}) }, mass: { ...SIM.mass, ...(s.mass || {}) } }); } catch (e) {}
+  const saveSim = () => { try { localStorage.setItem("jango-picker-sim-v3", JSON.stringify({ tab: SIM.tab, cycle: SIM.cycle, draft: SIM.draft, draftSheet: SIM.draftSheet, drafts: SIM.drafts, fight: SIM.fight, mass: SIM.mass })); } catch (e) {} };
   if (!SIM.draft) SIM.draft = { id: null, name: "", board: starterBoard() };
   SIM.draft.board = normBoard(SIM.draft.board);
   // Each sheet keeps its own board in progress in the Board Builder
@@ -3440,7 +3486,12 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     selSlot = null; moving = null; saveSim();
   }
   let selSlot = null, moving = null, play = null, massRun = null, lastMass = null;
-  const simOpts = aFirst => ({ aFirst, maelstrom: SIM.maelstrom || 60 });
+  const simCycle = () => Math.max(1, Math.round(Number(SIM.cycle) || 1));
+  // The simulators' Maelstrom round starts at the sheet's and follows it when the sheet's changes; a different round typed
+  // in a simulator holds until then (it isn't kept between visits)
+  let simMaelFrom = null;
+  function syncSimMaelstrom(force = false) { const m = FORMULA.ship.maelstrom; if (force || m !== simMaelFrom) { simMaelFrom = m; SIM.maelstrom = m; } }
+  const simOpts = aFirst => { const M = simCycle(); return { aFirst, maelstrom: SIM.maelstrom || 60, cycle: M, emp: FORMULA.ship.emp !== false, storm: k => stormDmg(k, M) }; };
   const pct = (n, d) => d ? Math.round(n / d * 100) + "%" : "–";
   const avg = (n, d) => d ? (n / d).toFixed(1) : "–";
   const ICON_SHIELD = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 .8 1.8 3v4.4c0 3.9 2.7 6.7 6.2 7.8 3.5-1.1 6.2-3.9 6.2-7.8V3L8 .8Z"/></svg>';
@@ -3839,7 +3890,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <label>Board A<select data-fsel="a">${boardOptions(f.a, "Pick a board")}</select></label>
       <label>Board B<select data-fsel="b">${boardOptions(f.b, "Pick a board")}</select></label>
       <label>Who goes first<select data-fsel="first">${[["speed", "The faster ship (A on a tie)"], ["a", "A, whatever the speed"], ["b", "B, whatever the speed"]].map(([v, l]) => `<option value="${v}" ${f.first === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
-      <label>Maelstrom from round<input type="number" min="1" max="60" data-fsel="maelstrom" value="${SIM.maelstrom}"></label></div>
+      <label>Maelstrom from round<input type="number" min="1" max="60" data-fsel="maelstrom" value="${SIM.maelstrom}"></label>
+      <label title="Scales the Maelstrom's damage">Cycle<input type="number" min="1" max="20" data-fsel="cycle" value="${simCycle()}"></label></div>
       ${f.a && f.b && builds.get(f.a) && builds.get(f.b) ? `<p class="muted">Speed: A ${boardSpecOf(buildBoard(builds.get(f.a))).speed}, B ${boardSpecOf(buildBoard(builds.get(f.b))).speed}.</p>` : ""}
       <div class="fab-row"><button class="btn primary" type="button" id="f-go">Fight</button></div>
       ${[f.a, f.b].map(id => id && builds.get(id) && buildErrors(builds.get(id)).length ? `<p class="errline">${ICON_WARN}${esc(builds.get(id).name)} breaks a placement rule; it still fights here, but the Mass Sim skips it.</p>` : "").join("")}</div>`;
@@ -3912,7 +3964,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   $("#sim-body").addEventListener("change", e => {
     if (SIM.tab !== "fight") return;
     const el = e.target.closest("[data-fsel]");
-    if (el) { const k = el.dataset.fsel; if (k === "maelstrom") SIM.maelstrom = Math.max(1, Number(el.value) || 12); else SIM.fight[k] = el.value; saveSim(); if (k === "a" || k === "b") { stopPlay(); play = null; renderFightSim(); } return; }
+    if (el) { const k = el.dataset.fsel; if (k === "maelstrom") SIM.maelstrom = Math.max(1, Number(el.value) || FORMULA.ship.maelstrom); else if (k === "cycle") SIM.cycle = Math.max(1, Math.round(Number(el.value) || 1)); else SIM.fight[k] = el.value; saveSim(); if (k === "a" || k === "b") { stopPlay(); play = null; renderFightSim(); } return; }
     if (e.target.id === "f-speed") { SIM.fight.speed = Number(e.target.value); saveSim(); if (play && play.playing) schedule(); }
   });
   $("#sim-body").addEventListener("click", e => {
@@ -3931,7 +3983,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const m = SIM.mass, t = builds.get(m.target), bad = buildList().filter(b => buildErrors(b).length);
     $("#sim-body").innerHTML = `<div class="box"><div class="set-grid wide">
       <label>Target board<select data-mset="target">${boardOptions(m.target, "Pick a board")}</select></label>
-      <label>Maelstrom from round<input type="number" min="1" max="60" data-mset="maelstrom" value="${SIM.maelstrom}"></label></div>
+      <label>Maelstrom from round<input type="number" min="1" max="60" data-mset="maelstrom" value="${SIM.maelstrom}"></label>
+      <label title="Scales the Maelstrom's damage">Cycle<input type="number" min="1" max="20" data-mset="cycle" value="${simCycle()}"></label></div>
       <div class="checkrow"><label><input type="radio" name="m-vs" data-mset="vs" value="saved" ${m.vs === "saved" ? "checked" : ""}> Every other saved board</label>
         <label><input type="checkbox" data-mset="sameSize" ${m.sameSize ? "checked" : ""}> only the same size</label></div>
       <div class="checkrow"><label><input type="radio" name="m-vs" data-mset="vs" value="random" ${m.vs === "random" ? "checked" : ""}> Random boards, arranged like a player, the target's size</label></div>
@@ -3953,7 +4006,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (SIM.tab !== "mass") return;
     const el = e.target.closest("[data-mset]"); if (!el) return;
     const k = el.dataset.mset, m = SIM.mass;
-    if (k === "maelstrom") SIM.maelstrom = Math.max(1, Number(el.value) || 12);
+    if (k === "maelstrom") SIM.maelstrom = Math.max(1, Number(el.value) || FORMULA.ship.maelstrom);
+    else if (k === "cycle") SIM.cycle = Math.max(1, Math.round(Number(el.value) || 1));
     else if (k === "sameSize") m.sameSize = el.checked;
     else if (["n", "mark", "bpMin", "bpMax", "speedVar"].includes(k)) m[k] = Math.max(0, Number(el.value) || 0);
     else m[k] = el.value;
@@ -4240,7 +4294,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     };
     db.collection("sheets").limit(100).onSnapshot(snap => {
       sheets.clear(); snap.docs.forEach(d => { const v = d.data(); if (v) sheets.set(d.id, { ...v, id: d.id }); });
-      const s = activeSheet(); applyFormula(s ? s.formula : null);
+      const s = activeSheet(); applyFormula(s ? s.formula : null); syncSimMaelstrom();
       sheetsIn = true; watchChunks(); syncAccess(); renderGuide(); afterData();
     }, () => { $("#grid").innerHTML = `<div class="state">The card list stopped updating. Reload the page to reconnect.</div>`; });
     db.collection("builds").limit(200).onSnapshot(snap => {

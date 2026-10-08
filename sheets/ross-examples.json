@@ -1,7 +1,7 @@
 {
  "jango": "balance-sheet",
  "format": 1,
- "exported": "2026-10-08T04:53:13.564Z",
+ "exported": "2026-10-08T05:25:57.139Z",
  "vocab": 6,
  "sheet": {
   "id": "ross-examples",
@@ -240,9 +240,11 @@
     }
    },
    "ship": {
+    "emp": true,
     "hull": 20,
-    "maelstrom": 12,
-    "speed": 50
+    "maelstrom": 10,
+    "speed": 50,
+    "storm": "24*M*max(0.5, N-1)"
    },
    "styles": {
     "adjacent": 2,
@@ -486,9 +488,11 @@
     }
    },
    "ship": {
+    "emp": true,
     "hull": 20,
-    "maelstrom": 12,
-    "speed": 50
+    "maelstrom": 10,
+    "speed": 50,
+    "storm": "24*M*max(0.5, N-1)"
    },
    "styles": {
     "adjacent": 2,
@@ -511,7 +515,8 @@
     "**Effects on a card that dies early** (self-healing, Taunt, Guard) are priced low."
    ],
    "findings": [
-    "**The 6/12 shape.** Mirror matches, 6v6 and 8v8 exterior rows, with and without a Shields (22) and Armor (25) pair, hull 20, Maelstrom from round 12: 6 attack, 12 health is the only shape that stays in or near 6 to 8 rounds in every configuration. Leaning to health runs into the Maelstrom; leaning to attack ends in about two rounds.",
+    "**The 6/12 shape.** Mirror matches, 6v6 and 8v8 exterior rows, with and without a Shields (22) and Armor (25) pair, hull 20, the old Maelstrom (from round 12, 1 more to each hull a round): 6 attack, 12 health is the only shape that stays in or near 6 to 8 rounds in every configuration. Leaning to health runs into the Maelstrom; leaning to attack ends in about two rounds.",
+    "**Fight length (2026-10-08).** Full 8×8 boards with 5 guns each and the Maelstrom from round 10 (hitting cards): the example boards' fights end in 6 to 10 rounds. With 3 guns in 6 exterior slots and the old Maelstrom they ran 11 to 12: the fight was decided by about round 5 and the rest was mop-up.",
     "Damage matters most early, so weapons belong behind the Armor.",
     "The first mover wins about 55% of even fights.",
     "Boarding is about numbers: equal crews stall, and boarding pays off against a thin interior.",
@@ -1085,56 +1090,6 @@
    "timing": "",
    "value": null
   },
-  "X36": {
-   "ammo": null,
-   "approved": false,
-   "atkVar": false,
-   "attach": "",
-   "attack": [],
-   "bpAdj": null,
-   "bucket": "exterior",
-   "charges": null,
-   "check": "",
-   "effect": "Adjacent weapons have Execute.",
-   "effectNote": "",
-   "effects": [
-    {
-     "action": "keyword",
-     "keyword": "Execute",
-     "target": "adjacent_weapons",
-     "trigger": ""
-    }
-   ],
-   "flavor": "",
-   "from": "",
-   "gearSlots": null,
-   "health": 6,
-   "kind": "",
-   "minMark": 1,
-   "modSlots": null,
-   "mult": 1,
-   "name": "Targeting Array",
-   "notes": "Execute 48, given to adjacent weapons: × 1.5 (some neighbors).",
-   "order": 10,
-   "parked": false,
-   "pick": false,
-   "place": "Either",
-   "public": true,
-   "recipes": [],
-   "role": "Support",
-   "row": "Exterior",
-   "sources": [
-    "research"
-   ],
-   "src": "user",
-   "tags": [
-    "System",
-    "Electronics"
-   ],
-   "tech": "high",
-   "timing": "",
-   "value": null
-  },
   "R03": {
    "ammo": null,
    "approved": false,
@@ -1572,6 +1527,336 @@
    "tech": "mid",
    "timing": "",
    "value": null
+  },
+  "R05": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Self-Heal 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 1,
+     "keyword": "Self-Heal",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 15,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Brawler",
+   "notes": "Self-Heal 1 is 4: attack 32 + Self-Heal 4 + health 60.",
+   "order": 19,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "R06": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "The weapon above this gains +1 attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "source": "value",
+     "stat": "attack",
+     "target": "above_weapon",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 17,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Weapons Tech",
+   "notes": "Granted +1 attack to one fixed card is 12: attack 16 + 12 + health 68.",
+   "order": 20,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "R07": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Your Shields card has Regen 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Regen",
+     "target": "your_shields",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 18,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Shield Technician",
+   "notes": "Regen 2 on your Shields card is 16 (a fixed target, the dumb tier): attack 8 + 16 + health 72.",
+   "order": 21,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "R08": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "On Activate: The card above this recharges 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "recharge",
+     "amount": 1,
+     "source": "value",
+     "target": "above",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 22,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Power Cell",
+   "notes": "Recharge 1 on activation is 8: health 88 + 8. Under a Shields card it adds a shield point a round, even while the Shields are down.",
+   "order": 22,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "System",
+    "Electronics"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "R09": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Splash 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Splash",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 15,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Flak Cannon",
+   "notes": "Splash 2 on a single hit is 20: attack 16 + 20 + health 60.",
+   "order": 23,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "R10": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Plasma"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Pierce 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 1,
+     "keyword": "Pierce",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 15,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Plasma Lance",
+   "notes": "Pierce 1 on a single hit is 4; Plasma costs nothing extra: attack 32 + 4 + health 60.",
+   "order": 24,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
   }
  },
  "boards": [
@@ -1598,7 +1883,15 @@
       "mark": 1
      },
      {
+      "id": "D01",
+      "mark": 1
+     },
+     {
       "id": "D05",
+      "mark": 1
+     },
+     {
+      "id": "R02",
       "mark": 1
      },
      {
@@ -1606,13 +1899,13 @@
       "mark": 1
      },
      {
-      "id": "R02",
+      "id": "R09",
       "mark": 1
      }
     ],
     "int": [
      {
-      "id": "I38",
+      "id": "R08",
       "mark": 1
      },
      {
@@ -1620,7 +1913,7 @@
       "mark": 1
      },
      {
-      "id": "I12",
+      "id": "I38",
       "mark": 1
      },
      {
@@ -1628,11 +1921,19 @@
       "mark": 1
      },
      {
-      "id": "D17",
+      "id": "R06",
       "mark": 1
      },
      {
       "id": "I32",
+      "mark": 1
+     },
+     {
+      "id": "R05",
+      "mark": 1
+     },
+     {
+      "id": "I12",
       "mark": 1
      }
     ]
@@ -1653,7 +1954,11 @@
       "mark": 1
      },
      {
-      "id": "R03",
+      "id": "X102",
+      "mark": 1
+     },
+     {
+      "id": "X35",
       "mark": 1
      },
      {
@@ -1661,21 +1966,33 @@
       "mark": 1
      },
      {
+      "id": "R10",
+      "mark": 1
+     },
+     {
       "id": "R01",
       "mark": 1
      },
      {
-      "id": "X36",
+      "id": "D05",
       "mark": 1
      },
      {
-      "id": "D01",
+      "id": "R09",
       "mark": 1
      }
     ],
     "int": [
      {
-      "id": "I38",
+      "id": "R07",
+      "mark": 1
+     },
+     {
+      "id": "R06",
+      "mark": 1
+     },
+     {
+      "id": "R08",
       "mark": 1
      },
      {
@@ -1683,11 +2000,11 @@
       "mark": 1
      },
      {
-      "id": "I12",
+      "id": "D23",
       "mark": 1
      },
      {
-      "id": "D23",
+      "id": "I12",
       "mark": 1
      },
      {
@@ -1695,7 +2012,7 @@
       "mark": 1
      },
      {
-      "id": "I32",
+      "id": "R05",
       "mark": 1
      }
     ]
@@ -1716,15 +2033,11 @@
       "mark": 1
      },
      {
-      "id": "R01",
+      "id": "R03",
       "mark": 1
      },
      {
       "id": "D07",
-      "mark": 1
-     },
-     {
-      "id": "X59",
       "mark": 1
      },
      {
@@ -1734,9 +2047,25 @@
      {
       "id": "R02",
       "mark": 1
+     },
+     {
+      "id": "D05",
+      "mark": 1
+     },
+     {
+      "id": "R10",
+      "mark": 1
+     },
+     {
+      "id": "R01",
+      "mark": 1
      }
     ],
     "int": [
+     {
+      "id": "R07",
+      "mark": 1
+     },
      {
       "id": "I38",
       "mark": 1
@@ -1746,11 +2075,11 @@
       "mark": 1
      },
      {
-      "id": "I12",
+      "id": "R06",
       "mark": 1
      },
      {
-      "id": "D17",
+      "id": "I32",
       "mark": 1
      },
      {
@@ -1758,7 +2087,11 @@
       "mark": 1
      },
      {
-      "id": "I32",
+      "id": "D17",
+      "mark": 1
+     },
+     {
+      "id": "I12",
       "mark": 1
      }
     ]
