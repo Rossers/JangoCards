@@ -44,7 +44,7 @@ The **Cards** view shows the sheet's cards. The tabs split them by group, the se
 
 ### Guide
 
-**Guide** opens the design guide for the current sheet: how card budgets work, what each stat and keyword costs, how card text is written, where cards belong on a ship, and what the simulations have found. It explains why a card has the numbers it has.
+**Guide** opens the design guide for the current sheet: how card budgets work, what each stat and keyword costs, how card text is written, where cards belong on a ship, which sector a card fits, and what the simulations have found. It explains why a card has the numbers it has. Its tabs group it (Basics, Prices, Rules, Design), and **Search the guide** finds a word on every tab at once.
 
 ### Simulator
 

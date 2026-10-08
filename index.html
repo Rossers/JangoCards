@@ -277,8 +277,14 @@ body.public .pick, body.public #status, body.public #f-review, body.public #f-pu
 .bp-live .btn { font-family: var(--body); padding: 4px 10px; font-size: 13px; margin-left: auto; }
 
 /* ---------- guide drawer ---------- */
-.guide { position: fixed; top: 0; left: 0; bottom: 0; width: min(480px, 100%); background: var(--surface); z-index: 35; box-shadow: var(--shadow); border-right: 1px solid var(--rule); display: grid; grid-template-rows: auto 1fr; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-.guide-body { overflow-y: auto; padding: 4px 18px 40px; font-size: 14.5px; }
+.guide { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; background: var(--surface); z-index: 35; box-shadow: var(--shadow); border-right: 1px solid var(--rule); display: grid; grid-template-rows: auto 1fr; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.guide-body { overflow-y: auto; padding: 0; font-size: 14.5px; }
+.guide-body h2.g-title { font-family: var(--display); font-size: 20px; margin: 0; }
+.guide-body .sh-sec > h3 { margin: 10px 0 0; }
+.guide-body .sh-sec > :is(p, ul, table, .formula) { margin-bottom: 0; }
+.guide-body .gtable { margin-bottom: 0; }
+::highlight(gfind) { background: color-mix(in srgb, var(--accent) 35%, transparent); color: inherit; }
+#ge-form { max-width: 880px; margin: 0 auto; padding: 4px 20px 0; }
 .guide-body h3 { font-family: var(--display); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); margin: 22px 0 8px; font-weight: 600; }
 .guide-body p, .guide-body ul { margin: 0 0 8px; }
 /* The guide editor */
@@ -290,7 +296,7 @@ body.public .pick, body.public #status, body.public #f-review, body.public #f-pu
 .ge-hand .field:last-child { grid-column: 1 / -1; }
 .ge-tools { display: inline-flex; flex-direction: column; gap: 4px; }
 .ge-tools .btn { padding: 2px 8px; font-size: 12px; }
-.ge-foot { position: sticky; bottom: -40px; background: var(--surface); padding: 10px 0 12px; border-top: 1px solid var(--rule); display: flex; gap: 8px; z-index: 1; }
+.ge-foot { position: sticky; bottom: 0; background: var(--surface); padding: 10px 0 12px; border-top: 1px solid var(--rule); display: flex; gap: 8px; z-index: 1; }
 .guide-body ul { padding-left: 18px; }
 .guide-body li { margin-bottom: 4px; }
 .guide-body .formula { font-family: var(--mono); font-size: 13px; background: var(--sunk); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
@@ -546,7 +552,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
 </header>
 
 <aside class="guide" id="guide" hidden aria-labelledby="guide-title">
-  <div class="ed-head"><h2 id="guide-title">Card design guide</h2><span class="fab-row"><button class="btn" id="guide-edit" hidden title="Edit this sheet's guide notes, prices and findings">Edit</button><button class="btn" id="guide-close">Hide</button></span></div>
+  <div class="ed-head"><h2 id="guide-title">Card design guide</h2><span class="fab-row"><button class="btn" id="guide-edit" hidden title="Edit this sheet's guide notes, prices and findings">Edit</button><button class="btn" id="guide-close">Close</button></span></div>
   <div class="guide-body" id="guide-body"></div>
 </aside>
 
@@ -969,6 +975,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // ---------- per-viewer filter memory ----------
   const F = { tab: "all", q: "", status: "all", src: "", role: "", type: "", sector: "", mark: "", budget: "", review: "", pub: "", sheet: "", sort: "order", view: "cards", guide: false };
   try { Object.assign(F, JSON.parse(localStorage.getItem("jango-picker-filters") || "{}")); } catch (e) {}
+  F.guide = false; // the Guide fills the page, so the picker never opens on it
   const saveFilters = () => { try { localStorage.setItem("jango-picker-filters", JSON.stringify(F)); } catch (e) {} };
 
   // ---------- helpers ----------
@@ -2281,6 +2288,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   $("#view").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; F.view = b.dataset.v; saveFilters(); applyView(); window.scrollTo(0, 0); });
   $("#guide-btn").addEventListener("click", () => { F.guide = !F.guide; saveFilters(); applyView(); });
   $("#guide-close").addEventListener("click", () => { F.guide = false; saveFilters(); applyView(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && F.guide && $("#editor").hidden && $("#sheet").hidden && !cardPop) { F.guide = false; saveFilters(); applyView(); } });
 
   // ---------- sheet bar and sheet settings ----------
   function renderSheetBar() {
@@ -2828,28 +2836,26 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const head = s ? `<div class="sheet-note" style="margin-top:10px">Balance sheet <b>${esc(s.name)}</b>${s.author ? ` by ${esc(s.author)}` : ""}${s.about ? ": " + esc(String(s.about).replace(/[.\s]+$/, "")) : ""}. Prices and notes below are this sheet's; the rules sections are the same on every sheet.</div>
       ${s.notes ? `<p>${g(s.notes)}</p>` : ""}${G.inherited ? `<p class="sheet-note warn">The notes and findings here were copied from ${esc(G.inherited)} and haven't been re-measured on this sheet.</p>` : ""}${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}` : "";
     const R0 = FORMULA.rows, f0 = id => fcode((R0[id] || {}).base), KR = kwRules();
-    $("#guide-body").innerHTML = `${head}
-      <p>Every card has a budget in <b>budget points (BP)</b>, and everything on it costs BP by this sheet's formulas. A card is priced at its lowest mark: its parts are added at full precision and the total is rounded once, half up. The BP chip on each card compares it with its budget: green within ±${tol}%, teal under, orange over. The design behind every formula is in docs/BALANCE.md.</p>
-      <h3>Budget</h3>${sn("Budget")}
-      <div class="formula">budget = mark × B × (1 + p × floor steps)</div>
-      <p>B = ${BB.B}, p = ${round2(BB.p * 100)}%. Floor steps is how far a card's lowest mark sits above Mk I, and the extra is permanent: a fresh Mk III+ card (${budgetAt("ext", 3, 3)}) beats a Mk I+ card raised to Mk III (${budgetAt("ext", 1, 3)}), so spend the extra on effects more than raw numbers. Interior and exterior cards share one budget and one set of prices.</p>
-      ${btable}
-      <h3>Shields and Armor</h3>
-      <ul>
-        <li>${n("armor")}</li>
-        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free)${FORMULA.ship.emp !== false ? ", until the Maelstrom starts" : ""}. <b>Regen</b> tops up a Shields card that is up. Every charge a Shields card is given (Recharge, Discharge, an Electric hit) is a shield point, even while it is down, so a down Shields card can be charged back up. Every Shields card has <b>Vulnerable (Kinetic)</b>.</li>
-        <li>${n("shields")}</li>
-      </ul>
-      <h3>How formulas work</h3>
-      ${fxGuideHtml()}
-      <h3>Targeting styles</h3>${sn("Targeting styles")}
-      <table class="gtable"><tr><th>Style</th><th>Reaches</th><th class="n">×</th></tr>${FSTYLES.map(st => `<tr><td>${st.label}</td><td>${esc(st.text)}</td><td class="n">${FORMULA.styles[st.k] ?? st.seed}</td></tr>`).join("")}</table>
-      <h3>Ship and fight</h3>${sn("Ship and fight")}<p>Hull ${FORMULA.ship.hull}, speed ${FORMULA.ship.speed}. The Maelstrom starts at the end of round ${FORMULA.ship.maelstrom} and hits both ships every round after that, at the same time: <code>${esc(FORMULA.ship.storm || FORMULA_SEED.ship.storm)}</code> (N is its round, M the cycle; ${[1, 2, 3, 4].map(k => stormDmg(k)).join(", ")} … at cycle 1) to the exterior row and half, rounded down, to the interior. It hits the frontmost card first, carries what a card can't take on to the next, and reaches the hull last. It isn't an attack: Block, Reflect, Taunt and Guard don't stop it, and Resist lowers each hit. An empty row lets it all through to the hull, so a ship with nothing left in a row loses fast.${FORMULA.ship.emp !== false ? " Once it starts, Shields no longer restore after a quiet round; their shield points, Regen and charges still work." : ""} The Simulator's <b>Cycle</b> setting sets M (1 unless you change it).</p>
-      ${FGROUPS.map((h, gi) => `<h3>${esc(h)}</h3>${sn(h)}${rowTable(gi)}`).join("")}
-      ${(G.handPrices || []).length ? `<h3>Priced by hand</h3><table class="gtable"><tr><th>Item</th><th>BP</th><th>Note</th></tr>${G.handPrices.map(([a, b, c]) => price(g(a), g(b), g(c))).join("")}</table>` : ""}
-      ${(G.buffPoints || []).length ? `<h3>Pricing principles</h3><ul>${G.buffPoints.map(t => `<li>${g(t)}</li>`).join("")}</ul>` : ""}
-      <p>Effects no formula covers go in the card's <b>Effect BP</b> (negative for drawbacks); the editor lists them under the card's price. <b>Fill health to budget</b> sets health so the card lands on budget.</p>
-      <h3>Balance sheets</h3>
+    // The Guide's tabs, grouped. Each is [key, title, html]; Find searches all of them at once.
+    const GT = [
+      ["Basics", [
+        ["overview", "Overview", `${head}
+          <p>Every card has a budget in <b>budget points (BP)</b>, and everything on it costs BP by this sheet's formulas. A card is priced at its lowest mark: its parts are added at full precision and the total is rounded once, half up. The BP chip on each card compares it with its budget: green within ±${tol}%, teal under, orange over. The design behind every formula is in docs/BALANCE.md.</p>
+          <p>Effects no formula covers go in the card's <b>Effect BP</b> (negative for drawbacks); the editor lists them under the card's price. <b>Fill health to budget</b> sets health so the card lands on budget.</p>
+          <h3>Targets</h3>
+          <ul>
+            <li>Filler lands within ±${tol}% of budget.</li>
+            <li>Centerpieces and build-arounds may run over when their condition is met and under when it isn't.</li>
+            <li>Avoid extremes: attack 1, or very little health at Mk I, loses to nearly everything. Give such a card an effect that needs it.</li>
+          </ul>
+          <h3>What scales with mark</h3>
+          <p>Stats and flat effect numbers scale: attack, health, Pierce, Splash, "+2 attack", "repair 2". The value at Mk <i>m</i> is the value at the lowest mark × <i>m</i> ÷ lowest mark. Mult, ammo, charges, counts and targeting never scale.</p>`],
+        ["budget", "Budget", `${sn("Budget")}
+          <div class="formula">budget = mark × B × (1 + p × floor steps)</div>
+          <p>B = ${BB.B}, p = ${round2(BB.p * 100)}%. Floor steps is how far a card's lowest mark sits above Mk I, and the extra is permanent: a fresh Mk III+ card (${budgetAt("ext", 3, 3)}) beats a Mk I+ card raised to Mk III (${budgetAt("ext", 1, 3)}), so spend the extra on effects more than raw numbers. Interior and exterior cards share one budget and one set of prices.</p>
+          ${btable}`],
+        ["formulas", "How formulas work", fxGuideHtml()],
+        ["sheets", "Balance sheets", `
       ${publicMode ? `<ul>
         <li>This is the public copy of the Card Picker. Each <b>balance sheet</b> is a separate set of cards with its own formulas and guide notes; switch sheets at the top. The published sheets are read-only: <b>Details</b> shows everything about a card, and <b>Sheet</b> shows the sheet's formulas, with examples and a grid for each.</li>
         <li><b>Make your own sheet</b> in <b>Sheet</b>, under Sheets: a copy of the sheet you're on, or an empty one. On your own sheets you can edit cards and add new ones, change the formulas (then run <b>Auto Apply</b> to rebalance the cards to them), edit the guide's notes, and bring cards over from other sheets with <b>Not on this sheet</b> in the filters. Your sheets and boards are kept in this browser only.</li>
@@ -2861,14 +2867,18 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         <li><b>Not on this sheet</b> (in the filters) lists other sheets' cards that this sheet doesn't have, with buttons to copy one or every card shown. A copy arrives rebalanced to this sheet's formulas, unapproved, and marked <b>Check</b> until you approve it here; from then on it is independent. A copy keeps its card id, so the sheet chips on a card show which sheets have a version of it.</li>
         <li><b>Open a sheet file</b> (Sheet, under Sheets) adds a sheet from an exported file, such as one a friend made in the public copy, as a new sheet here. Its cards arrive private.</li>
         <li><b>Public and private.</b> Every card starts private. Flip a card to <b>Public</b> on its tile or in the editor, or every card shown at once, when it's ready to share. <b>Export</b> downloads the sheet for the public copy: its formulas, guide and sheet notes, its public cards that aren't parked, and its saved boards made only of public cards. Private cards never leave the picker. The sheet has to be marked Public first (Sheet, Public export).</li>
-      </ul>`}
-      <h3>Placement</h3>
+      </ul>`}`],
+      ]],
+      ["Prices", [
+        ["g0", FGROUPS[0], `${sn(FGROUPS[0])}${rowTable(0)}`],
+        ["shields", "Shields and Armor", `
       <ul>
-        <li>Armor always has a card slot on each side and never touches the Shields, so something always stands in front of it. Put the card that soaks the most for the least damage lost there (a defense card, a front-only weapon, or the sturdiest gun), then the Armor, then the other weapons with the most fragile at the back.</li>
-        <li>Cards that belong in front: defensive cards (Resist, Block, Reflect, Taunt), cards with On Death effects, and cards whose buffs matter most in the first round.</li>
-        <li>In a fight, every card shows its place in the activation order and lights up on its turn, so who acts when is always visible. Click a card to see what it does.</li>
+        <li>${n("armor")}</li>
+        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free)${FORMULA.ship.emp !== false ? ", until the Maelstrom starts" : ""}. <b>Regen</b> tops up a Shields card that is up. Every charge a Shields card is given (Recharge, Discharge, an Electric hit) is a shield point, even while it is down, so a down Shields card can be charged back up. Every Shields card has <b>Vulnerable (Kinetic)</b>.</li>
+        <li>${n("shields")}</li>
       </ul>
-      <h3>Keyword rules</h3>
+          <h3>${esc(FGROUPS[1])}</h3>${sn(FGROUPS[1])}${rowTable(1)}`],
+        ["g2", FGROUPS[2], `<h3>Rules</h3>
       <table class="gtable"><tr><th>Keyword</th><th>Rule</th><th>Formula</th></tr>
         <tr><td>Resist N</td><td>${KR.Resist}</td><td>${f0("Resist")}</td></tr>
         <tr><td>Block N</td><td>${KR.Block}</td><td>${f0("Block")}</td></tr>
@@ -2883,8 +2893,24 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         <tr><td>Flank</td><td>${KR.Flank}</td><td>${f0("Flank")}</td></tr>
         <tr><td>Execute</td><td>${KR.Execute}</td><td>${f0("Execute")}</td></tr>
       </table>
-      <p>A keyword on the card itself is priced by its row's base formula. Given to other cards ("Adjacent cards have Resist 1."), it is priced by its dumb or smart formula × the targeting style.</p>
-      <h3>Writing card text</h3>
+          <p>A keyword on the card itself is priced by its row's base formula. Given to other cards ("Adjacent cards have Resist 1."), it is priced by its dumb or smart formula × the targeting style.</p>
+          <h3>Prices</h3>${sn(FGROUPS[2])}${rowTable(2)}`],
+        ...[3, 4, 5].map(gi => ["g" + gi, FGROUPS[gi], `${sn(FGROUPS[gi])}${rowTable(gi)}`]),
+        ["styles", "Targeting styles", `${sn("Targeting styles")}
+          <table class="gtable"><tr><th>Style</th><th>Reaches</th><th class="n">×</th></tr>${FSTYLES.map(st => `<tr><td>${st.label}</td><td>${esc(st.text)}</td><td class="n">${FORMULA.styles[st.k] ?? st.seed}</td></tr>`).join("")}</table>`],
+        ["principles", "Pricing principles", `${(G.buffPoints || []).length ? `<ul>${G.buffPoints.map(t => `<li>${g(t)}</li>`).join("")}</ul>` : ""}
+          <p>Effects no formula covers go in the card's <b>Effect BP</b> (negative for drawbacks); the editor lists them under the card's price.</p>
+          ${(G.handPrices || []).length ? `<h3>Priced by hand</h3><table class="gtable"><tr><th>Item</th><th>BP</th><th>Note</th></tr>${G.handPrices.map(([a, b, c]) => price(g(a), g(b), g(c))).join("")}</table>` : ""}`],
+      ]],
+      ["Rules", [
+        ["fight", "The fight", `${sn("Ship and fight")}<p>Hull ${FORMULA.ship.hull}, speed ${FORMULA.ship.speed}. The Maelstrom starts at the end of round ${FORMULA.ship.maelstrom} and hits both ships every round after that, at the same time: <code>${esc(FORMULA.ship.storm || FORMULA_SEED.ship.storm)}</code> (N is its round, M the cycle; ${[1, 2, 3, 4].map(k => stormDmg(k)).join(", ")} … at cycle 1) to the exterior row and half, rounded down, to the interior. It hits the frontmost card first, carries what a card can't take on to the next, and reaches the hull last. It isn't an attack: Block, Reflect, Taunt and Guard don't stop it, and Resist lowers each hit. An empty row lets it all through to the hull, so a ship with nothing left in a row loses fast.${FORMULA.ship.emp !== false ? " Once it starts, Shields no longer restore after a quiet round; their shield points, Regen and charges still work." : ""} The Simulator's <b>Cycle</b> setting sets M (1 unless you change it).</p>`],
+        ["placement", "Placement", `
+      <ul>
+        <li>Armor always has a card slot on each side and never touches the Shields, so something always stands in front of it. Put the card that soaks the most for the least damage lost there (a defense card, a front-only weapon, or the sturdiest gun), then the Armor, then the other weapons with the most fragile at the back.</li>
+        <li>Cards that belong in front: defensive cards (Resist, Block, Reflect, Taunt), cards with On Death effects, and cards whose buffs matter most in the first round.</li>
+        <li>In a fight, every card shows its place in the activation order and lights up on its turn, so who acts when is always visible. Click a card to see what it does.</li>
+      </ul>`],
+        ["text", "Writing card text", `
       <ul>
         <li>Build effects in the editor: each has a <b>When</b> (trigger), what it <b>Does</b>, and who it's <b>To</b>. The card text is written from them, so wording stays consistent and the simulator can run them. Ideas the builder can't express yet go in <b>Other effects</b>, which shows on the card but isn't simulated.</li>
         <li><b>Charge abilities:</b> set <b>Charges</b> to the number of uses (the card shows them as pips) and set the effect's <b>Costs</b>, which writes <b>"Spend a charge: effect."</b> (or 2 charges, all charges, or ammo; an amount can be "for each charge spent") Put a condition first when there is one: "If this crew is below half health, spend a charge: heal 3." Example: Ablative Tiles, On Attacked, 2 charges, "Spend a charge: block the attack."</li>
@@ -2894,20 +2920,134 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         <li>An effect with no trigger is always on, so it needs no Timing and shows no label ("Resist 1.", "Taunt.", "Your crew gain +1 attack."). Pick <b>Always on</b> for these.</li>
         <li>A card whose On Activate effect activates another card ends its own activation there (Gunport).</li>
         <li>No activation loops: within one resolution sequence (everything that follows from one card's turn), a card's effects can activate any given card only once, though another card's effects still can. A repeat is skipped and the rest resolves normally, so every card uses its ability at least once.</li>
-      </ul>
-      <h3>What scales with mark</h3>
-      <p>Stats and flat effect numbers scale: attack, health, Pierce, Splash, "+2 attack", "repair 2". The value at Mk <i>m</i> is the value at the lowest mark × <i>m</i> ÷ lowest mark. Mult, ammo, charges, counts and targeting never scale.</p>
-      <h3>Targets</h3>
-      <ul>
-        <li>Filler lands within ±${tol}% of budget.</li>
-        <li>Centerpieces and build-arounds may run over when their condition is met and under when it isn't.</li>
-        <li>Avoid extremes: attack 1, or very little health at Mk I, loses to nearly everything. Give such a card an effect that needs it.</li>
-      </ul>
-      <h3>What the simulator found</h3>
-      <ul>${(G.findings || []).map(t => `<li>${g(t)}</li>`).join("")}</ul>
-      <h3>Naming</h3>
-      <table class="gtable"><tr><th>Word</th><th>Means</th></tr>${lex.map(([w, m]) => `<tr><td>${w}</td><td>${m}</td></tr>`).join("")}</table>`;
+      </ul>`],
+      ]],
+      ["Design", [
+        ["sectors", "Sectors", sectorGuideHtml()],
+        ["naming", "Naming", `<table class="gtable"><tr><th>Word</th><th>Means</th></tr>${lex.map(([w, m]) => `<tr><td>${w}</td><td>${m}</td></tr>`).join("")}</table>`],
+        ["findings", "Sim findings", `<ul>${(G.findings || []).map(t => `<li>${g(t)}</li>`).join("")}</ul>`],
+      ]],
+    ];
+    $("#guide-body").innerHTML = `<div class="sh-layout" id="g-layout"><nav class="sh-nav" aria-label="Guide sections"><input type="search" class="sh-find" id="g-find" placeholder="Search the guide" aria-label="Search the guide" value="${esc(gFind)}">
+      ${GT.map(([h, list]) => `<h5>${h}</h5>${list.map(([k, t]) => `<button type="button" class="sh-tab" role="tab" data-gtab="${k}" aria-selected="false"><span>${esc(t)}</span></button>`).join("")}`).join("")}</nav>
+      <div class="sh-main">${GT.flatMap(([, list]) => list).map(([k, t, html]) => `<section class="sh-sec" data-gsec="${k}"><h2 class="g-title">${esc(t)}</h2>${html}</section>`).join("")}
+        <p class="muted" id="g-nofind" hidden>Nothing in the guide matches.</p></div></div>`;
+    showGuideTab(gTab, true);
+    if (gFind) applyGuideFind(gFind);
   }
+
+  // The Guide's tab (remembered between visits) and its search text
+  let gTab = "overview", gFind = "";
+  try { gTab = localStorage.getItem("jango-guide-tab") || gTab; } catch (e) {}
+  function showGuideTab(k, keepScroll = false) {
+    const body = $("#guide-body"), lay = $("#g-layout"); if (!lay) return;
+    if (!lay.querySelector(`[data-gsec="${k}"]`)) k = "overview";
+    gTab = k; try { localStorage.setItem("jango-guide-tab", k); } catch (e) {}
+    if (gFind) { gFind = ""; const f = $("#g-find"); if (f) f.value = ""; clearGuideFind(lay); }
+    lay.querySelectorAll("[data-gsec]").forEach(x => { x.hidden = x.dataset.gsec !== k; });
+    lay.querySelectorAll(".sh-tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.gtab === k)));
+    const nav = lay.querySelector(".sh-nav"), on = nav.querySelector('.sh-tab[aria-selected="true"]');
+    if (on && nav.scrollWidth > nav.clientWidth + 1) nav.scrollLeft = Math.max(0, on.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2);
+    const nf = $("#g-nofind"); if (nf) nf.hidden = true;
+    if (!keepScroll) body.scrollTop = 0;
+  }
+  // Search: what to show or hide is a table row, a list item, a paragraph, a formula or a note; a heading stays while
+  // anything under it matches. Matches are highlighted where the browser can (CSS highlights), without touching the page.
+  const G_UNITS = "tr, li, p, .formula, .dnote, .sheet-note, details.fx-help";
+  function clearGuideFind(lay) {
+    lay.classList.remove("finding");
+    lay.querySelectorAll("[data-gsec] [hidden]").forEach(x => { x.hidden = false; });
+    if (window.CSS && CSS.highlights) CSS.highlights.delete("gfind");
+  }
+  function applyGuideFind(q) {
+    const lay = $("#g-layout"); if (!lay) return;
+    gFind = q; q = q.trim().toLowerCase();
+    clearGuideFind(lay);
+    if (!q) { const k = gTab; gTab = ""; showGuideTab(k); return; }
+    lay.classList.add("finding");
+    let any = 0;
+    const ranges = [];
+    lay.querySelectorAll("[data-gsec]").forEach(sec => {
+      sec.hidden = false; // shown while it's checked, so "inside something hidden" means hidden by the search alone
+      const units = [...sec.querySelectorAll(G_UNITS)].filter(u => !u.parentElement.closest(G_UNITS));
+      let n = 0;
+      units.forEach(u => { if (u.matches("tr") && u.querySelector("th")) return; const m = u.textContent.toLowerCase().includes(q); u.hidden = !m; if (m) n++; });
+      units.forEach(u => { if (u.matches("tr") && u.querySelector("th")) u.hidden = ![...u.closest("table").querySelectorAll("tr")].some(r => r !== u && !r.hidden); });
+      // A table or list with nothing left showing goes; so does a heading with nothing under it
+      sec.querySelectorAll("table, ul").forEach(t => { if (!t.closest("[hidden]") && ![...t.querySelectorAll("tr, li")].some(r => !r.hidden && !(r.matches("tr") && r.querySelector("th")))) t.hidden = true; });
+      let head = null, seen = false;
+      [...sec.children].forEach(ch => {
+        if (ch.matches("h2")) return;
+        if (ch.matches("h3")) { if (head) head.hidden = !seen; head = ch; seen = false; return; }
+        const shows = !ch.hidden && (ch.matches(G_UNITS) || [...ch.querySelectorAll(G_UNITS)].some(u => !u.hidden && !u.closest("[hidden]")));
+        if (!shows && !ch.matches(G_UNITS)) ch.hidden = true;
+        if (shows) seen = true;
+      });
+      if (head) head.hidden = !seen;
+      sec.hidden = !n; any += n;
+      if (n && window.CSS && CSS.highlights) {
+        const walk = document.createTreeWalker(sec, NodeFilter.SHOW_TEXT);
+        for (let t = walk.nextNode(); t; t = walk.nextNode()) {
+          if (t.parentElement.closest("[hidden], h2")) continue;
+          const low = t.data.toLowerCase();
+          for (let i = low.indexOf(q); i >= 0; i = low.indexOf(q, i + q.length)) { const r = new Range(); r.setStart(t, i); r.setEnd(t, i + q.length); ranges.push(r); }
+        }
+      }
+    });
+    if (ranges.length && window.Highlight) CSS.highlights.set("gfind", new Highlight(...ranges));
+    lay.querySelectorAll(".sh-tab").forEach(b => b.setAttribute("aria-selected", "false"));
+    const nf = $("#g-nofind"); if (nf) nf.hidden = !!any;
+  }
+  // The Sectors tab: which sector tags fit a card (EVENTS.md 4, from the consolidated keyword and sector design)
+  function sectorGuideHtml() {
+    const sec = [
+      ["Mining", "industrial", "Tanky and industrial", "mid-tech · medium security · settled", "Tough and slow. Low attack, high health, defensive keywords (Resist, Block). The best Armor: the biggest health, with speed penalties. Ramping beams that grow over a fight. The heaviest ammo use and the least charge use. Consumes heat, once heat cards exist. Prospecting and harvesting: never salvage, never military.", "Repairs, raw materials, armor"],
+      ["Trade Hub", "trade", "Rich and safe", "high-tech · high security · populous", "Slow and leveraged. Combat power comes from wealth: tag payoffs, Luxury and cargo-row scaling, and the most cards that use the cargo row. Contracts, insurance effects, gambling for sport. Big cheap Shields (many shield points, little Restore). Bimodal speed: fat haulers, fast couriers. The least heat.", "Shields, Luxury cards, rerolls"],
+      ["Frontier", "frontier", "Lawless and lucky", "low-tech · low security · remote", "Rugged, adaptable, self-sufficient. Swingy stats: high attack, low health. Self-Heal, Self-Repair and self-reload, so cards work without neighbors. Light armor with speed bonuses (it repairs itself only at Mk III+). Generates heat. Few Reload cards (thin supply lines): its weapons carry limited ammo and reload themselves. Gambling out of desperation.", "Weapons, boarding cards"],
+      ["Research", "research", "Clever and fragile", "high-tech · medium security · remote", "Fragile and conditional. Prototypes with real drawbacks and above-curve payoffs when the board cooperates. Electric and Plasma. Charges and Discharge. Shields with small pools and high Restore (Electric charges refill them for free). Vents and removes heat. Speed neutral at low marks, splitting at high marks.", "Systems, mods"],
+    ];
+    const shops = [
+      ["Mining", "Cargo expansions, hull improvements, armor, mining lasers (low damage, high health, built to crack rock slowly), breaching charges", "Hardy slow crew, miners with explosives, melee bruisers, a crazed bomber. High health, low attack"],
+      ["Trade Hub", "Shields, electronics (targeting, jammers, scanners), Luxury cards, variety; the premium merchants", "Specialists: engineers, medics, hackers, assassins. No gunners. Fragile, high utility"],
+      ["Frontier", "Black-market weapons, boarding gear (launchers, teleporters), stolen goods at odd prices, junk mixed in", "Raiders, gunners, gunslingers, glass cannons, crew with drawbacks"],
+      ["Research", "Electronics, systems, mods, droids, teleporters, experimental high-tech cards", "Engineers, hackers, droids. High utility, low health"],
+    ];
+    return `<p>Every card has hidden <b>source sectors</b> (the editor's Source sectors): the sector types whose merchants, recruits and windfalls can offer it. <b>Neutral</b> cards turn up everywhere, and a card can have several sectors. Pick the sectors whose card identity it fits. Nothing is hard-locked: every sector gets quest cards, scalers, mult, ammo and economy cards. Its <b>tech level</b> (low, mid, high) weights how often each sector offers it; it isn't its mark.</p>
+      <h3>Card identities</h3>
+      <table class="gtable"><tr><th>Sector</th><th>Its cards</th><th>Discounts</th></tr>${sec.map(([n, tag, two, lvl, cards, disc]) => `<tr><td><b>${n}</b><div class="hint">${tag} · “${two}”</div><div class="hint">${lvl}</div></td><td>${cards}</td><td>${disc}</td></tr>`).join("")}
+        <tr><td><b>Neutral</b><div class="hint">neutral · everywhere</div></td><td>Honest reference cards: 10 to 15 sector-less cards, so cycle 1 always has something fair to buy and the sector variants have a baseline to deviate from.</td><td></td></tr></table>
+      <h3>Who sells and who signs on</h3>
+      <table class="gtable"><tr><th>Sector</th><th>Merchants</th><th>Recruits</th></tr>${shops.map(([n, m, r]) => `<tr><td><b>${n}</b></td><td>${m}</td><td>${r}</td></tr>`).join("")}</table>
+      <h3>The mechanic wheel</h3>
+      <p>Each mechanic has a home sector, two neighbors that use it differently, and one opposite that barely touches it. The wheel turns per mechanic, so the opposite pair changes, which pushes players to wander.</p>
+      <table class="gtable"><tr><th>Mechanic</th><th>Home</th><th>Neighbors</th><th>Opposite</th></tr>
+        <tr><td>Heat</td><td>Frontier (generates it)</td><td>Research (vents it), Mining (consumes it into ammo, explosions, credits)</td><td>Trade Hub</td></tr>
+        <tr><td>Charges</td><td>Research</td><td>Trade Hub, Frontier</td><td>Mining</td></tr>
+        <tr><td>Ammo</td><td>Mining</td><td>Trade Hub, Frontier</td><td>Research</td></tr></table>
+      <p class="hint">Cards that generate, vent or consume heat wait for the full heat mechanic; prototype heat is the 5-stack rule.</p>
+      <h3>Speed</h3>
+      <p>Mining and Trade Hub are slow and heavy; Frontier and Research are lighter and faster. Trade Hub is bimodal by purpose (fat haulers, fast couriers); Research by mark and card size (refined prototypes fast, giant centerpieces slow). Speed is a signature, not a universal stat: most cards leave it alone, and a speed number should say something about the card.</p>
+      <h3>Quest cards</h3>
+      <p>Every sector needs both halves: a quest that counts something out of fights, and one that counts something in them.</p>
+      <table class="gtable"><tr><th>Sector</th><th>Out of fights, counts</th><th>In fights</th></tr>
+        <tr><td>Frontier</td><td>Places: sector types and POI types visited</td><td>Firing a weapon until it runs dry; winning while the faster ship</td></tr>
+        <tr><td>Research</td><td>Variety: acquiring N unique tags</td><td>Spending or gaining charges; dealing three damage types in one fight; restoring shield points</td></tr>
+        <tr><td>Trade Hub</td><td>Transactions: merchants visited, cards sold, credits gained</td><td>Credits earned during the fight</td></tr>
+        <tr><td>Mining</td><td>Acquisition: industrial purchases, hull and armor improvements</td><td>Endurance: ramping a beam to a threshold; a card ending a fight stronger than it started</td></tr></table>
+      <h3>Pool rules</h3>
+      <ul>
+        <li>No two cards share an attack and health pair at the same mark unless their effects differ; a name or tags alone aren't a difference.</li>
+        <li>Every sector needs a spectrum, including honest Mk I cards that work before the board is built.</li>
+        <li>Each sector supports a couple of builds on its own, and is better mixed with others.</li>
+        <li>Gambling cards show their value before you commit, and never roll to 0.</li>
+        <li>Military and salvage belong to later sectors (military to Warzone), never Mining. The Scrapyard POI still turns up anywhere.</li>
+        <li>Each sector gets its own Cannon variant: Mining low attack, high health, Resist (about 4/16); Frontier about 8/8 with limited ammo; Trade Hub and Research still to write.</li>
+      </ul>
+      <h3>Later sectors</h3>
+      <p>Not in the prototype, so don't tag cards for them yet: Warzone (“scarred and armed”), Plague (“sick and desperate”), Ancient Ruins (“old and uncanny”), Nebula (“blind and eerie”), Penal (“brutal and cheap”). Details in docs/EVENTS.md 4.</p>`;
+  }
+  $("#guide-body").addEventListener("click", e => { const t = e.target.closest("[data-gtab]"); if (t) showGuideTab(t.dataset.gtab); });
+  $("#guide-body").addEventListener("input", e => { if (e.target.id === "g-find") applyGuideFind(e.target.value); });
 
   // ---------- the guide editor ----------
   // Edits the active sheet's guide (sheets/{id}.guide): the note beside each price and buff, the hand-priced rows, the buff
