@@ -996,7 +996,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     { id: "TypeElectric", g: 0, label: "Electric", amt: "X", what: "Each hit of a card that deals Electric damage", base: "-8*X" },
     { id: "TypePlasma", g: 0, label: "Plasma", amt: "X", what: "Each hit of a card that deals Plasma damage", base: "0" },
     { id: "TypeRadiation", g: 0, label: "Radiation", amt: "X", what: "Each hit of a card that deals Radiation damage", base: "-4*X" },
-    { id: "FreeRestore", g: 1, label: "Free Restore", amt: "M", what: "Every Shields card: its free Restore, equal to its mark", base: "16*M" },
+    { id: "FreeRestore", g: 1, label: "Free Restore", amt: "M", what: "Every Shields card: its free Restore, equal to its mark. Restore 1 is 24; each point above it 8", base: "8*M+16" },
     { id: "VulnKinetic", g: 1, label: "Vulnerable (Kinetic)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
     { id: "VulnThermal", g: 1, label: "Vulnerable (Thermal)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
     { id: "VulnElectric", g: 1, label: "Vulnerable (Electric)", from: 0, what: "A weakness; less on a card with charge pips, which the charges help", base: "-16+12*min(Pc,1)" },
@@ -1008,7 +1008,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     { id: "Heal", g: 2, label: "Heal N", tiers: true, kind: "activation", what: "Base: Self-Heal N (the card heals itself). Dumb and smart: passed to Biological neighbors", base: "2*N*(N+1)", dumb: "1.4*N*(N+1)", smart: "1.4*N*(N+1)" },
     { id: "Repair", g: 2, label: "Repair N", tiers: true, kind: "activation", what: "Base: Self-Repair N. Dumb and smart: passed to neighbors that aren't Biological", base: "2*N*(N+1)" },
     { id: "Regen", g: 2, label: "Regen N", tiers: true, kind: "standing", what: "Shields only: tops up N shield points each activation while up", base: "2*N*(N+2)" },
-    { id: "Restore", g: 2, label: "Restore N", tiers: true, kind: "standing", what: "N is the Restore above the free Restore (the card's mark) on a Shields card", base: "2*N*(N+4)" },
+    { id: "Restore", g: 2, label: "Restore N", tiers: true, kind: "standing", what: "N is the Restore above the free Restore (the card's mark) on a Shields card", base: "8*N" },
     { id: "Taunt", g: 2, label: "Taunt", tiers: true, kind: "standing", what: "Attacks against its row target it first", base: "2*M*(M+1)+4" },
     { id: "Guard", g: 2, label: "Guard", tiers: true, kind: "standing", what: "Takes attacks aimed at the cards in front of and behind it", base: "2*M*(M+1)+4" },
     { id: "Pierce", g: 2, label: "Pierce N", tiers: true, kind: "standing", what: "Per hit, so × X", base: "4*N*X" },
@@ -1062,7 +1062,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     return t;
   })();
   const FORMULA_SEED = {
-    v: 2, budget: { B: 96, p: 0.125, tolerance: 0.1 }, ship: { hull: 20, speed: 50, maelstrom: 10, storm: "24*M*max(0.5, N-1)", emp: true },
+    v: 2, budget: { B: 96, p: 0.125, tolerance: 0.1 }, ship: { hull: 20, speed: 50, maelstrom: 10, storm: "8*M*N", emp: true },
     rows: Object.fromEntries(FROWS.map(r => [r.id, { base: r.base, dumb: r.dumb || "", smart: r.smart || "" }])),
     styles: Object.fromEntries(FSTYLES.map(s => [s.k, s.seed])),
   };
@@ -1195,7 +1195,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   function stormDmg(k, cycle = 1, F = FORMULA) {
     const src = String((F.ship || {}).storm || "").trim() || FORMULA_SEED.ship.storm;
     try { return Math.max(0, Math.round(fxEval(src, { N: k, M: cycle }, F.rows || FORMULA.rows))); }
-    catch (e) { return Math.max(0, Math.round(24 * cycle * Math.max(0.5, k - 1))); }
+    catch (e) { return Math.max(0, Math.round(8 * cycle * k)); }
   }
 
   // ---------- pricing a card ----------
@@ -2620,7 +2620,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       Ammo: "Price per attack point: 8 × ammo ÷ (7 × reclaim), reclaim 30% + 70% × (ammo − 1) ÷ 6. 3.8 a point at 1 ammo, full price from 7. Baseline: a 6-attack Cannon deals 42 over 7 volleys",
       MaxCharges: "Banking (spend-all dumps) and a reserve for repeated reactive triggers; spend-all scaling is unpriced upside",
       TypeElectric: "Per hit. A 1-attack Electric gun's attack nets to 0",
-      FreeRestore: "Every Shields card has Restore equal to its mark",
+      FreeRestore: "Every Shields card has Restore equal to its mark. Restore 1 is 24, and each point above it is 8 (Restore row)",
       VulnKinetic: "+1 damage per hit: about 2 hits a fight × 1 point × 8 BP",
       Resist: "Resist 2 costs 64 at Mk I, so it is effectively Mk II+: it shouldn't hard-counter Mk I weapons",
       Block: "A count; never scales with mark. Cheaper than Resist, since it is weak against mult. Revisit if it shuts down big single hits",
@@ -2628,7 +2628,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       Heal: "Self-Heal is cheap because the card usually dies within 1 or 2 ticks. Passed Heal is 30% off: Biological targets are rarer and squishier",
       Repair: "Passing's flexibility cancels against the support-card tax, so passed Repair costs what Self-Repair does",
       Regen: "Above Self-Heal: Restore can bring its trigger back, and Regen fires after Restore",
-      Restore: "Above Regen: the only thing that works while the shield is down",
+      Restore: "8 a point above the free Restore 1 (24). It works only while the shield is down, and stops once the Maelstrom starts",
       Taunt: "Rises with mark for combo headroom, not survival. Indiscriminate, so it dies faster",
       Guard: "Priced as Taunt: different tools, each sure to do its job. Split them if the sim shows one dominating",
       Pierce: "Half of attack: it lands only when a card sits below the target, and never focus-fires. Revisit toward 5 to 6 a point once interiors are simulated full",
@@ -2885,7 +2885,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // One fight. A ship spec is { hull, ext: [card|null], int: [card|null] }: null is an empty card slot, kept as a real
   // position so adjacency and splash stay right. A card spec is what simCard() returns.
   // o: { aFirst, maelstrom, cycle, storm, emp, log, trace }: maelstrom is the round the Maelstrom starts; storm(k) its damage
-  // in its k-th round (by default 24 × cycle × max(½, k − 1): 12, 24, 48, 72 … at cycle 1); emp (default on) stops Shields
+  // in its k-th round (by default 8 × cycle × k: 8, 16, 24, 32 … at cycle 1); emp (default on) stops Shields
   // restoring once it has started.
   // Activation order is data (DESIGN 6.2.1, 12.2): the exterior rows alternate, faster ship first; then each ship's interior
   // resolves as one battlefield, its defenders alternating with the enemy boarders standing on it, defender first, the
@@ -3253,7 +3253,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     // first, then the defenders, front to back), then the hull, at half damage, rounded down. Damage past what a card had
     // left goes on to the next. It isn't an attack (no Block, Reflect, Taunt, Guard or On Attacked) and it's untyped;
     // Resist lowers each hit. A down Shields card lets it through.
-    const stormAt = k => Math.max(0, Math.round(Number(o.storm ? o.storm(k) : 24 * (o.cycle || 1) * Math.max(0.5, k - 1)) || 0));
+    const stormAt = k => Math.max(0, Math.round(Number(o.storm ? o.storm(k) : 8 * (o.cycle || 1) * k) || 0));
     function storm(k) {
       const d = stormAt(k), half = Math.floor(d / 2), hurt = [];
       say(`The Maelstrom deals ${d} to each exterior row and ${half} to each interior`);

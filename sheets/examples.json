@@ -1,7 +1,7 @@
 {
  "jango": "balance-sheet",
  "format": 1,
- "exported": "2026-10-08T05:50:22.662Z",
+ "exported": "2026-10-08T06:25:33.453Z",
  "vocab": 6,
  "sheet": {
   "id": "examples",
@@ -78,7 +78,7 @@
      "smart": ""
     },
     "FreeRestore": {
-     "base": "16*M",
+     "base": "8*M+16",
      "dumb": "",
      "smart": ""
     },
@@ -173,7 +173,7 @@
      "smart": ""
     },
     "Restore": {
-     "base": "2*N*(N+4)",
+     "base": "8*N",
      "dumb": "",
      "smart": ""
     },
@@ -243,7 +243,7 @@
     "hull": 20,
     "maelstrom": 10,
     "speed": 50,
-    "storm": "24*M*max(0.5, N-1)"
+    "storm": "8*M*N"
    },
    "styles": {
     "adjacent": 2,
@@ -326,7 +326,7 @@
      "smart": ""
     },
     "FreeRestore": {
-     "base": "16*M",
+     "base": "8*M+16",
      "dumb": "",
      "smart": ""
     },
@@ -421,7 +421,7 @@
      "smart": ""
     },
     "Restore": {
-     "base": "2*N*(N+4)",
+     "base": "8*N",
      "dumb": "",
      "smart": ""
     },
@@ -491,7 +491,7 @@
     "hull": 20,
     "maelstrom": 10,
     "speed": 50,
-    "storm": "24*M*max(0.5, N-1)"
+    "storm": "8*M*N"
    },
    "styles": {
     "adjacent": 2,
@@ -535,7 +535,7 @@
     "DoubleDamage": "Provisional: re-measure",
     "Execute": "Six attack points' worth: it nearly always secures kills. Nudge toward 64 if it proves oppressive",
     "Flank": "Four attack points' worth: it reaches the glass cannons behind the tanks",
-    "FreeRestore": "Every Shields card has Restore equal to its mark",
+    "FreeRestore": "Every Shields card has Restore equal to its mark. Restore 1 is 24, and each point above it is 8 (Restore row)",
     "GrantAttack": "8 a point × 1.5 leverage",
     "GrantHealth": "The raw rate: an inert resource",
     "GrantMult": "Fires once and persists if the grantor dies. A version that stacks each activation is a Mk III+ scaler, not formula-priced",
@@ -552,7 +552,7 @@
     "Reload": "No surcharge: 1 ammo per volley means no burst leverage. The taper's slope is a sim knob",
     "Repair": "Passing's flexibility cancels against the support-card tax, so passed Repair costs what Self-Repair does",
     "Resist": "Resist 2 costs 64 at Mk I, so it is effectively Mk II+: it shouldn't hard-counter Mk I weapons",
-    "Restore": "Above Regen: the only thing that works while the shield is down",
+    "Restore": "8 a point above the free Restore 1 (24). It works only while the shield is down, and stops once the Maelstrom starts",
     "Splash": "Above attack: the rear splash nearly always lands and reaches past protectors. 10, not 12, because it doesn't focus-fire",
     "Taunt": "Rises with mark for combo headroom, not survival. Indiscriminate, so it dies faster",
     "TypeElectric": "Per hit. A 1-attack Electric gun's attack nets to 0",
@@ -688,13 +688,13 @@
    "flavor": "",
    "from": "",
    "gearSlots": null,
-   "health": 24,
+   "health": 22,
    "kind": "",
    "minMark": 1,
    "modSlots": null,
    "mult": 1,
    "name": "Stock Shield",
-   "notes": "The starter ship's shields. Shield points 96 − Vulnerable 16 + free Restore 16.",
+   "notes": "The starter ship's shields. Shield points 88 − Vulnerable 16 + free Restore 24.",
    "order": 2,
    "parked": false,
    "pick": false,
@@ -1171,13 +1171,13 @@
    "flavor": "",
    "from": "",
    "gearSlots": null,
-   "health": 22,
+   "health": 20,
    "kind": "",
    "minMark": 1,
    "modSlots": null,
    "mult": 1,
    "name": "Flux Shield",
-   "notes": "Research's flip-flop shield: a smaller pool, bigger Restore. Restore 2 pays for the 1 above the free Restore (10).",
+   "notes": "Research's flip-flop shield: a smaller pool, bigger Restore. Shield points 80 − Vulnerable 16 + free Restore 24 + 8 for the point above it.",
    "order": 12,
    "parked": false,
    "pick": false,
