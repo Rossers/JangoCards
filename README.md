@@ -16,13 +16,13 @@ Browse existing cards, read the design guide, and arrange boards of cards to fig
 - **Fights are deterministic.** The larger a ship is (the more card slots), the slower it is, and the faster ship acts first. Each round, the two exterior rows take turns, card by card; then each ship's interior plays out, with its crew fighting any enemy boarders, defenders first.
 - **Attacks hit the frontmost enemy card.** Once a row is empty, they hit the hull. Last ship with an intact hull wins!
 - **Shields** never die: at 0 they go down, and recover after a round without damage. **Armor** is a sturdy wall. Shields are weak to Kinetic damage, Armor to Plasma.
-- **The Maelstrom** starts at a set round (12 on Alpha Balance) and damages both hulls a little more each round, so no fight ends in a stalemate.
+- **The Maelstrom** starts at a set round (12 on Ross Balance) and damages both hulls a little more each round, so no fight ends in a stalemate.
 
 ## Using the tool
 
 ### Balance sheets
 
-A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left. **Sheet** shows that sheet's formula: what everything costs.
+A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on **Ross Balance**, the main design sheet. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
 
 ### Cards
 
@@ -36,7 +36,7 @@ The **Cards** view shows the sheet's cards. The tabs split them by group, the se
 | **3 kin** | Attack: damage per hit, colored by damage type (Kinetic, Thermal, Electric, Plasma, Radiation). **×2** means two hits each time it fires. |
 | **♥ 12** | Health. |
 | **Pips** | Ammo (one used each time it attacks) and charges (spent by effects). |
-| **24/24 BP** | Budget points: what the card is worth against its budget. Green means on budget. |
+| **96/96 BP** | Budget points: what the card is worth against its budget. Green means on budget. |
 | **2 cr** | Its price in credits. |
 | **Effect** | What it does, and when: Fight Start, On Activate, After Attack, etc. |
 | **Tags** | Words other cards refer to: Weapon, Crew, Shields, etc. |
@@ -64,7 +64,7 @@ For trying your own balance ideas or cards.
 2. Under **About this sheet**, put your name in **Made by** and press **Save**. It goes on your sheet and on every card you make.
 3. Change whatever you like:
    - **Edit** on a card changes it; **Add card**, above the cards, makes a new one.
-   - In **Sheet**, **Formula** sets what everything costs. Then **Auto Apply** rebalances every card to the new prices.
+   - In **Sheet**, **Formula** sets what everything costs: each price is a formula, such as `8*N*(N+2)` for Resist N, and **How formulas work** explains them. Then **Auto Apply** rebalances every card to the new prices.
    - **Guide**, then **Edit**, changes the guide's notes and findings.
    - Pick **Not on this sheet** in the filters to see cards from other sheets, and **Add from …** to bring one over.
 4. Your sheet is saved in this browser, on this device only, so you must export it to save a backup.

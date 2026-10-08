@@ -412,6 +412,50 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .endbox .verdict { font-size: 18px; }
 @media (max-width: 640px) { .shipgrid { grid-template-columns: 40px repeat(var(--n), minmax(88px, 1fr)); min-width: calc(40px + var(--n) * 94px); } .rowlabel { font-size: 9px; letter-spacing: .04em; } .column { width: 94px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* formula fields: a highlight layer under a transparent text box while typing, pills when idle */
+.fx-help { font-size: 13px; border: 1px solid var(--rule); border-radius: 6px; padding: 6px 10px; }
+.fx-help summary { cursor: pointer; color: var(--accent-ink); font-weight: 500; }
+.fx-help p { margin: 8px 0; }
+.frm-row { border-top: 1px solid var(--rule); padding: 8px 0 4px; display: grid; gap: 4px; }
+.frm-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13.5px; }
+.frm-head code { font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
+.frm-head .hint:last-child { flex-basis: 100%; }
+.ffield { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 2px 8px; align-items: start; }
+.ff-tier { font-family: var(--display); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 8px; }
+.ffield.changed .ff-tier { color: var(--accent-ink); font-weight: 600; }
+.ffbox { position: relative; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); cursor: text; min-width: 0; }
+.ffbox.ro { cursor: default; background: var(--sunk); }
+.ffbox:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ffbox.editing { border-color: var(--accent); }
+.ffhl, .ffin { display: block; box-sizing: border-box; width: 100%; margin: 0; border: 0; padding: 5px 8px; font-family: var(--mono); font-size: 13px; font-weight: 400; line-height: 1.6; letter-spacing: 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; }
+.ffhl { color: var(--ink); min-height: 32px; }
+.ffbox:not(.editing) .ffhl { white-space: normal; line-height: 1.85; }
+.ffin { position: absolute; inset: 0; height: 100%; display: none; color: transparent; background: transparent; caret-color: var(--ink); resize: none; overflow: hidden; outline: none; }
+.ffbox.editing .ffin { display: block; }
+.ffin::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: transparent; }
+.ffhint, .ffgrid { grid-column: 2; font-size: 12px; color: var(--muted); min-width: 0; }
+.ffhint b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
+.ffgrid summary { cursor: pointer; width: max-content; color: var(--accent-ink); }
+.ffgrid .gtable { margin: 4px 0 0; }
+.fx-gt th:first-child { width: 48px; }
+.fg-ins { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 4px; }
+.fg-ins label { display: inline-flex; align-items: center; gap: 4px; }
+.fg-ins input { width: 64px; border: 1px solid var(--rule); background: var(--paper); border-radius: 5px; padding: 2px 5px; font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+.fx-err { color: var(--bad); }
+.fv-M { color: var(--accent); } .fv-X { color: var(--plasma); } .fv-A { color: var(--kinetic); } .fv-H { color: var(--health); } .fv-N { color: var(--int); }
+.fv-Pa { color: var(--thermal); } .fv-Pc { color: var(--electric); } .fv-int, .fv-bio { color: var(--radiation); }
+.ffn { color: var(--muted); font-style: italic; } .fref { color: var(--accent-ink); } .fbad { color: var(--bad); text-decoration: underline wavy var(--bad); }
+.fpill { display: inline-flex; align-items: center; padding: 0 6px; margin: 0 1px; border-radius: 999px; font-family: var(--mono); font-weight: 600; line-height: 1.5; background: color-mix(in srgb, currentColor 14%, transparent); }
+.fpill .px { border: 0; background: none; color: inherit; font: inherit; font-weight: 400; padding: 0 0 0 3px; cursor: pointer; opacity: .6; line-height: 1; }
+.fpill .px:hover, .fpill .px:focus-visible { opacity: 1; }
+.fx-empty { color: var(--faint); font-style: italic; }
+.fx-code { font-family: var(--mono); font-size: 12.5px; }
+.bp-live .bp-parts { flex-basis: 100%; width: 100%; border-collapse: collapse; }
+.bp-parts td { padding: 2px 4px; border-bottom: 1px dotted var(--rule); vertical-align: top; }
+.bp-parts td.n { text-align: right; white-space: nowrap; }
+.bp-parts tr.tot td { font-weight: 600; border-bottom: 0; }
+.bp-un, .bp-live .fx-err { flex-basis: 100%; font-family: var(--body); font-size: 13px; }
+.bp-un ul { margin: 4px 0 0; padding-left: 18px; }
 </style>
 
 <header class="tally">
@@ -560,7 +604,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // and, to simulate it, a case in the engine's runFx(). Anything marked sim: false is shown but not simulated.
   /* CARD-VOCAB START */
   const VOCAB = {
-    "version": 5,
+    "version": 6,
     "triggers": [
       { "key": "", "label": "Always on", "sim": true },
       { "key": "fight_start", "label": "Fight Start", "sim": true },
@@ -602,6 +646,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       { "key": "above", "text": "the card above this", "group": "ally", "sim": true },
       { "key": "below", "text": "the card below this", "group": "ally", "sim": true },
       { "key": "adjacent", "text": "adjacent cards", "plural": true, "group": "ally", "sim": true },
+      { "key": "lateral", "text": "the cards in front of and behind this", "plural": true, "group": "ally", "sim": true },
       { "key": "front_weapon", "text": "the weapon in front of this", "group": "ally", "sim": true },
       { "key": "behind_weapon", "text": "the weapon behind this", "group": "ally", "sim": true },
       { "key": "above_weapon", "text": "the weapon above this", "group": "ally", "sim": true },
@@ -622,6 +667,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       { "key": "front_cards", "text": "your cards in front of armor", "plural": true, "group": "ally", "sim": true },
       { "key": "most_damaged", "text": "your most damaged exterior card", "group": "ally", "sim": true },
       { "key": "row", "text": "all cards in this row", "plural": true, "group": "ally", "sim": true },
+      { "key": "opposite_row", "text": "all cards in the other row", "plural": true, "group": "ally", "sim": true },
       { "key": "ship", "text": "your ship", "group": "ship", "sim": true },
       { "key": "ship_here", "text": "the ship it stands on", "group": "ship", "sim": true },
       { "key": "enemy_frontmost", "text": "the frontmost enemy card", "group": "enemy", "sim": true },
@@ -696,12 +742,18 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       { "key": "Block", "amount": true, "scales": false },
       { "key": "Reflect", "amount": true },
       { "key": "Regen", "amount": true },
+      { "key": "Self-Heal", "amount": true },
+      { "key": "Self-Repair", "amount": true },
+      { "key": "Heal", "amount": true },
+      { "key": "Repair", "amount": true },
       { "key": "Restore", "amount": true },
       { "key": "Pierce", "amount": true, "damage_type_optional": true },
       { "key": "Splash", "amount": true, "damage_type_optional": true },
       { "key": "Vulnerable", "damage_type": true },
       { "key": "Taunt" },
-      { "key": "Guard" }
+      { "key": "Guard" },
+      { "key": "Flank" },
+      { "key": "Execute" }
     ],
     "actions": [
       { "key": "gain_attack", "label": "Gain attack", "params": ["amount", "source", "stat", "duration"], "groups": ["ally", "crew"], "sim": true },
@@ -853,46 +905,253 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   const picked = () => [...cards.values()].filter(c => c.pick && active(c));
 
   // ---------- budget points (BP) ----------
-  // Budget = mark x (base + step x (lowest mark - 1) + pad). Health costs 1 BP a point.
-  const FORMULA = {
-    ext: { label: "Exterior", base: 24, step: 6, pad: 0, atk: 4 },
-    // Interior budget = exterior budget (2026-09-30): an interior card is worth an exterior one. Interior stats keep their
-    // point prices (attack 3, health 1), so crew bodies came out twice their old size.
-    int: { label: "Interior", base: 24, step: 6, pad: 0, atk: 3 },
-    extraHit: 3, plasma: 1, thermalInt: 1, radiationInt: 1, pierce: 1, splash: 3, regen: 2, // pierce measured about 0 (2026-09-30)
-    restore: 4,          // BP per point of Restore (keyword); every Shields card has Restore 1 per mark
-    vulnKinetic: -2,     // Vulnerable (Kinetic), printed on Shields cards: about -2 BP at Mk I
-    vulnOther: -1,       // Vulnerable to any rarer type, e.g. Plasma on Armor cards: about -1 BP at Mk I
-    shieldRestore: 2,    // net for a plain Shields card: restore + vulnKinetic
-    blockFront: 3, blockBehind: 3,     // BP per Block (one attack stopped per fight), simulated
-    reflectFront: 5, reflectBehind: 2, // BP per point of Reflect, simulated (Reflect 2+ on a front card is worth more)
-    resistFront: 12,     // BP per point of Resist on a card that plays in front of the armor (measured 10-16)
-    resistShields: 8,    // on a Shields or Armor card (measured on the Armor)
-    resistBehind: 5,     // anywhere else (measured 4.4-5.7)
-    // Exterior formula (measured 2026-09-30): 4 per attack point on the first hit, extraHitExt per attack point on each
-    // extra hit, and each damage type's per-hit worth against Kinetic (whose Shields bonus is in the base rate).
-    // Health on a card that plays in front of the armor is worth frontHealth a point, minus frontOffset.
-    extraHitExt: 6, typeExt: { Kinetic: 0, Plasma: 0, Thermal: 0, Electric: -2, Radiation: -1 }, frontHealth: 2, frontOffset: 8,
-    ammoRounds: 7, tolerance: 0.10, // ammoRounds: the interior's older ammo rule (attack x ammo / 7)
-    // Exterior ammo: the share of the full attack price a weapon is worth with 1, 2, 3... ammo (7 or more: all of it)
-    ammoWorth: [0, 0.25, 0.45, 0.65, 0.8, 0.9, 0.95, 1],
-    // Big single hits waste damage to overkill: attack per hit above bigHit.above x lowest mark costs bigHit.rate a point
-    bigHit: { above: 6, rate: 2.5 },
-    ship: { hull: 20, speed: 50, maelstrom: 12 },
-    // Measured buff prices (Guide, Buff prices), per mark for effects whose worth follows the weapon they buff
-    buff: { activate: 20, activateFront: 8, doubleOnFront: 22, doubleOnBehind: 16, attackOne: 5, attackAdjacent: 10, attackAdjacentMult: 20 },
-    // Interior buffs on the exterior (measured 2026-09-30, reference-weapon ladder): per mark where marked ×L, else per point.
-    // mult: first +1 mult ×L, multExtra each further point ×L; aim: a retargeted weapon ×L; health: +health on the card
-    // above; repair: repair N at the end of each round, per point; ammoMax per point; shieldsRound: shield points to your
-    // Shields each round, per point; hull per point.
-    intBuff: { mult: 20, multExtra: 15, aim: 15, health: 1, repair: 1, ammoMax: 3, shieldsRound: 2.5, hull: 0.5 },
+  // Every card has a budget in BP: mark × B × (1 + p × floor steps), where floor steps is how far its lowest mark sits above
+  // Mk I. Everything on a card costs BP through formula rows (docs/BALANCE.md): each row is an expression for the total BP
+  // over the design-time variables in FVARS, with a base formula (on the card itself) and optional dumb (a fixed card slot)
+  // and smart (picks or skips) formulas that fall back to base. A sheet's formula, format 2:
+  //   { v: 2, budget: { B, p, tolerance }, ship: { hull, speed, maelstrom }, rows: { Id: { base, dumb, smart } }, styles: { key: × } }
+  // Sheets saved with number fields (format 1) are converted when they load (upgradeFormula).
+  const FVARS = [
+    { k: "M", label: "Mark", text: "The card's mark. Cards are priced at their lowest mark" },
+    { k: "X", label: "Mult", text: "Attacks per activation" },
+    { k: "A", label: "Attack", text: "The card's attack: every damage type added up, for one hit" },
+    { k: "H", label: "Health", text: "The card's health (shield points on a Shields card)" },
+    { k: "N", label: "Amount", text: "The row's own amount: the Resist value, the Block count, the Reload amount" },
+    { k: "Pa", label: "Ammo pips", text: "The card's maximum ammo" },
+    { k: "Pc", label: "Charge pips", text: "The card's maximum charges" },
+    { k: "int", label: "Interior", text: "1 on an interior card (or one that can sit in either row), 0 on an exterior one", flag: true },
+    { k: "bio", label: "Biological", text: "1 on a Biological card, else 0", flag: true },
+  ];
+  const FV = Object.fromEntries(FVARS.map(v => [v.k, v]));
+  const FFUNCS = {
+    min: { fn: (...a) => Math.min(...a), args: [1, 99], text: "The smallest of its arguments: min(N, 3)" },
+    max: { fn: (...a) => Math.max(...a), args: [1, 99], text: "The largest of its arguments: max(0, N - 1)" },
+    floor: { fn: Math.floor, args: [1, 1], text: "Rounds down" },
+    ceil: { fn: Math.ceil, args: [1, 1], text: "Rounds up" },
+    round: { fn: x => Math.floor(x + 0.5), args: [1, 1], text: "Rounds half up (a card's total is rounded once anyway)" },
+    abs: { fn: Math.abs, args: [1, 1], text: "Drops the sign" },
   };
+  // The formula rows. amt: the variable a row is "about", stepped in its examples and grid (N unless named); from: where
+  // the examples start; tiers: the row has dumb and smart formulas; kind: the triggers it is written for (standing: always
+  // on or Fight Start; activation: once a round, After Attack × X); factor: a multiplier, not BP.
+  const FGROUPS = ["Stats", "Shields and weaknesses", "Keywords", "Charges and ammo", "Granted buffs", "Scalers"];
+  const TAPER8 = "8*min(N,3) + 8*min(max(N-3,0),7) - min(max(N-3,0),7)*(min(max(N-3,0),7)+1)/2 + max(N-10,0)";
+  const TAPER12 = "12*min(N,5) + 12*min(max(N-5,0),11) - min(max(N-5,0),11)*(min(max(N-5,0),11)+1)/2 + max(N-16,0)";
+  const FROWS = [
+    { id: "Attack", g: 0, label: "Attack", amt: "A", what: "A card's attack, first hit", base: "8*A" },
+    { id: "Health", g: 0, label: "Health", amt: "H", what: "Health, or shield points on a Shields card", base: "4*H" },
+    { id: "Mult", g: 0, label: "Mult", amt: "X", from: 2, what: "The extra attacks of a card with mult 2 or more", base: "4*(X-1)*(2*A+X+2)" },
+    { id: "Ammo", g: 0, label: "Ammo", amt: "Pa", factor: true, what: "A factor on a card's whole attack (attack, mult, damage types, Pierce, Splash) when it uses ammo", base: "min(1, Pa/(7*(0.3+0.7*(Pa-1)/6)))" },
+    { id: "MaxCharges", g: 0, label: "Max charges", amt: "Pc", what: "A card's charge pips, unless a formula for an effect that spends them reads Pc", base: "8*Pc" },
+    { id: "TypeKinetic", g: 0, label: "Kinetic", amt: "X", what: "Each hit of a card that deals Kinetic damage", base: "0" },
+    { id: "TypeThermal", g: 0, label: "Thermal", amt: "X", what: "Each hit of a card that deals Thermal damage", base: "0" },
+    { id: "TypeElectric", g: 0, label: "Electric", amt: "X", what: "Each hit of a card that deals Electric damage", base: "-8*X" },
+    { id: "TypePlasma", g: 0, label: "Plasma", amt: "X", what: "Each hit of a card that deals Plasma damage", base: "0" },
+    { id: "TypeRadiation", g: 0, label: "Radiation", amt: "X", what: "Each hit of a card that deals Radiation damage", base: "-4*X" },
+    { id: "FreeRestore", g: 1, label: "Free Restore", amt: "M", what: "Every Shields card: its free Restore, equal to its mark", base: "16*M" },
+    { id: "VulnKinetic", g: 1, label: "Vulnerable (Kinetic)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnThermal", g: 1, label: "Vulnerable (Thermal)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnElectric", g: 1, label: "Vulnerable (Electric)", from: 0, what: "A weakness; less on a card with charge pips, which the charges help", base: "-16+12*min(Pc,1)" },
+    { id: "VulnPlasma", g: 1, label: "Vulnerable (Plasma)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnRadiation", g: 1, label: "Vulnerable (Radiation)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "Resist", g: 2, label: "Resist N", tiers: true, kind: "standing", what: "Each instance of damage taken is N lower", base: "8*N*(N+2)" },
+    { id: "Block", g: 2, label: "Block N", tiers: true, kind: "standing", what: "Stops the next N attacks", base: "6*N*(N+3)-8" },
+    { id: "Reflect", g: 2, label: "Reflect N", tiers: true, kind: "standing", what: "Each attack that hits it takes N back", base: "2*N*(N+5)" },
+    { id: "Heal", g: 2, label: "Heal N", tiers: true, kind: "activation", what: "Base: Self-Heal N (the card heals itself). Dumb and smart: passed to Biological neighbors", base: "2*N*(N+1)", dumb: "1.4*N*(N+1)", smart: "1.4*N*(N+1)" },
+    { id: "Repair", g: 2, label: "Repair N", tiers: true, kind: "activation", what: "Base: Self-Repair N. Dumb and smart: passed to neighbors that aren't Biological", base: "2*N*(N+1)" },
+    { id: "Regen", g: 2, label: "Regen N", tiers: true, kind: "standing", what: "Shields only: tops up N shield points each activation while up", base: "2*N*(N+2)" },
+    { id: "Restore", g: 2, label: "Restore N", tiers: true, kind: "standing", what: "N is the Restore above the free Restore (the card's mark) on a Shields card", base: "2*N*(N+4)" },
+    { id: "Taunt", g: 2, label: "Taunt", tiers: true, kind: "standing", what: "Attacks against its row target it first", base: "2*M*(M+1)+4" },
+    { id: "Guard", g: 2, label: "Guard", tiers: true, kind: "standing", what: "Takes attacks aimed at the cards in front of and behind it", base: "2*M*(M+1)+4" },
+    { id: "Pierce", g: 2, label: "Pierce N", tiers: true, kind: "standing", what: "Per hit, so × X", base: "4*N*X" },
+    { id: "Splash", g: 2, label: "Splash N", tiers: true, kind: "standing", what: "Per hit, so × X", base: "10*N*X" },
+    { id: "Flank", g: 2, label: "Flank", kind: "standing", what: "Attacks the backmost enemy card. Attack targeting: no tiers", base: "32" },
+    { id: "Execute", g: 2, label: "Execute", kind: "standing", what: "Attacks the enemy card with the lowest health. Attack targeting: no tiers", base: "48" },
+    { id: "Recharge", g: 3, label: "Recharge N", tiers: true, kind: "activation", what: "Per charge delivered: fixed (dumb) or skip-to-best (smart)", base: "12*N-4", smart: "16*N-4" },
+    { id: "Discharge", g: 3, label: "Discharge N", kind: "activation", what: "Spreads to the first card that takes each charge, so always the top tier", base: "16*N-4" },
+    { id: "Reload", g: 3, label: "Reload N", tiers: true, kind: "activation", what: "8 an ammo fixed, 12 spread or skip-to-hungriest; tapering past 3 and 5", base: TAPER8, smart: TAPER12 },
+    { id: "MaxAmmo", g: 3, label: "Max ammo N", tiers: true, kind: "standing", what: "Granted extra maximum ammo", base: "4*N" },
+    { id: "ChargeBlock", g: 3, label: "Charge-fed Block", amt: "Pc", what: "On Attacked. Spend a charge: block the attack. Reads Pc, so the pips aren't charged again", base: "1.5*Block(Pc)" },
+    { id: "ChargeReflect", g: 3, label: "Charge-fed Reflect N", what: "On Attacked. Spend a charge: deal N damage to it. Never more than Reflect N", base: "min(3*N*Pc + 2*Pc*(Pc+1) - 4, Reflect(N))" },
+    { id: "GrantMult", g: 4, label: "+N mult", tiers: true, kind: "standing", what: "Given to another card, always on or at Fight Start", base: "48*N + 6*N*(N-1)" },
+    { id: "GrantAttack", g: 4, label: "+N attack", tiers: true, kind: "standing", what: "Given to another card: 8 a point × 1.5 leverage", base: "12*N" },
+    { id: "GrantHealth", g: 4, label: "+N health", tiers: true, kind: "standing", what: "Given to another card: the raw rate", base: "4*N" },
+    { id: "Activate", g: 4, label: "Activate another card", tiers: true, kind: "activation", what: "On Activate. Provisional: the Beta sheet's measured price × 4", base: "64*M" },
+    { id: "DoubleDamage", g: 4, label: "Double damage", tiers: true, kind: "standing", what: "Given to another card. Provisional: the Beta sheet's measured price × 4", base: "52*M" },
+    { id: "AttackPerWin", g: 5, label: "+N attack per win", what: "On winning a fight, permanently", base: "24*N" },
+    { id: "AttackPerFight", g: 5, label: "+N attack per fight survived", what: "End of fight, permanently", base: "22*N" },
+    { id: "HealthPerWin", g: 5, label: "+N health per win", what: "On winning a fight, permanently", base: "12*N" },
+    { id: "HealthPerFight", g: 5, label: "+N health per fight survived", what: "End of fight, permanently", base: "10*N" },
+  ];
+  const FROW = Object.fromEntries(FROWS.map(r => [r.id, r]));
+  // Targeting styles multiply an effect's price by how many cards it reaches, priced for a typical row
+  const FSTYLES = [
+    { k: "single", label: "Single", text: "One card", seed: 1 },
+    { k: "lateral", label: "Lateral", text: "The cards in front of and behind this", seed: 1.5 },
+    { k: "adjacent", label: "Adjacent", text: "Every orthogonal neighbor: in front, behind, above, below", seed: 2 },
+    { k: "someNeighbors", label: "Some neighbors", text: "Adjacent weapons, adjacent crew, adjacent cards with an attack", seed: 1.5 },
+    { k: "oneWay", label: "One way", text: "All weapons in front of or behind this; your cards in front of the armor", seed: 2 },
+    { k: "some", label: "Some", text: "Your weapons with mult 1, your ammo weapons, your tagged cards, your two frontmost crew", seed: 2 },
+    { k: "most", label: "Most", text: "Your weapons, all your crew, your crew on this ship", seed: 3 },
+    { k: "row", label: "Row", text: "All cards in this row", seed: 4 },
+    { k: "opposite", label: "Opposite row", text: "All cards in the other row", seed: 4 },
+  ];
+  // Each friendly target's delivery tier and reach. Enemy targets, "it" and "the attack" aren't friendly delivery.
+  const TARGET_PRICE = (() => {
+    const t = {}, set = (tier, style, keys) => keys.forEach(k => { t[k] = [tier, style]; });
+    set("base", "single", ["self", "host"]);
+    set("dumb", "single", ["front", "behind", "above", "below", "front_weapon", "behind_weapon", "above_weapon", "crew_below", "crew_in_front", "crew_behind", "your_shields", "your_armor", "ship", "ship_here", "adjacent_multi_weapons"]);
+    set("dumb", "lateral", ["lateral"]);
+    set("dumb", "adjacent", ["adjacent"]);
+    set("dumb", "someNeighbors", ["adjacent_weapons", "adjacent_crew", "adjacent_attackers"]);
+    set("dumb", "oneWay", ["weapons_in_front", "weapons_behind", "front_cards"]);
+    set("dumb", "some", ["single_weapons", "ammo_weapons", "tagged", "other_tagged"]);
+    set("dumb", "most", ["your_weapons", "all_crew", "crew_here"]);
+    set("dumb", "row", ["row"]);
+    set("dumb", "opposite", ["opposite_row"]);
+    set("smart", "single", ["most_damaged_adjacent", "most_damaged", "most_damaged_crew_here", "nearest_crew_behind", "nearest_crew_in_front", "frontmost_ally", "frontmost_crew", "frontmost_interior_if_crew"]);
+    set("smart", "some", ["two_frontmost_crew"]);
+    return t;
+  })();
+  const FORMULA_SEED = {
+    v: 2, budget: { B: 96, p: 0.125, tolerance: 0.1 }, ship: { hull: 20, speed: 50, maelstrom: 12 },
+    rows: Object.fromEntries(FROWS.map(r => [r.id, { base: r.base, dumb: r.dumb || "", smart: r.smart || "" }])),
+    styles: Object.fromEntries(FSTYLES.map(s => [s.k, s.seed])),
+  };
+  const FORMULA = JSON.parse(JSON.stringify(FORMULA_SEED));
+  let fxGen = 0; // bumped whenever the formula in force changes, so cached prices are recomputed
+
+  // ---------- formulas: parsing and evaluation (plain strings, no page) ----------
+  // A formula is numbers, the variables in FVARS, + - * /, parentheses, the functions in FFUNCS, and calls to another row by
+  // its id ("1.5*Block(Pc)": that row's base formula with N replaced).
+  function fxTokens(src) {
+    const out = [], s = String(src ?? "");
+    let i = 0, m;
+    while (i < s.length) {
+      const ch = s[i], rest = s.slice(i);
+      if (/\s/.test(ch)) { i++; continue; }
+      if ((m = /^(\d+\.?\d*|\.\d+)/.exec(rest))) out.push({ t: "num", v: m[1], s: i, e: i + m[1].length });
+      else if ((m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(rest))) out.push({ t: "id", v: m[0], s: i, e: i + m[0].length });
+      else if ("+-*/".includes(ch)) out.push({ t: "op", v: ch, s: i, e: i + 1 });
+      else if ("(),".includes(ch)) out.push({ t: ch, v: ch, s: i, e: i + 1 });
+      else out.push({ t: "bad", v: ch, s: i, e: i + 1 });
+      i = out[out.length - 1].e;
+    }
+    return out;
+  }
+  const fxAst = new Map();
+  // The formula as a tree; throws { msg, at } (a character position) on a syntax error
+  function fxParse(src) {
+    const key = String(src ?? "").trim();
+    if (!fxAst.has(key)) { try { fxAst.set(key, { ast: fxTree(fxTokens(key), key) }); } catch (err) { fxAst.set(key, { err }); } }
+    const x = fxAst.get(key);
+    if (x.err) throw x.err;
+    return x.ast;
+  }
+  function fxTree(T, src) {
+    let k = 0;
+    const fail = (msg, tok) => { throw { msg, at: tok ? tok.s : src.length }; };
+    const peek = () => T[k], next = () => T[k++];
+    const bad = T.find(t => t.t === "bad");
+    if (bad) fail(`"${bad.v}" can't be used: write numbers, variables, + - * /, parentheses and functions`, bad);
+    if (!T.length) fail("Empty. Write a number (0 for free) or a formula");
+    const isOp = (...ops) => peek() && peek().t === "op" && ops.includes(peek().v);
+    const juxt = node => { const p = peek(); if (p && (p.t === "num" || p.t === "id" || p.t === "(")) fail(`Write * to multiply, before "${p.v}"`, p); return node; };
+    function expr() { let a = term(); while (isOp("+", "-")) { const op = next().v; a = { op, a, b: term() }; } return a; }
+    function term() { let a = unary(); while (isOp("*", "/")) { const op = next().v; a = { op, a, b: unary() }; } return a; }
+    function unary() { if (isOp("+", "-")) { const op = next().v, a = unary(); return op === "-" ? { op: "neg", a } : a; } return atom(); }
+    function atom() {
+      const t = next();
+      if (!t) fail("The formula stops too soon");
+      if (t.t === "num") return juxt({ num: Number(t.v) });
+      if (t.t === "id") {
+        if (peek() && peek().t === "(") {
+          next();
+          const args = [];
+          if (peek() && peek().t === ")") next();
+          else for (;;) { args.push(expr()); const u = next(); if (!u) fail(`${t.v}( needs a closing parenthesis`); if (u.t === ")") break; if (u.t !== ",") fail(`Write , or ) inside ${t.v}( )`, u); }
+          return juxt({ call: t.v, args, at: t.s });
+        }
+        return juxt({ id: t.v, at: t.s });
+      }
+      if (t.t === "(") { const a = expr(), u = next(); if (!u || u.t !== ")") fail("A parenthesis isn't closed", u || t); return juxt(a); }
+      fail(`"${t.v}" is out of place`, t);
+    }
+    const ast = expr();
+    if (k < T.length) fail(`"${T[k].v}" is out of place`, T[k]);
+    return ast;
+  }
+  function fxUnknown(name) {
+    const v = FVARS.find(x => x.k.toLowerCase() === String(name).toLowerCase());
+    if (v) return `"${name}" isn't a variable: did you mean ${v.k}?`;
+    if (name === "P" || name === "p") return `There's no P: write Pa (ammo pips) or Pc (charge pips)`;
+    const r = FROWS.find(x => x.id.toLowerCase() === String(name).toLowerCase());
+    if (r) return `"${name}" isn't a name: did you mean ${r.id}( )?`;
+    return `"${name}" isn't a variable, a function or a formula row`;
+  }
+  // Evaluates a formula for a card's variables. rows: the formula's rows, for calls to another row. reads collects the
+  // variables read. Throws { msg } on an unknown name, a loop, or a result that isn't a number.
+  function fxEval(src, env, rows = FORMULA.rows, reads = null, stack = []) {
+    const ev = n => {
+      if (n.num !== undefined) return n.num;
+      if (n.id !== undefined) {
+        if (!FV[n.id]) throw { msg: fxUnknown(n.id), at: n.at };
+        if (reads) reads.add(n.id);
+        return Number(env[n.id]) || 0;
+      }
+      if (n.call !== undefined) {
+        const f = FFUNCS[n.call];
+        if (f) {
+          if (n.args.length < f.args[0] || n.args.length > f.args[1]) throw { msg: `${n.call}( ) takes ${f.args[1] === 1 ? "one value" : "one or more values"}`, at: n.at };
+          return f.fn(...n.args.map(ev));
+        }
+        if (!FROW[n.call] && !(rows && rows[n.call])) throw { msg: fxUnknown(n.call), at: n.at };
+        if (n.args.length !== 1) throw { msg: `${n.call}( ) takes one value: the N to price it at`, at: n.at };
+        if (stack.includes(n.call)) throw { msg: `${n.call} ends up calling itself (${[...stack, n.call].join(" → ")})`, at: n.at };
+        const N = ev(n.args[0]), r = (rows && rows[n.call]) || {};
+        return fxEval(String(r.base ?? "").trim() || "0", { ...env, N }, rows, reads, [...stack, n.call]);
+      }
+      if (n.op === "neg") return -ev(n.a);
+      const a = ev(n.a), b = ev(n.b);
+      if (n.op === "/" && b === 0) throw { msg: "It divides by zero here" };
+      return n.op === "+" ? a + b : n.op === "-" ? a - b : n.op === "*" ? a * b : a / b;
+    };
+    const v = ev(fxParse(src));
+    if (!isFinite(v)) throw { msg: "It doesn't give a number here" };
+    return v;
+  }
+  // Checks a formula without a card: { ok, msg, at, vars, calls }. It must parse, name only known things, and give a number
+  // with every variable at 1. rows: the formula's rows (a draft while editing); id: the row being checked, to catch loops.
+  function fxCheck(src, rows = FORMULA.rows, id = null) {
+    const vars = new Set(), calls = new Set();
+    try {
+      const walk = n => { if (!n) return; if (n.id !== undefined) vars.add(n.id); if (n.call !== undefined) { if (!FFUNCS[n.call]) calls.add(n.call); n.args.forEach(walk); } walk(n.a); walk(n.b); };
+      walk(fxParse(src));
+      fxEval(src, fxDefaults(), rows, null, id ? [id] : []);
+      return { ok: true, vars, calls };
+    } catch (e) { return { ok: false, msg: e.msg || String(e), at: e.at, vars, calls }; }
+  }
+  const fxDefaults = () => Object.fromEntries(FVARS.map(v => [v.k, 1]));
+  // A row's formula for a tier; a blank dumb or smart one falls back to base
+  function rowFormula(id, tier = "base", F = FORMULA) {
+    const r = (F.rows || {})[id] || {}, t = tier !== "base" && String(r[tier] || "").trim() ? tier : "base";
+    return { src: String(r[t] ?? "").trim() || "0", tier: t };
+  }
+  function rowVal(id, tier, env, reads = null) {
+    const f = rowFormula(id, tier);
+    try { return { v: fxEval(f.src, env, FORMULA.rows, reads, [id]), tier: f.tier }; }
+    catch (e) { return { v: 0, tier: f.tier, err: e.msg || String(e) }; }
+  }
+  const round2 = x => Math.round(x * 100) / 100;
+
+  // ---------- pricing a card ----------
   const tagged = (c, t) => (c.tags || []).includes(t);
   function budgetClass(c) {
     if (isItem(c)) return null;
     return c.row === "Exterior" ? "ext" : "int";
   }
-  const budgetAt = (cls, lowest, mark) => { const f = FORMULA[cls]; return mark * (f.base + f.step * (lowest - 1) + f.pad); };
+  // Interior and exterior cards share one budget (the class is kept for the callers that pass it)
+  const budgetAt = (cls, lowest, mark) => { const b = FORMULA.budget || FORMULA_SEED.budget; return Math.round(mark * b.B * (1 + b.p * (lowest - 1)) * 100) / 100; };
   const budget = c => { const k = budgetClass(c); const L = c.minMark || 1; return k ? budgetAt(k, L, L) : null; };
   // A card that plays in front of the armor: one that must sit there, or an exterior Defense card with no attack (a wall)
   const playsFront = c => c.row === "Exterior" && !tagged(c, "Shields") && !tagged(c, "Armor")
@@ -903,96 +1162,156 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // A keyword counts only when it starts a sentence ("Resist 1."), never when granted to others ("Adjacent cards have Resist 1.")
   const effNum = (c, word) => { if (structured(c)) return ownKw(c, word).reduce((t, e) => t + (Number(e.amount) || 0), 0); const m = new RegExp("(?:^|\\.\\s+)" + word + "\\s+(\\d+)", "i").exec(c.effect || ""); return m ? Number(m[1]) : 0; };
   const hasKw = (c, word) => structured(c) ? ownKw(c, word).length > 0 : new RegExp("(?:^|\\.\\s+)" + word + "\\b").test(c.effect || "");
-  function statBP(c) { const p = statParts(c); return Math.round(p.attack + p.health + p.extras); }
-  // A card's stat BP in three parts: attack, health, and its own keywords
-  function statParts(c) {
-    const exterior = c.row === "Exterior";
-    const rate = FORMULA[exterior ? "ext" : "int"].atk;
-    const mult = Math.max(1, Number(c.mult) || 1);
-    const atk = c.atkVar ? [] : (c.attack || []).filter(a => Number(a.amt) > 0);
-    let attackBP = 0;
-    if (atk.length) {
-      const types = new Set(atk.map(a => a.type)), sum = atk.reduce((s, a) => s + Number(a.amt), 0);
-      const kw = FORMULA.pierce * effNum(c, "Pierce") + FORMULA.splash * effNum(c, "Splash");
-      if (exterior) {
-        const adj = [...types].reduce((s, ty) => s + (FORMULA.typeExt[ty] || 0), 0), cap = FORMULA.bigHit.above * (c.minMark || 1);
-        const hitPts = Math.min(sum, cap) + Math.max(0, sum - cap) * FORMULA.bigHit.rate / rate; // attack points after the overkill discount
-        attackBP = (rate * hitPts + adj + kw) + (FORMULA.extraHitExt * hitPts + adj + kw) * (mult - 1);
-        if (c.ammo) attackBP *= FORMULA.ammoWorth[Math.min(c.ammo, FORMULA.ammoWorth.length - 1)];
-      } else { // interior: the older rules until the interior is measured
-        let perHit = rate * sum + kw;
-        if (types.has("Plasma")) perHit += FORMULA.plasma;
-        if (types.has("Thermal")) perHit += FORMULA.thermalInt;
-        if (types.has("Radiation")) perHit += FORMULA.radiationInt;
-        attackBP = perHit * mult + FORMULA.extraHit * (mult - 1);
-        if (c.ammo) attackBP *= Math.min(1, c.ammo / FORMULA.ammoRounds);
+  const atkSum = c => c.atkVar ? 0 : (c.attack || []).reduce((s, a) => s + Math.max(0, Number(a.amt) || 0), 0);
+  // The design-time variables of a card (N is set per row)
+  const cardEnv = c => ({ M: c.minMark || 1, X: Math.max(1, Number(c.mult) || 1), A: atkSum(c), H: Math.max(0, Number(c.health) || 0), N: 0,
+    Pa: Number(c.ammo) || 0, Pc: Number(c.charges) || 0, int: c.row === "Exterior" ? 0 : 1, bio: tagged(c, "Biological") ? 1 : 0 });
+  const STANDING = new Set(["", "fight_start"]), ROUNDLY = new Set(["on_activate", "after_activate", "end_of_round"]);
+  // Which row prices a keyword on the card itself. Heal N and Repair N pass health on, so they use their row's smart formula;
+  // Self-Heal and Self-Repair are the base.
+  const KW_ROW = { Resist: "Resist", Block: "Block", Reflect: "Reflect", Regen: "Regen", Restore: "Restore", Taunt: "Taunt", Guard: "Guard",
+    Pierce: "Pierce", Splash: "Splash", Flank: "Flank", Execute: "Execute", "Self-Heal": "Heal", "Self-Repair": "Repair", Heal: "Heal", Repair: "Repair" };
+  const PASSING = new Set(["Heal", "Repair"]);
+  // What prices one effect: { row, tier, style, times, N } (times: the trigger factor), or { why } when no formula covers it
+  // and it is priced by hand in Effect BP
+  function fxPlan(e, c, env) {
+    const tgt = e.target || "self", self = tgt === "self" || tgt === "host", n = Number(e.amount) || 0;
+    if (e.condition) return { why: "it has a condition" };
+    if (e.limit) return { why: "it has a limit" };
+    if (e.where) return { why: "it works only " + ((WHERE[e.where] || {}).label || e.where) };
+    if (e.duration === "round") return { why: "it lasts only the round" };
+    if (e.source && e.source !== "value") return { why: "its amount is counted during the fight" };
+    if (e.cost) {
+      if (e.cost === "charge" && Number(e.costCount ?? 1) === 1 && e.trigger === "on_attacked") {
+        if (e.action === "block_attack") return { row: "ChargeBlock", tier: "base", style: "single", times: 1, N: env.Pc, spends: true };
+        if (e.action === "deal_damage" && tgt === "it") return { row: "ChargeReflect", tier: "base", style: "single", times: 1, N: n, spends: true };
       }
+      return { why: "it has a cost" };
     }
-    const L = c.minMark || 1;
-    const shields = tagged(c, "Shields"), armor = tagged(c, "Armor");
-    const hitEarly = exterior && (shields || armor || playsFront(c) || c.place === "Shields slot" || c.place === "Armor slot");
-    const extras = FORMULA.regen * effNum(c, "Regen")
-      + (shields ? FORMULA.restore * Math.max(effNum(c, "Restore"), L) : FORMULA.restore * effNum(c, "Restore"))
-      + (vulnType(c) ? (vulnType(c) === "Kinetic" ? FORMULA.vulnKinetic : FORMULA.vulnOther) * L : 0)
-      + effNum(c, "Block") * (hitEarly ? FORMULA.blockFront : FORMULA.blockBehind) * L
-      + effNum(c, "Reflect") * (hitEarly ? FORMULA.reflectFront : FORMULA.reflectBehind)
-      + effNum(c, "Resist") * (shields || armor || c.place === "Shields slot" || c.place === "Armor slot" ? FORMULA.resistShields : hitEarly ? FORMULA.resistFront : FORMULA.resistBehind);
-    const hp = Number(c.health) || 0, healthBP = playsFront(c) ? Math.max(0, FORMULA.frontHealth * hp - FORMULA.frontOffset) : hp;
-    return { attack: attackBP, health: healthBP, extras };
+    const tp = TARGET_PRICE[tgt];
+    const plan = (row, kind, o = {}) => {
+      if (!tp) return { why: "it reaches the enemy, the attacker or the attack" };
+      const trig = e.trigger || "";
+      const times = kind === "standing" ? (STANDING.has(trig) ? 1 : null) : ROUNDLY.has(trig) ? 1 : trig === "after_attack" ? env.X : null;
+      if (times == null) return { why: `no formula is written for ${trigLabel(trig)}` };
+      const tier = o.tier || (FROW[row].tiers ? tp[0] : "base");
+      return { row, tier, style: tp[1], times, N: o.N ?? n };
+    };
+    switch (e.action) {
+      case "keyword": {
+        const k = e.keyword;
+        if (k === "Vulnerable") return self && !e.trigger ? { row: "Vuln" + (e.type || "Kinetic"), tier: "base", style: "single", times: 1, N: 0 } : { why: "Vulnerable is priced only on the card itself" };
+        const row = KW_ROW[k];
+        if (!row) return { why: `no formula for ${k}` };
+        if (tgt === "ship" || tgt === "ship_here") return { why: "keywords on the ship aren't priced yet" };
+        const p = plan(row, "standing", self ? { tier: PASSING.has(k) ? "smart" : "base" } : {});
+        if (p.row === "Restore") p.N = Math.max(0, n - (self && tagged(c, "Shields") ? env.M : 0)); // only what's above the free Restore
+        if (p.row && !(KW[k] || {}).amount) p.N = 1;
+        return p;
+      }
+      case "heal": case "repair": return plan(e.action === "heal" ? "Heal" : "Repair", "activation");
+      case "recharge": return plan("Recharge", "activation");
+      case "reload": return plan("Reload", "activation");
+      case "discharge": return plan("Discharge", "activation");
+      case "gain_ammo_max": return plan("MaxAmmo", "standing");
+      case "gain_mult": return self ? { why: "a card's own mult is its Mult stat" } : e.duration ? { why: "it lasts beyond the fight" } : plan("GrantMult", "standing");
+      case "gain_attack": case "gain_health": {
+        const atk = e.action === "gain_attack";
+        if (e.duration === "permanent") {
+          if (!self || n <= 0) return { why: "permanent gains are priced only on the card itself" };
+          const row = e.trigger === "on_win" ? (atk ? "AttackPerWin" : "HealthPerWin") : e.trigger === "end_of_fight" ? (atk ? "AttackPerFight" : "HealthPerFight") : null;
+          return row ? { row, tier: "base", style: "single", times: 1, N: n } : { why: `no scaler formula for ${trigLabel(e.trigger || "")}` };
+        }
+        if (self) return { why: "a gain on the card itself counts as its stats" };
+        if (n <= 0) return { why: "it's a loss, not a gain" };
+        return plan(atk ? "GrantAttack" : "GrantHealth", "standing");
+      }
+      case "activate": return self ? { why: "a card can't activate itself" } : plan("Activate", "activation");
+      case "double_damage": return e.versus ? { why: "it works only against some targets" } : self ? { why: "double damage on the card itself isn't priced yet" } : plan("DoubleDamage", "standing");
+      case "retarget": { const row = e.aim === "backmost" ? "Flank" : e.aim === "lowest_health" ? "Execute" : null; return row ? plan(row, "standing", { N: 1 }) : { why: "only Flank and Execute aims have a formula" }; }
+    }
+    return { why: `no formula for ${((ACT[e.action] || {}).label || e.action || "this").toLowerCase()}` };
   }
-  // Effects with a measured price are priced automatically, by the card's placement; Effect BP covers everything else by hand.
-  // Only plain versions count: no condition, cost, limit, or "where", and no trigger except where the effect needs one.
-  function autoFx(c) {
-    const B = FORMULA.buff, L = c.minMark || 1, frontOnlyCard = c.row === "Exterior" && c.place === "Front", out = [];
-    (c.effects || []).forEach(e => {
-      if (e.condition || e.cost || e.limit || e.where || e.duration) return;
-      const n = Number(e.amount) || 0, one = e.target === "front_weapon" || e.target === "behind_weapon";
-      let bp = null, what = "";
-      if (e.action === "activate" && e.trigger === "on_activate" && one) { bp = (frontOnlyCard ? B.activateFront : B.activate) * L; what = frontOnlyCard ? "extra activation, in front of armor" : "extra activation"; }
-      else if (e.action === "double_damage" && !e.trigger && !e.versus && one) { bp = (e.target === "front_weapon" ? B.doubleOnFront : B.doubleOnBehind) * L; what = "double damage"; }
-      else if (e.action === "gain_attack" && !e.trigger && n > 0 && e.source === "value") {
-        const per = one ? B.attackOne : e.target === "adjacent_weapons" ? B.attackAdjacent : e.target === "adjacent_multi_weapons" ? B.attackAdjacentMult : null;
-        if (per) { bp = per * n; what = `+${n} attack`; }
-      }
-      if (bp === null && c.row !== "Exterior") { // interior buffs on the exterior (FORMULA.intBuff)
-        const I = FORMULA.intBuff, above = e.target === "above";
-        // An interior card's only adjacent weapon is the one above it: crew never carry the Weapon tag
-        const oneW = ["above_weapon", "adjacent", "adjacent_weapons", "adjacent_attackers"].includes(e.target);
-        if (e.action === "activate" && e.trigger === "on_activate" && (oneW || above)) { bp = B.activate * L; what = "extra activation"; }
-        else if (e.action === "double_damage" && !e.trigger && !e.versus && oneW) { bp = B.doubleOnBehind * L; what = "double damage"; }
-        else if (e.action === "gain_attack" && !e.trigger && n > 0 && e.source === "value" && oneW) { bp = B.attackOne * n; what = `+${n} attack`; }
-        else if (e.action === "gain_mult" && !e.trigger && n > 0 && oneW) { bp = (I.mult + I.multExtra * (n - 1)) * L; what = `+${n} mult`; }
-        else if (e.action === "retarget" && !e.trigger && oneW) { bp = I.aim * L; what = "aim"; }
-        else if (e.action === "gain_health" && !e.trigger && n > 0 && (above || oneW)) { bp = I.health * n; what = `+${n} health`; }
-        else if (e.action === "repair" && e.trigger === "end_of_round" && (above || oneW || e.target === "most_damaged_adjacent")) { bp = I.repair * n; what = `repair ${n} a round`; }
-        else if (e.action === "keyword" && !e.trigger && (above || oneW) && (e.keyword === "Resist" || e.keyword === "Pierce")) { bp = (e.keyword === "Resist" ? FORMULA.resistBehind : FORMULA.pierce) * n; what = `${e.keyword} ${n}`; }
-        else if (e.action === "gain_ammo_max" && !e.trigger && oneW) { bp = I.ammoMax * n; what = `+${n} max ammo`; }
-        else if (e.action === "gain_health" && e.trigger === "end_of_round" && e.target === "your_shields") { bp = I.shieldsRound * n; what = `+${n} shield points a round`; }
-        else if (e.action === "gain_hull" && e.target === "ship" && (!e.trigger || e.trigger === "fight_start")) { bp = I.hull * n; what = `+${n} hull`; }
-      }
-      if (bp !== null) out.push({ bp, what });
+  // A card's price: every part at full precision, then the total rounded once, half up (BALANCE.md 3).
+  // { parts: [{ label, bp, group, row, tier, style, times, i }], unpriced: [{ i, text, why }], errs, raw, total, attack, health }
+  const priceCache = new WeakMap();
+  function priceCard(c) {
+    const hit = priceCache.get(c);
+    if (hit && hit.gen === fxGen) return hit.r;
+    const env = cardEnv(c), parts = [], unpriced = [], errs = [];
+    const val = (row, tier, N, reads) => { const r = rowVal(row, tier, { ...env, N }, reads); if (r.err) errs.push(`${(FROW[row] || {}).label || row}: ${r.err}`); return r; };
+    const shields = tagged(c, "Shields");
+    // The attack: attack, mult, damage types, the card's own Pierce and Splash; ammo is a factor on all of it
+    const atk = [];
+    if (env.A > 0) {
+      atk.push({ label: `Attack ${env.A}`, bp: val("Attack", "base", env.A).v, row: "Attack" });
+      if (env.X > 1) atk.push({ label: `Mult ${env.X}`, bp: val("Mult", "base", env.X).v, row: "Mult" });
+      [...new Set((c.attack || []).filter(a => Number(a.amt) > 0).map(a => a.type || "Kinetic"))].forEach(ty => {
+        const v = val("Type" + ty, "base", env.X).v;
+        if (v) atk.push({ label: `${ty}, ${env.X} hit${env.X === 1 ? "" : "s"}`, bp: v, row: "Type" + ty });
+      });
+    }
+    ["Pierce", "Splash"].forEach(k => { const n = effNum(c, k); if (n) atk.push({ label: `${k} ${n}${env.X > 1 ? `, ${env.X} hits` : ""}`, bp: val(k, "base", n).v, row: k }); });
+    let attack = atk.reduce((s, p) => s + p.bp, 0);
+    atk.forEach(p => parts.push({ ...p, group: "attack" }));
+    if (env.Pa > 0 && atk.length) {
+      const f = val("Ammo", "base", env.Pa).v;
+      parts.push({ label: `Ammo ${env.Pa} (×${round2(f)})`, bp: attack * (f - 1), group: "attack", row: "Ammo" });
+      attack *= f;
+    }
+    const health = val("Health", "base", env.H).v;
+    parts.push({ label: `${shields ? "Shield points" : "Health"} ${env.H}`, bp: health, group: "health", row: "Health" });
+    if (shields) parts.push({ label: "Free Restore", bp: val("FreeRestore", "base", env.M).v, group: "effects", row: "FreeRestore" });
+    let pipsPriced = false;
+    (c.effects || []).forEach((e, i) => {
+      if (e.action === "keyword" && (e.keyword === "Pierce" || e.keyword === "Splash") && (e.target || "self") === "self" && !e.trigger && !e.condition && !e.cost) return; // in the attack
+      const p = fxPlan(e, c, env), text = (e.trigger ? trigLabel(e.trigger) + ": " : "") + effectText(e, c);
+      if (!p.row) { unpriced.push({ i, text, why: p.why }); return; }
+      const reads = new Set(), r = val(p.row, p.tier, p.N, reads), x = (Number((FORMULA.styles || {})[p.style]) || 1) * p.times;
+      if (p.spends && reads.has("Pc")) pipsPriced = true;
+      parts.push({ label: text, bp: r.v * x, group: "effects", row: p.row, tier: r.tier, style: p.style, times: p.times, i });
     });
-    return out;
+    if (env.Pc > 0 && !pipsPriced) parts.push({ label: `Max charges ${env.Pc}`, bp: val("MaxCharges", "base", env.Pc).v, group: "stats", row: "MaxCharges" });
+    const adj = Number(c.bpAdj) || 0;
+    if (adj) parts.push({ label: "Effect BP, by hand", bp: adj, group: "hand" });
+    const raw = parts.reduce((s, p) => s + p.bp, 0);
+    const r = { parts, unpriced, errs, raw, total: Math.floor(raw + 0.5 + 1e-9), attack, health };
+    priceCache.set(c, { gen: fxGen, r });
+    return r;
   }
+  const totalBP = c => priceCard(c).total;
+  function statBP(c) { const p = priceCard(c); return Math.floor(p.attack + p.health + 0.5 + 1e-9); }
+  function statParts(c) { const p = priceCard(c); return { attack: p.attack, health: p.health, extras: p.raw - p.attack - p.health - (Number(c.bpAdj) || 0) }; }
+  // The effects a formula priced, for the editor and the tools
+  const autoFx = c => priceCard(c).parts.filter(p => p.group === "effects").map(p => ({ bp: p.bp, what: p.label }));
   const autoBP = c => autoFx(c).reduce((t, x) => t + x.bp, 0);
-  const totalBP = c => statBP(c) + autoBP(c) + (Number(c.bpAdj) || 0);
   function budgetState(c) {
     const b = budget(c); if (!b) return null;
-    const r = totalBP(c) / b;
-    return { b, r, s: r > 1 + FORMULA.tolerance ? "over" : r < 1 - FORMULA.tolerance ? "under" : "on" };
+    const r = totalBP(c) / b, tol = (FORMULA.budget || {}).tolerance ?? 0.1;
+    return { b, r, s: r > 1 + tol ? "over" : r < 1 - tol ? "under" : "on" };
   }
+  const bpText = p => p.parts.map(x => `${x.label.replace(/\.$/, "")}: ${round2(x.bp)}`).join(" · ");
   function bpChip(c) {
-    const st = budgetState(c), t = totalBP(c), adj = Number(c.bpAdj) || 0;
-    const auto = autoBP(c), detail = `Budget points: stats ${statBP(c)}${auto ? " + " + auto + " priced effects" : ""}${adj ? (adj > 0 ? " + " : " - ") + Math.abs(adj) + " effect" : ""}`;
+    const st = budgetState(c), p = priceCard(c), t = p.total;
+    const detail = esc(`${bpText(p)}${p.unpriced.length ? ` · not priced: ${p.unpriced.length} effect${p.unpriced.length === 1 ? "" : "s"}` : ""}`);
     if (!st) return t ? `<span class="bp" title="${detail}">${t} BP</span>` : "";
-    return `<span class="bp ${st.s}" title="${detail}, budget ${st.b} (${Math.round(st.r * 100)}%)">${t}/${st.b} BP</span>`;
+    return `<span class="bp ${st.s}" title="${detail} = ${t}, budget ${st.b} (${Math.round(st.r * 100)}%)">${t}/${st.b} BP</span>`;
   }
   // Health that puts a card at `target` BP (its budget unless given); never below 1, and `fits` says whether 1 was enough
   function fillHealthValue(c, target = budget(c)) {
-    const need = target - totalBP({ ...c, health: 0 });
-    const hp = Math.round(playsFront(c) ? (need + FORMULA.frontOffset) / FORMULA.frontHealth : need);
-    return { hp: Math.max(1, hp), fits: hp >= 1 };
+    const at = h => priceCard({ ...c, health: h }).raw, base = at(0), per = at(1) - base;
+    const guess = per > 0 ? Math.round((target - base) / per) : 1;
+    let best = null;
+    for (let h = Math.max(1, guess - 3); h <= Math.max(1, guess + 3); h++) { const d = Math.abs(at(h) - target); if (!best || d < best.d - 1e-9) best = { h, d }; }
+    return { hp: best.h, fits: guess >= 1 };
   }
+  // The ammo factor for n ammo, from the Ammo row (1 with no ammo)
+  const ammoFactor = n => n > 0 ? rowVal("Ammo", "base", { ...fxDefaults(), Pa: n, N: n }).v : 1;
+  // The plain Shields and Armor cards: what health puts them on budget at Mk I
+  const plainCard = (tag, vuln, more = []) => ({ row: "Exterior", tags: [tag], minMark: 1, attack: [], mult: 1, health: 0,
+    effects: [{ trigger: "", target: "self", action: "keyword", keyword: "Vulnerable", type: vuln }, ...more] });
+  const defaultShields = () => fillHealthValue(plainCard("Shields", "Kinetic", [{ trigger: "", target: "self", action: "keyword", keyword: "Restore", amount: 1 }])).hp;
+  const defaultArmor = () => fillHealthValue(plainCard("Armor", "Plasma")).hp;
 
   // ---------- balance sheets ----------
   // A sheet is a complete, independent set of cards with its own balance: the formula, the guide's measured notes, and its own
@@ -1002,16 +1321,51 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // sheets/{id}/chunks/c0…c7: { cards: { cardId: card | null } }. A card's chunk comes from its id (chunkOf), so a sheet's cards
   // fit the database's document size and a bulk change is one write per chunk. `baseline` is the formula the cards were last
   // balanced against (Auto Apply's start).
-  const FORMULA_SEED = JSON.parse(JSON.stringify(FORMULA));
   const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
   const clone = v => v == null ? v : JSON.parse(JSON.stringify(v));
   const canon = v => Array.isArray(v) ? v.map(canon) : isObj(v) ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])])) : v;
   // The database's update merge: nested objects merge, anything else (arrays, null) replaces
   function deepMerge(a, b) { const out = isObj(a) ? { ...a } : {}; Object.entries(b || {}).forEach(([k, v]) => { out[k] = isObj(v) && isObj(out[k]) ? deepMerge(out[k], v) : v; }); return out; }
-  // Puts a sheet's formula in force, over the seed so a key added to the code later still has a value
-  function applyFormula(f) { const next = deepMerge(clone(FORMULA_SEED), clone(f || {})); Object.keys(FORMULA).forEach(k => delete FORMULA[k]); Object.assign(FORMULA, next); specCache.clear(); }
+  // Number-field formulas (format 1, before formula rows): the defaults a format 1 sheet was saved over, for converting it
+  const FORMULA_V1 = {
+    ext: { label: "Exterior", base: 24, step: 6, pad: 0, atk: 4 }, int: { label: "Interior", base: 24, step: 6, pad: 0, atk: 3 },
+    extraHit: 3, plasma: 1, thermalInt: 1, radiationInt: 1, pierce: 1, splash: 3, regen: 2, restore: 4, vulnKinetic: -2, vulnOther: -1, shieldRestore: 2,
+    blockFront: 3, blockBehind: 3, reflectFront: 5, reflectBehind: 2, resistFront: 12, resistShields: 8, resistBehind: 5,
+    extraHitExt: 6, typeExt: { Kinetic: 0, Plasma: 0, Thermal: 0, Electric: -2, Radiation: -1 }, frontHealth: 2, frontOffset: 8,
+    ammoRounds: 7, tolerance: 0.10, ammoWorth: [0, 0.25, 0.45, 0.65, 0.8, 0.9, 0.95, 1], bigHit: { above: 6, rate: 2.5 },
+    ship: { hull: 20, speed: 50, maelstrom: 12 },
+    buff: { activate: 20, activateFront: 8, doubleOnFront: 22, doubleOnBehind: 16, attackOne: 5, attackAdjacent: 10, attackAdjacentMult: 20 },
+    intBuff: { mult: 20, multExtra: 15, aim: 15, health: 1, repair: 1, ammoMax: 3, shieldsRound: 2.5, hull: 0.5 },
+  };
+  // A sheet's formula in format 2. A format 1 sheet keeps roughly its old prices as plain per-point numbers; its placement
+  // rules (front health, prices for cards hit early, big hits) don't carry over, and what it priced by hand stays at 0.
+  function upgradeFormula(f) {
+    if (!isObj(f)) return clone(FORMULA_SEED);
+    if (f.v === 2) { const o = deepMerge(clone(FORMULA_SEED), f); FROWS.forEach(r => { o.rows[r.id] = { base: "", dumb: "", smart: "", ...o.rows[r.id] }; }); return o; }
+    const o = deepMerge(clone(FORMULA_V1), f);
+    const k = (x, v) => { const n = Number(x) || 0; return n ? `${+n.toFixed(4)}*${v}` : "0"; }, row = (base, dumb = "", smart = "") => ({ base, dumb, smart });
+    const vo = k(o.vulnOther, "M"), rp = k(o.intBuff.repair, "N"), T = o.typeExt || {};
+    return {
+      v: 2, legacy: true, budget: { B: o.ext.base + (o.ext.pad || 0), p: o.ext.base ? o.ext.step / o.ext.base : 0, tolerance: o.tolerance }, ship: clone(o.ship),
+      styles: clone(FORMULA_SEED.styles),
+      rows: {
+        Attack: row(k(o.ext.atk, "A")), Health: row("H"), Mult: row(`${+o.extraHitExt}*A*(X-1)`), Ammo: row("min(1, 0.05+0.2*Pa)"), MaxCharges: row("0"),
+        TypeKinetic: row(k(T.Kinetic, "X")), TypeThermal: row(k(T.Thermal, "X")), TypeElectric: row(k(T.Electric, "X")), TypePlasma: row(k(T.Plasma, "X")), TypeRadiation: row(k(T.Radiation, "X")),
+        FreeRestore: row(k(o.restore, "M")), VulnKinetic: row(k(o.vulnKinetic, "M")), VulnThermal: row(vo), VulnElectric: row(vo), VulnPlasma: row(vo), VulnRadiation: row(vo),
+        Resist: row(k(o.resistBehind, "N")), Block: row(k(o.blockBehind, "N*M")), Reflect: row(k(o.reflectBehind, "N")),
+        Heal: row(k(o.regen, "N"), rp, rp), Repair: row(k(o.regen, "N"), rp, rp), Regen: row(k(o.regen, "N")), Restore: row(k(o.restore, "N")),
+        Taunt: row("0"), Guard: row("0"), Pierce: row(k(o.pierce, "N*X")), Splash: row(k(o.splash, "N*X")), Flank: row("0"), Execute: row("0"),
+        Recharge: row("0"), Discharge: row("0"), Reload: row("0"), MaxAmmo: row(k(o.intBuff.ammoMax, "N")), ChargeBlock: row("0"), ChargeReflect: row("0"),
+        GrantMult: row(`(${+o.intBuff.mult}+${+o.intBuff.multExtra}*(N-1))*M`), GrantAttack: row(k(o.buff.attackOne, "N")), GrantHealth: row(k(o.intBuff.health, "N")),
+        Activate: row(k(o.buff.activate, "M")), DoubleDamage: row(k(o.buff.doubleOnBehind, "M")),
+        AttackPerWin: row("0"), AttackPerFight: row("0"), HealthPerWin: row("0"), HealthPerFight: row("0"),
+      },
+    };
+  }
+  // Puts a sheet's formula in force (converted to format 2)
+  function applyFormula(f) { const next = upgradeFormula(f); Object.keys(FORMULA).forEach(k => delete FORMULA[k]); Object.assign(FORMULA, next); fxGen++; specCache.clear(); }
   function withFormula(f, fn) { const keep = clone(FORMULA); applyFormula(f); try { return fn(); } finally { applyFormula(keep); } }
-  const sameFormula = (a, b) => JSON.stringify(canon(deepMerge(clone(FORMULA_SEED), clone(a || {})))) === JSON.stringify(canon(deepMerge(clone(FORMULA_SEED), clone(b || {}))));
+  const sameFormula = (a, b) => JSON.stringify(canon(upgradeFormula(a))) === JSON.stringify(canon(upgradeFormula(b)));
   const CHUNKS = 8;
   const chunkOf = id => { let h = 5381; for (const ch of String(id)) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0; return "c" + (h % CHUNKS); };
   const chunkData = new Map(), sheetCardCache = new Map(); // sheet id -> Map(chunk id -> cards as stored); sheet id -> Map(card id -> card)
@@ -1029,7 +1383,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   const fidOf = (e, i) => e.id || "f" + (i + 1);
   const newFid = () => "f" + Math.random().toString(36).slice(2, 7);
   const sheetList = () => [...sheets.values()].sort((a, b) => (a.order || 0) - (b.order || 0) || String(a.id).localeCompare(String(b.id)));
-  const activeSheet = () => sheets.get(sheetId) || sheetList()[0] || null;
+  const activeSheet = () => sheets.get(sheetId) || sheets.get("ross") || sheetList()[0] || null;
   const shortName = s => s ? String(s.name || s.id).split(/\s+/)[0] : "";
   const onSheet = (s, id) => !!(s && cardsOfSheet(s.id).has(id));
   const sheetsOf = id => sheetList().filter(s => onSheet(s, id));
@@ -1058,7 +1412,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   }
   function selectSheet(id) {
     if (!sheets.has(id)) return;
-    sheetId = id; try { localStorage.setItem("jango-picker-sheet", id); } catch (e) {}
+    sheetId = id; try { localStorage.setItem(publicMode ? "jango-cards-sheet" : "jango-picker-sheet", id); } catch (e) {}
     applyFormula(activeSheet().formula);
     SIM.maelstrom = FORMULA.ship.maelstrom;
     stopPlay(); play = null; lastMass = null;
@@ -1104,52 +1458,52 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     return Promise.all(writes).catch(err => { reloadChunks(sid); throw err; });
   }
 
-  // Auto Apply for one card. It keeps where the card sits against its budget and how its BP splits into attack, effects and
-  // health, as priced by `fromF`; then it re-prices the card by `toF`, scales the attack to its share, scales hand-priced Effect
-  // BP with it, and fills health to the rest. Mult, ammo, charges and effect amounts never change. Returns null for cards with
-  // no budget (items), else { card, changed, fits }.
+  // Auto Apply for one card, under the formula `toF`: its effects are priced first, by their formulas, and the rest of its
+  // budget goes to attack and health in the card's current attack-to-health ratio. Mult, ammo, charges, effect amounts and
+  // hand-entered Effect BP never change. Returns null for cards with no budget (items), else { card, changed, check }: check
+  // says why a card needs a look (its effects alone cost more than its budget, or no attack and health fit). `fromF`, the
+  // formula the card was balanced to, isn't needed: the card is fitted to its budget whatever it was before.
   const atkOf = (c, amts) => ({ ...c, attack: (c.attack || []).map((a, i) => ({ ...a, amt: amts[i] })) });
   function rebalance(c, fromF, toF) {
     if (!budgetClass(c)) return null;
-    const was = withFormula(fromF, () => { const p = statParts(c); return { B: budget(c), atk: p.attack, total: p.attack + p.health + p.extras + autoBP(c) + (Number(c.bpAdj) || 0) }; });
-    return withFormula(toF, () => {
-      const B = budget(c), T = was.B ? B * was.total / was.B : B, k = was.total > 0 ? T / was.total : 1;
-      const amts0 = (c.attack || []).map(a => Number(a.amt) || 0);
-      let amts = amts0;
-      if (!c.atkVar && amts0.some(x => x > 0)) {
-        const want = was.atk * k, top0 = Math.max(...amts0);
-        let best = null;
-        for (let top = 1; top <= Math.max(12, top0 * 3); top++) {
-          const cand = amts0.map(x => x > 0 ? Math.max(1, Math.round(x * top / top0)) : 0);
-          const d = Math.abs(statParts(atkOf(c, cand)).attack - want) - (cand.every((x, i) => x === amts0[i]) ? 1e-6 : 0);
-          if (!best || d < best.d) best = { cand, d };
-        }
-        amts = best.cand;
-      }
-      const bpAdj = c.bpAdj == null || c.bpAdj === "" ? null : Math.round((Number(c.bpAdj) || 0) * k);
-      const next = { ...atkOf(c, amts), bpAdj }, sameAtk = amts.every((x, i) => x === amts0[i]);
-      const fill = fillHealthValue(next, T);
-      // Rounding alone never moves health: keep it while the attack holds and the card already sits within 1 BP
-      const health = sameAtk && c.health != null && Math.abs(totalBP({ ...next, health: c.health }) - T) <= 1 ? c.health : fill.hp;
-      const card = { ...next, health };
-      return { card, changed: !sameAtk || health !== c.health || bpAdj !== (c.bpAdj ?? null), fits: fill.fits || Math.abs(totalBP(card) - T) <= 1 };
-    });
+    return withFormula(toF, () => fitCard(c, budget(c)));
   }
-  // What Auto Apply would do to a sheet: every card that changes or can't be fitted
+  function fitCard(c, T) {
+    const at = (amts, h) => priceCard({ ...atkOf(c, amts), health: h }).raw;
+    const amts0 = (c.attack || []).map(a => Number(a.amt) || 0), H0 = Math.max(0, Number(c.health) || 0), same = { card: c, changed: false, check: "" };
+    const step = Math.abs(at(amts0, H0 + 1) - at(amts0, H0)) || 1;
+    if (Math.abs(at(amts0, H0) - T) <= Math.max(1, step / 2)) return same; // as close as its health can bring it: leave it
+    const effects = at(amts0.map(() => 0), 0);
+    if (effects > T + 1e-9) return { ...same, check: `Its effects alone cost ${Math.round(effects)} BP, more than its budget of ${Math.round(T)}` };
+    const top0 = Math.max(0, ...amts0);
+    let best = null;
+    const tryIt = (amts, h) => { const d = Math.abs(at(amts, h) - T); if (!best || d < best.d - 1e-9) best = { amts, h, d }; };
+    if (c.atkVar || top0 <= 0) tryIt(amts0, fillHealthValue(c, T).hp);
+    else {
+      const ratio = H0 / top0;
+      for (let t = 1; t <= Math.max(12, top0 * 3); t++) tryIt(amts0.map(x => x > 0 ? Math.max(1, Math.round(x * t / top0)) : 0), Math.max(1, Math.round(t * ratio)));
+      const a = best.amts, h0 = best.h;
+      for (let h = Math.max(1, h0 - 6); h <= h0 + 6; h++) tryIt(a, h); // health takes up what's left
+    }
+    const card = { ...atkOf(c, best.amts), health: best.h }, total = at(best.amts, best.h), tol = (FORMULA.budget || {}).tolerance ?? 0.1;
+    const changed = best.h !== H0 || best.amts.some((x, i) => x !== amts0[i]);
+    return { card, changed, check: Math.abs(total - T) <= T * tol ? "" : `Auto Apply couldn't fit it: ${Math.round(total)} BP against ${Math.round(T)}` };
+  }
+  // What Auto Apply would do to a sheet: every card that changes or needs a check
   function autoApplyPlan(s) {
     const rows = [];
     cardsOfSheet(s.id).forEach((c, id) => {
       const r = rebalance(c, s.baseline || s.formula, s.formula);
-      if (r && (r.changed || !r.fits)) rows.push({ id, c, r });
+      if (r && (r.changed || r.check)) rows.push({ id, c, r });
     });
     return rows.sort((a, b) => (a.c.order ?? 1e9) - (b.c.order ?? 1e9));
   }
+  // Every card it touches is unapproved; one that needs a look is also marked for a check
   function applyPlan(s, rows) {
     const changes = {};
     rows.forEach(({ id, r }) => {
-      const e = { attack: r.card.attack, health: r.card.health, bpAdj: r.card.bpAdj };
-      if (r.changed) e.approved = false;
-      if (!r.fits) e.check = "Auto Apply couldn't fit it to the budget, even at 1 health";
+      const e = { attack: r.card.attack, health: r.card.health, approved: false };
+      if (r.check) e.check = r.check;
       changes[id] = e;
     });
     return Promise.all([writeSheet(s.id, { baseline: clone(s.formula || FORMULA_SEED) }), rows.length ? writeCards(s.id, changes) : null]);
@@ -1673,15 +2027,18 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   }
   const withCache = d => ({ ...d, effect: effectCache(d) });
   const signedOrNull = sel => { const v = $(sel).value.trim(); return v === "" || isNaN(Number(v)) ? null : Math.round(Number(v)); };
+  const STYLE_LABEL = Object.fromEntries(FSTYLES.map(s => [s.k, s.label.toLowerCase()]));
+  // The editor's price: every part as the formulas give it, the total rounded once, and the effects to price by hand
   function renderLiveBP() {
     const box = $("#bp-live"); if (!box || !editing) return;
-    const c = { ...editing, ...readForm() };
-    const st = budgetState(c), s = statBP(c), adj = Number(c.bpAdj) || 0;
-    const auto = autoFx(c), a = auto.reduce((x, y) => x + y.bp, 0);
-    const parts = `Stats <b>${s}</b>${a ? ` + priced effects <b>${a}</b> <span class="hint">(${auto.map(x => x.what + " " + x.bp).join(", ")})</span>` : ""}${adj ? ` ${adj > 0 ? "+" : "−"} effect <b>${Math.abs(adj)}</b>` : ""} = <b>${s + a + adj}</b> BP`;
-    box.innerHTML = st
-      ? `<span>${parts}</span><span class="bp ${st.s}">${Math.round(st.r * 100)}% of ${st.b}</span>${readOnly ? "" : `<button class="btn" type="button" id="e-fill">Fill health to budget</button>`}`
-      : `<span>${parts}</span><span class="hint">Items have no budget yet</span>`;
+    const c = { ...editing, ...readForm() }, p = priceCard(c), st = budgetState(c);
+    const how = x => [x.tier && x.tier !== "base" ? x.tier : "", x.style && x.style !== "single" ? `${STYLE_LABEL[x.style]} ×${FORMULA.styles[x.style]}` : "", x.times > 1 ? `× X (${x.times})` : ""].filter(Boolean).join(", ");
+    const rows = p.parts.map(x => `<tr><td>${esc(x.label)}${how(x) ? ` <span class="hint">${esc(how(x))}</span>` : ""}</td><td class="n">${fxFmt(x.bp)}</td></tr>`).join("");
+    const un = p.unpriced.map(u => `<li>${esc(u.text)} <span class="hint">${esc(u.why)}</span></li>`).join("");
+    box.innerHTML = `<table class="bp-parts">${rows}<tr class="tot"><td>Total${Math.abs(p.raw - p.total) > 1e-9 ? ` (${fxFmt(p.raw)}, rounded once)` : ""}</td><td class="n">${p.total}</td></tr></table>
+      ${un ? `<div class="bp-un"><b>No formula covers these; put what they're worth in Effect BP:</b><ul>${un}</ul></div>` : ""}
+      ${p.errs.length ? `<div class="fx-err">A formula on this sheet has a problem: ${p.errs.map(esc).join("; ")}</div>` : ""}
+      ${st ? `<span class="bp ${st.s}">${Math.round(st.r * 100)}% of ${st.b}</span>${readOnly ? "" : `<button class="btn" type="button" id="e-fill">Fill health to budget</button>`}` : `<span class="hint">Items have no budget yet</span>`}`;
   }
   // ---------- effect builder ----------
   const optList = (vals, cur, label = v => v) => vals.map(v => `<option value="${esc(v)}" ${String(v) === String(cur ?? "") ? "selected" : ""}>${esc(label(v))}</option>`).join("");
@@ -1841,20 +2198,99 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     sel.disabled = !list.length;
   }
   $("#sheet-sel").addEventListener("change", e => { if (e.target.value) { selectSheet(e.target.value); toast(`Now on ${activeSheet().name}`); } });
-  // The formula's fields, by group; a key the list doesn't name still shows, under Other
-  const FORMULA_FIELDS = [
-    ["Budget", [["ext.base", "Exterior budget per mark"], ["ext.step", "Exterior: more per lowest-mark step"], ["ext.pad", "Exterior pad"], ["int.base", "Interior budget per mark"], ["int.step", "Interior: more per lowest-mark step"], ["int.pad", "Interior pad"], ["tolerance", "On budget within (share, 0.1 = ±10%)"]]],
-    ["Attack, exterior", [["ext.atk", "A point of attack, first hit"], ["extraHitExt", "A point of attack, each extra hit"], ["typeExt.Kinetic", "Kinetic, per hit"], ["typeExt.Plasma", "Plasma, per hit"], ["typeExt.Thermal", "Thermal, per hit"], ["typeExt.Electric", "Electric, per hit"], ["typeExt.Radiation", "Radiation, per hit"], ["bigHit.above", "Big hits: above this × lowest mark"], ["bigHit.rate", "Big hits: a point above that"], ["ammoWorth", "Ammo worth by ammo 0, 1, 2… (share of attack)"]]],
-    ["Attack, interior", [["int.atk", "A point of attack, per hit"], ["extraHit", "Each extra hit"], ["plasma", "Plasma, per hit"], ["thermalInt", "Thermal, per hit"], ["radiationInt", "Radiation, per hit"], ["ammoRounds", "Ammo: attack × ammo ÷ this"]]],
-    ["Health", [["frontHealth", "Front card: a point of health"], ["frontOffset", "Front card: minus this"]]],
-    ["Keywords", [["pierce", "Pierce, a point per hit"], ["splash", "Splash, a point per hit"], ["regen", "Regen, a point"], ["restore", "Restore, a point"], ["vulnKinetic", "Vulnerable (Kinetic), per mark"], ["vulnOther", "Vulnerable (other), per mark"], ["shieldRestore", "Plain Shields: Restore net of the weakness"], ["blockFront", "Block, hit early, per mark"], ["blockBehind", "Block, elsewhere, per mark"], ["reflectFront", "Reflect, hit early, a point"], ["reflectBehind", "Reflect, elsewhere, a point"], ["resistFront", "Resist on a front card, a point"], ["resistShields", "Resist on Shields or Armor, a point"], ["resistBehind", "Resist elsewhere, a point"]]],
-    ["Buffs, exterior", [["buff.activate", "Activate a neighbor, per mark"], ["buff.activateFront", "…from in front of the armor, per mark"], ["buff.doubleOnFront", "Double damage to the weapon in front, per mark"], ["buff.doubleOnBehind", "Double damage to the weapon behind, per mark"], ["buff.attackOne", "+attack to one weapon, a point"], ["buff.attackAdjacent", "+attack to adjacent weapons, a point"], ["buff.attackAdjacentMult", "+attack to adjacent mult weapons, a point"]]],
-    ["Buffs, interior", [["intBuff.mult", "+1 mult to the weapon above, per mark"], ["intBuff.multExtra", "Each further mult, per mark"], ["intBuff.aim", "Aim the weapon above, per mark"], ["intBuff.health", "+health to the card above, a point"], ["intBuff.repair", "Repair a round, a point"], ["intBuff.ammoMax", "+max ammo, a point"], ["intBuff.shieldsRound", "Shield points a round, a point"], ["intBuff.hull", "Hull, a point"]]],
-    ["Ship and fight", [["ship.hull", "Hull"], ["ship.speed", "Speed"], ["ship.maelstrom", "Maelstrom from round"]]],
-  ];
+  // ---------- formula fields (Sheet panel and Guide) ----------
+  // A formula is stored as plain text. Recognized variables are colored as you type (a highlight layer under a transparent
+  // text box, so the caret never moves) and shown as pills, with × to remove one, when the field isn't being edited. Under
+  // each field: three worked examples, and a grid of every mark and amount.
   const getPath = (o, p) => p.split(".").reduce((x, k) => x == null ? undefined : x[k], o);
   const setPath = (o, p, v) => { const ks = p.split("."); let x = o; ks.slice(0, -1).forEach(k => { if (!isObj(x[k])) x[k] = {}; x = x[k]; }); x[ks[ks.length - 1]] = v; };
-  const leafPaths = (o, pre = "") => Object.entries(o).flatMap(([k, v]) => isObj(v) ? leafPaths(v, pre + k + ".") : [pre + k]);
+  const fxClass = t => t.t === "id" ? (FV[t.v] ? "fv-" + t.v : FFUNCS[t.v] ? "ffn" : FROW[t.v] ? "fref" : "fbad") : t.t === "bad" ? "fbad" : t.t === "num" ? "fnum" : "fop";
+  // Colored text with exactly the field's characters, so it sits under the text box letter for letter
+  function fxColored(src) {
+    const s = String(src ?? "");
+    let out = "", i = 0;
+    fxTokens(s).forEach(t => { out += esc(s.slice(i, t.s)) + `<span class="${fxClass(t)}">${esc(s.slice(t.s, t.e))}</span>`; i = t.e; });
+    return out + esc(s.slice(i)) + " "; // a trailing space keeps the height when the text ends in a space
+  }
+  // Pills: variables as colored pills (with × when removable), row calls named, the rest as tidy text
+  function fxPills(src, removable) {
+    const s = String(src ?? "").trim();
+    if (!s) return `<span class="fx-empty">blank</span>`;
+    return fxTokens(s).map(t => {
+      const tx = esc(s.slice(t.s, t.e));
+      if (t.t === "id" && FV[t.v]) return `<span class="fpill fv-${t.v}" title="${esc(FV[t.v].label + ": " + FV[t.v].text)}">${tx}${removable ? `<button type="button" class="px" data-ftok="${t.s}:${t.e}" aria-label="Remove ${tx}">×</button>` : ""}</span>`;
+      if (t.t === "id" && FROW[t.v] && !FFUNCS[t.v]) return `<span class="fpill fref" title="${esc("The " + FROW[t.v].label + " row's base formula")}">${tx}</span>`;
+      if (t.t === "op") return ` <span class="fop">${tx}</span> `;
+      if (t.t === ",") return `<span class="fop">,</span> `;
+      return `<span class="${fxClass(t)}">${tx}</span>`;
+    }).join("");
+  }
+  // Removes one variable, and an operator next to it (the one before, else the one after)
+  function fxRemoveToken(src, s, e) {
+    const str = String(src ?? "").trim();
+    let a = s, b = e, l = a;
+    while (l > 0 && /\s/.test(str[l - 1])) l--;
+    if (l > 0 && "+-*/".includes(str[l - 1])) a = l - 1;
+    else { let r = b; while (r < str.length && /\s/.test(str[r])) r++; if (r < str.length && "+-*/".includes(str[r])) b = r + 1; }
+    return (str.slice(0, a) + str.slice(b)).replace(/\s{2,}/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
+  }
+  const fxFmt = v => String(round2(v));
+  // The variable a row's examples step through: its own, if the formula reads it, else the first it reads (never M)
+  const fxAxis = (rowId, vars) => { const r = FROW[rowId] || {}; const a = r.amt && r.amt !== "M" && vars.has(r.amt) ? r.amt : ["N", "X", "A", "H", "Pa", "Pc"].find(v => vars.has(v)); return a || null; };
+  const fxAt = (src, rowId, rows, vals) => { try { return fxFmt(fxEval(src, { ...fxDefaults(), ...vals }, rows, null, rowId ? [rowId] : [])); } catch (e) { return "?"; } };
+  // Three examples: with no mark, the amount at 1, 2, 3; with a mark, one axis at a time (N1 M1, N2 M1, N1 M2)
+  function fxHint(src, rowId, rows = FORMULA.rows) {
+    const chk = fxCheck(src, rows, rowId);
+    if (!chk.ok) return `<span class="fx-err">${esc(chk.msg)}</span>`;
+    const ax = fxAxis(rowId, chk.vars), M = chk.vars.has("M"), from = (FROW[rowId] || {}).from ?? 1;
+    const pts = ax ? (M ? [[from, 1], [from + 1, 1], [from, 2]] : [[from], [from + 1], [from + 2]]).map(([a, m]) => ({ [ax]: a, ...(m ? { M: m } : {}) }))
+      : M ? [{ M: 1 }, { M: 2 }, { M: 3 }] : [{}];
+    const ex = pts.map(p => `${Object.entries(p).map(([k, x]) => `${k} ${x}`).join(", ") || "Always"}: <b>${fxAt(src, rowId, rows, { ...p, ...(ax ? { N: p[ax] } : {}) })}</b>`);
+    const rest = [...chk.vars].filter(v => v !== ax && v !== "M");
+    return ex.join(" · ") + (rest.length ? ` <span class="muted">(${rest.join(", ")} at 1)</span>` : "");
+  }
+  // Every mark × the amount from its start; inputs above set the formula's other variables (1 by default)
+  function fxGrid(src, rowId, rows, vals = {}) {
+    const chk = fxCheck(src, rows, rowId);
+    if (!chk.ok) return `<p class="fx-err">${esc(chk.msg)}</p>`;
+    const ax = fxAxis(rowId, chk.vars), rest = [...chk.vars].filter(v => v !== ax && v !== "M");
+    const ins = rest.map(v => `<label><span class="fpill fv-${v}">${v}</span><input type="number" step="any" data-gvar="${v}" value="${esc(vals[v] ?? 1)}" aria-label="${esc(FV[v].label)}"></label>`).join("");
+    return `${ins ? `<div class="fg-ins">${ins}</div>` : ""}<div class="fg-tab">${fxGridTable(src, rowId, rows, vals)}</div>`;
+  }
+  function fxGridTable(src, rowId, rows, vals = {}) {
+    const chk = fxCheck(src, rows, rowId);
+    if (!chk.ok) return `<p class="fx-err">${esc(chk.msg)}</p>`;
+    const ax = fxAxis(rowId, chk.vars), from = Math.max(0, (FROW[rowId] || {}).from ?? 1), amts = ax ? [0, 1, 2, 3, 4].map(k => from + k) : [null];
+    return `<table class="gtable fx-gt"><tr><th>${ax ? `<span class="fpill fv-${ax}">${ax}</span>` : ""}</th>${MARKS.map(m => `<th class="n">Mk ${m}</th>`).join("")}</tr>`
+      + amts.map(a => `<tr><th>${a ?? ""}</th>${[1, 2, 3, 4, 5].map(m => `<td class="n">${fxAt(src, rowId, rows, { ...vals, M: m, ...(ax ? { [ax]: a, N: a } : {}) })}</td>`).join("")}</tr>`).join("") + "</table>";
+  }
+  const TIER_NAME = { base: "Base", dumb: "Dumb", smart: "Smart" };
+  function fxFieldHtml(rowId, tier, value, was, ro) {
+    const v = String(value ?? "").trim(), changed = v !== String(was ?? "").trim(), blank = tier !== "base" && !v;
+    return `<div class="ffield ${changed ? "changed" : ""}" data-row="${rowId}" data-tier="${tier}" data-was="${esc(was ?? "")}" ${changed ? `title="The cards were balanced at: ${esc(was || "blank")}"` : ""}>
+      <span class="ff-tier">${TIER_NAME[tier]}</span>
+      <div class="ffbox ${ro ? "ro" : ""}" ${ro ? "" : `tabindex="0" role="button" aria-label="${esc(FROW[rowId].label)}, ${tier} formula: ${esc(v || "blank")}. Edit"`}>
+        <div class="ffhl">${fxPills(v, !ro)}</div>${ro ? "" : `<textarea class="ffin" rows="1" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="${esc(FROW[rowId].label)}, ${tier} formula">${esc(v)}</textarea>`}
+      </div>
+      <div class="ffhint">${blank ? `<span class="muted">Blank: uses base</span>` : fxHint(v, rowId, FORMULA.rows)}</div>
+      <details class="ffgrid" ${blank ? "hidden" : ""}><summary>Grid</summary><div class="ffgrid-body"></div></details>
+    </div>`;
+  }
+  function fxRowHtml(r, was, ro) {
+    const cur = FORMULA.rows[r.id] || {}, b = (was.rows || {})[r.id] || {};
+    return `<div class="frm-row" id="frm-${r.id}"><div class="frm-head"><b>${esc(r.label)}</b><code>${r.id}</code>${r.factor ? `<span class="hint">a factor</span>` : ""}<span class="hint">${esc(r.what)}</span></div>
+      ${(r.tiers ? ["base", "dumb", "smart"] : ["base"]).map(t => fxFieldHtml(r.id, t, cur[t], b[t], ro)).join("")}</div>`;
+  }
+  // How formulas work: for the Sheet panel and the Guide
+  function fxGuideHtml() {
+    return `<p>Each price is a <b>formula</b> for the total BP, written with numbers, variables, <code>+ - * /</code> and parentheses. A plain number is a flat price; a price per point is written <code>4*N</code>. A card's parts are added at full precision and its total is rounded once, half up.</p>
+      <table class="gtable"><tr><th>Variable</th><th>Means</th></tr>${FVARS.map(v => `<tr><td><span class="fpill fv-${v.k}">${v.k}</span></td><td>${esc(v.text)}${v.flag ? ". A flag: 0 or 1" : ""}</td></tr>`).join("")}</table>
+      <p>Single letters, with or without a second letter (<code>Pa</code>), are numbers; three-letter lowercase names are flags, 0 or 1. Every variable is optional. There is no bare P: write Pa or Pc.</p>
+      <table class="gtable"><tr><th>Function</th><th>Does</th></tr>${Object.entries(FFUNCS).map(([k, f]) => `<tr><td><code>${k}( )</code></td><td>${esc(f.text)}</td></tr>`).join("")}
+        <tr><td><code>Block(Pc)</code></td><td>Calls another row by its id: that row's base formula, with N set to the value given and every other variable unchanged. Charge-fed Block is <code>1.5*Block(Pc)</code>, so it follows Block.</td></tr></table>
+      <p><b>Tiers.</b> Every row has a <b>base</b> formula: its price on the card itself. A row that can reach other cards may also have a <b>dumb</b> formula (a fixed card slot: in front, behind, above, below, adjacent, your Shields card) and a <b>smart</b> one (it picks or skips: the most damaged card, the nearest crew, the frontmost; Discharge, and passed Heal and Repair). A blank dumb or smart formula uses base.</p>
+      <p><b>Targeting styles</b> multiply a targeted effect by how many cards it reaches. <b>Triggers:</b> keywords and given buffs are priced always on or at Fight Start; healing, charges, ammo and activating another card once a round (On Activate, After Activate, End of round), and After Attack × X. Anything else, and anything with a condition, a limit or a cost (other than charge-fed Block and Reflect), is priced by hand in the card's Effect BP; the editor lists those.</p>`;
+  }
   let SH = { plan: null };
   function openSheetPanel() { SH = { plan: null }; $("#sheet").hidden = false; $("#sh-scrim").hidden = false; renderSheetPanel(); }
   function closeSheetPanel() { $("#sheet").hidden = true; $("#sh-scrim").hidden = true; SH = { plan: null }; }
@@ -1871,18 +2307,19 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const dis = readOnly ? "disabled" : "";
     const on = [...cardsOfSheet(s.id).values()], only = on.filter(c => sheetsOf(c.id).length === 1).length;
     const check = on.filter(c => c.check).length, boards = builds.size, src = s.from && sheets.get(s.from);
-    const known = new Set(FORMULA_FIELDS.flatMap(([, rows]) => rows.map(r => r[0])));
-    const extra = leafPaths(FORMULA).filter(p => !known.has(p) && (typeof getPath(FORMULA, p) === "number" || Array.isArray(getPath(FORMULA, p)))).map(p => [p, p]);
-    const base = deepMerge(clone(FORMULA_SEED), clone(s.baseline || s.formula || {}));
-    const frow = ([p, label]) => {
-      const v = getPath(FORMULA, p), b = getPath(base, p), arr = Array.isArray(v), changed = JSON.stringify(v) !== JSON.stringify(b);
-      return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(arr ? (b || []).join(", ") : b)}"` : ""}><span>${esc(label)}</span><input type="text" inputmode="decimal" data-fpath="${p}" value="${esc(arr ? v.join(", ") : v)}" ${dis}></label>`;
-    };
-    const groups = [...FORMULA_FIELDS, ...(extra.length ? [["Other", extra]] : [])].map(([h, rows]) => `<div class="fgroup"><h4>${esc(h)}</h4>${rows.filter(([p]) => getPath(FORMULA, p) !== undefined).map(frow).join("")}</div>`).join("");
+    const was = upgradeFormula(s.baseline || s.formula), ro = !!readOnly;
+    const num = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" inputmode="decimal" data-fpath="${p}" value="${esc(v)}" ${dis}></label>`; };
+    const groups = `<details class="fx-help"><summary>How formulas work</summary>${fxGuideHtml()}</details>
+      ${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}
+      <div class="fgroup"><h4>Budget</h4>${num("budget.B", "B: the Mk I budget")}${num("budget.p", "p: more per floor step (0.125 is 12.5%)")}${num("budget.tolerance", "On budget within (0.1 is ±10%)")}
+        <p class="hint">budget = mark × B × (1 + p × floor steps). At each card's lowest mark: ${MARKS.map((m, i) => `Mk ${m}+ ${budgetAt("ext", i + 1, i + 1)}`).join(", ")}.</p></div>
+      ${FGROUPS.map((h, gi) => `<div class="fgroup"><h4>${esc(h)}</h4>${FROWS.filter(r => r.g === gi).map(r => fxRowHtml(r, was, ro)).join("")}</div>`).join("")}
+      <div class="fgroup"><h4>Targeting styles</h4><p class="hint">A targeted effect costs its tier's formula × its style × its trigger (After Attack: × X).</p>${FSTYLES.map(st => num("styles." + st.k, `${st.label}: ${esc(st.text)}`)).join("")}</div>
+      <div class="fgroup"><h4>Ship and fight</h4>${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}</div>`;
     const stale = !sameFormula(s.formula, s.baseline || s.formula);
     const plan = SH.plan;
-    const planHtml = plan ? (plan.length ? `<p class="muted">${plan.filter(x => x.r.changed).length} card${plan.filter(x => x.r.changed).length === 1 ? "" : "s"} change and will be unapproved${plan.some(x => !x.r.fits) ? `; ${plan.filter(x => !x.r.fits).length} can't fit and will be marked for a check` : ""}. Mult, ammo, charges and effect amounts stay as they are.</p>
-        <div class="preview">${plan.map(({ c, r }) => `<div><span>${esc(c.name)}${r.fits ? "" : " (can't fit)"}</span><span>${esc(statsText(c))} → ${esc(statsText(r.card))}</span></div>`).join("")}</div>
+    const planHtml = plan ? (plan.length ? `<p class="muted">${plan.length} card${plan.length === 1 ? "" : "s"} will be unapproved${plan.some(x => x.r.check) ? `; ${plan.filter(x => x.r.check).length} will also be marked for a check` : ""}. Effects are priced first, by the formulas; attack and health share the rest in each card's current ratio. Mult, ammo, charges, effect amounts and Effect BP stay as they are.</p>
+        <div class="preview">${plan.map(({ c, r }) => `<div><span>${esc(c.name)}${r.check ? ` <span class="hint">(${esc(r.check)})</span>` : ""}</span><span>${esc(statsText(c))} → ${esc(statsText(r.card))}</span></div>`).join("")}</div>
         ${readOnly ? "" : `<div class="fab-row"><button class="btn primary" type="button" id="sh-apply">Apply to ${plan.length} card${plan.length === 1 ? "" : "s"}</button><button class="btn" type="button" id="sh-cancel">Cancel</button></div>`}`
       : `<p class="muted">Every card already fits this formula; nothing would change.</p>${stale && !readOnly ? `<div class="fab-row"><button class="btn" type="button" id="sh-mark">Mark the cards as balanced to this formula</button></div>` : ""}`) : "";
     const X = readOnly ? null : exportSheet(s), nb = X ? X.file.boards.length : 0, gh = publicRepo();
@@ -1912,7 +2349,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         <div class="field wide"><label for="sh-notes">Sheet notes</label><textarea id="sh-notes" rows="3" ${dis}>${esc(s.notes || "")}</textarea><span class="hint">${publicMode && readOnly ? "The designer's notes on this sheet." : "Your notes; they show at the top of the Guide on this sheet."}</span></div>
       </div>${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn" type="button" id="sh-save-meta">Save</button></div>`}</fieldset>
       ${publicMode && readOnly ? "" : `<fieldset><legend>Auto Apply</legend>
-        <p class="muted" style="margin:0 0 8px">${stale ? "The formula has changed since the cards were last balanced to it." : "The cards are balanced to this formula."} Auto Apply rebalances every card on this sheet from the formula they were balanced to: each keeps where it sits against its budget and its split between attack, effects and health; attack scales to its share and health fills the rest. Every card it changes is unapproved.</p>
+        <p class="muted" style="margin:0 0 8px">${stale ? "The formula has changed since the cards were last balanced to it." : "The cards are balanced to this formula."} Auto Apply rebalances every card on this sheet to its budget: its effects are priced first, by the formulas, and attack and health share the rest of the budget in the card's current ratio. Every card it touches is unapproved; one whose effects alone cost more than its budget is also marked for a check.</p>
         ${plan ? planHtml : `<div class="fab-row"><button class="btn ${stale ? "primary" : ""}" type="button" id="sh-plan">Preview Auto Apply</button></div>`}</fieldset>`}
       ${exportHtml}
       <fieldset><legend>Formula</legend>
@@ -1926,23 +2363,90 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         <p class="muted" id="sh-start-note">The copy starts with this sheet's formula, guide notes and every card's numbers. Change its formula, then run Auto Apply.</p>
         <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}`;
   }
-  // The formula as typed in the panel, or null (with a message) when a field isn't a number
+  // The formula as typed in the panel, or null (with a message) when a field isn't right
   function readFormulaForm() {
     const f = clone(FORMULA);
+    delete f.legacy; f.v = 2;
     for (const el of document.querySelectorAll("#sh-body [data-fpath]")) {
-      const p = el.dataset.fpath, cur = getPath(FORMULA, p), raw = el.value.trim();
-      if (Array.isArray(cur)) {
-        const list = raw.split(/[\s,]+/).filter(Boolean).map(Number);
-        if (!list.length || list.some(isNaN)) { toast("A list field needs numbers separated by commas."); el.focus(); return null; }
-        setPath(f, p, list);
-      } else {
-        const n = Number(raw);
-        if (raw === "" || isNaN(n)) { toast("Every formula field needs a number."); el.focus(); return null; }
-        setPath(f, p, n);
+      const raw = el.value.trim(), n = Number(raw);
+      if (raw === "" || isNaN(n)) { toast("Every number field needs a number."); el.focus(); return null; }
+      setPath(f, el.dataset.fpath, n);
+    }
+    document.querySelectorAll("#sh-body .ffield").forEach(fd => { const ta = fd.querySelector(".ffin"); if (ta) setPath(f, `rows.${fd.dataset.row}.${fd.dataset.tier}`, ta.value.replace(/\s+/g, " ").trim()); });
+    for (const r of FROWS) for (const t of r.tiers ? ["base", "dumb", "smart"] : ["base"]) {
+      const src = String((f.rows[r.id] || {})[t] || "").trim();
+      if (t !== "base" && !src) continue;
+      const chk = src ? fxCheck(src, f.rows, r.id) : { ok: false, msg: "The base formula can't be blank: write 0 for free" };
+      if (!chk.ok) {
+        toast(`${r.label}, ${TIER_NAME[t].toLowerCase()}: ${chk.msg}`);
+        const box = document.querySelector(`#sh-body .ffield[data-row="${r.id}"][data-tier="${t}"] .ffbox`);
+        if (box) { box.scrollIntoView({ block: "center" }); ffEdit(box); }
+        return null;
       }
     }
     return f;
   }
+  // Formula fields: pills when idle, colored text while typing
+  const draftRows = () => {
+    const rows = clone(FORMULA.rows);
+    document.querySelectorAll("#sh-body .ffield").forEach(fd => { const ta = fd.querySelector(".ffin"); if (ta) (rows[fd.dataset.row] = rows[fd.dataset.row] || {})[fd.dataset.tier] = ta.value.trim(); });
+    return rows;
+  };
+  const gridVals = g => Object.fromEntries([...g.querySelectorAll("[data-gvar]")].map(i => [i.dataset.gvar, Number(i.value) || 0]));
+  function ffRefresh(fd) {
+    const ta = fd.querySelector(".ffin"), src = ta ? ta.value : String((FORMULA.rows[fd.dataset.row] || {})[fd.dataset.tier] || "");
+    const rows = ta ? draftRows() : FORMULA.rows, blank = fd.dataset.tier !== "base" && !src.trim();
+    fd.classList.toggle("changed", src.trim() !== String(fd.dataset.was || "").trim());
+    fd.querySelector(".ffhint").innerHTML = blank ? `<span class="muted">Blank: uses base</span>` : fxHint(src, fd.dataset.row, rows);
+    const g = fd.querySelector(".ffgrid");
+    if (g) { g.hidden = blank; if (g.open && !blank) g.querySelector(".ffgrid-body").innerHTML = fxGrid(src, fd.dataset.row, rows, gridVals(g)); }
+  }
+  function ffEdit(box) {
+    const ta = box.querySelector(".ffin");
+    if (!ta || box.classList.contains("editing")) return;
+    box.classList.add("editing");
+    box.querySelector(".ffhl").innerHTML = fxColored(ta.value);
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+  function ffIdle(box) { const ta = box.querySelector(".ffin"); box.classList.remove("editing"); box.querySelector(".ffhl").innerHTML = fxPills(ta.value, true); }
+  $("#sh-body").addEventListener("click", e => {
+    const x = e.target.closest("[data-ftok]");
+    if (x) {
+      e.preventDefault();
+      const fd = x.closest(".ffield"), ta = fd.querySelector(".ffin"), [a, b] = x.dataset.ftok.split(":").map(Number);
+      ta.value = fxRemoveToken(ta.value, a, b);
+      ffIdle(fd.querySelector(".ffbox")); ffRefresh(fd);
+      return;
+    }
+    const box = e.target.closest(".ffbox");
+    if (box && !box.classList.contains("editing")) ffEdit(box);
+  });
+  $("#sh-body").addEventListener("focusin", e => { if (e.target.classList && e.target.classList.contains("ffbox")) ffEdit(e.target); });
+  $("#sh-body").addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("ffin")) ffIdle(e.target.closest(".ffbox")); });
+  $("#sh-body").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.classList && e.target.classList.contains("ffin")) { e.preventDefault(); e.target.blur(); } });
+  $("#sh-body").addEventListener("input", e => {
+    const t = e.target;
+    if (t.classList && t.classList.contains("ffin")) {
+      if (/\n/.test(t.value)) { const at = t.selectionStart; t.value = t.value.replace(/\n/g, " "); t.setSelectionRange(at, at); }
+      t.closest(".ffbox").querySelector(".ffhl").innerHTML = fxColored(t.value);
+      ffRefresh(t.closest(".ffield"));
+    } else if (t.dataset && t.dataset.gvar) { // only the table changes, so the number box keeps its caret
+      const fd = t.closest(".ffield"), g = t.closest(".ffgrid");
+      g.querySelector(".fg-tab").innerHTML = fxGridTable(fd.querySelector(".ffin").value, fd.dataset.row, draftRows(), gridVals(g));
+    }
+  });
+  // A grid fills in when it opens (toggle doesn't bubble, so listen while capturing)
+  $("#sh-body").addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("ffgrid") && e.target.open) ffRefresh(e.target.closest(".ffield")); }, true);
+  $("#guide-body").addEventListener("toggle", e => {
+    const g = e.target; if (!(g.classList && g.classList.contains("ffgrid") && g.open)) return;
+    const fd = g.closest("[data-row]"); g.querySelector(".ffgrid-body").innerHTML = fxGrid(String((FORMULA.rows[fd.dataset.row] || {})[fd.dataset.tier] || ""), fd.dataset.row, FORMULA.rows, gridVals(g));
+  }, true);
+  $("#guide-body").addEventListener("input", e => {
+    const t = e.target; if (!(t.dataset && t.dataset.gvar)) return;
+    const g = t.closest(".ffgrid"), fd = g.closest("[data-row]");
+    g.querySelector(".fg-tab").innerHTML = fxGridTable(String((FORMULA.rows[fd.dataset.row] || {})[fd.dataset.tier] || ""), fd.dataset.row, FORMULA.rows, gridVals(g));
+  });
   $("#sh-body").addEventListener("change", e => {
     if (e.target.id === "sh-import") {
       const file = e.target.files && e.target.files[0]; e.target.value = "";
@@ -1992,7 +2496,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       applyFormula(activeSheet().formula); SIM.maelstrom = FORMULA.ship.maelstrom; rebuildCards(); renderGuide(); renderAll(); SH.plan = null; renderSheetPanel(); return;
     }
     if (e.target.closest("#sh-revert")) {
-      writeSheet(s.id, { formula: clone(s.baseline || s.formula) }).then(() => toast("Back to the balanced formula")).catch(() => {});
+      writeSheet(s.id, { formula: upgradeFormula(s.baseline || s.formula) }).then(() => toast("Back to the balanced formula")).catch(() => {});
       applyFormula(activeSheet().formula); rebuildCards(); renderGuide(); renderAll(); SH.plan = null; renderSheetPanel(); return;
     }
     if (e.target.closest("#sh-export-btn")) { downloadExport(s); return; }
@@ -2016,109 +2520,88 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     }
   });
 
-  // The guide's measured notes belong to each sheet (sheets/{id}.guide); this is what a sheet starts with when it has none.
-  // Text may use **bold** and {name} for live values: shields, armor, hull, atkExt, ammoRounds, restore, vulnK, vulnOther, guess.
+  // The guide's notes belong to each sheet (sheets/{id}.guide); this is what a sheet starts with when it has none.
+  // notes: one per formula row (by row id), plus armor and shields. Text may use **bold** and {name} for live values:
+  // shields, armor, hull, atkExt, restore, vulnK, vulnOther, guess.
   const GUIDE_SEED = {
     notes: {
-      health: "Behind the armor. Measured: 1 a point on average, more right behind the armor, almost nothing at the back",
-      frontHealth: "A card that must sit in front of the armor, or an exterior Defense card with no attack. Health there is hit first and buys the most time: a 24-health wall is worth about 41. Replaces the old +6 budget for front-only weapons",
-      attackExt: "Measured: 2/8 worth 14, 4/8 worth 24, 6/8 worth 31",
-      attackInt: "A chosen scale, not a measured one: crew only fight boarders, and those fights are thresholds (the defender acts first, so equal crews stall), so a point of crew attack or health is worth almost nothing at the margin. At this scale a plain Mk I crew card is about 4/12",
-      extraHitExt: "An extra hit is worth more the harder it hits: 1×3 measured 16 in attack, 3×2 measured 31. It evens out ×1, ×2 and ×3 shapes (51, 49, 47% in random mixes)",
-      extraHitInt: "Kept from the older rule: crew fights are thresholds (Attack and health, interior)",
-      typeExt: "Against Kinetic, whose +1 against Shields is already in the attack rate. Plasma's bonus against armor and hull only matches it; Radiation needs Biological targets; each Electric hit on a surviving Shields card gives it a shield point back",
-      plasmaInt: "Kept from the older rule: crew fights are thresholds (Attack and health, interior)",
-      thermalInt: "Fire burns inside only; radiation reaches Biological crew",
-      pierce: "Measured about 0: it hits the card under its target, and for the first rounds that is under the Shields, the front card and the Armor. By the time it reaches a support card under a weapon, the weapon is dying anyway. Pierce needs a new job before it is worth more",
-      splash: "Not measured yet",
-      ammo: "Measured on four weapon shapes, all within a few points of this table: the first volleys land while it matters most. The interior keeps attack × N ÷ {ammoRounds} until it is measured",
-      bigHit: "More of a big hit is wasted to overkill: worth per point measured 3.9 at 6 per hit, 3.3 at 12, 3.1 at 16",
-      maxHealth: "Same as health",
-      regen: "Repairs or heals N each time it activates while alive; never brings a destroyed card back. Read from the effect text",
-      resist: "Every instance of damage is N lower. Measured: 10–16 a point on a front wall, 7–10 on a front weapon, about 8 on the Armor, 4–6 behind the armor. Resist 2 is worth more than twice Resist 1, and more against multi-hit, low-attack enemies",
-      block: "Stops an attack outright; about 3 health each, in front or behind",
-      reflect: "Reflect 1 on the Armor was worth about 4.5 health; Reflect 2 about 13, because it kills small multi-hit weapons",
-      vuln: "A printed weakness; read from the card text",
-      restore: "After a round with no damage, restores N each time it activates, even from 0 on a card that goes down rather than being destroyed. Every Shields card has Restore 1 per mark",
-      hull: "Measured: +2 and +3 hull worth about 1, +10 about 2. In exterior fights hull only buys time, and against boarders more hull barely helps either",
-      armor: "**Armor** at Mk I is {armor} health with no effect. It has **Vulnerable (Plasma)**, worth about {vulnOther} BP because Plasma is rarer than Kinetic (assuming about 15% of weapons are Plasma).",
-      shields: "Restore 1 is worth about {restore} BP: at equal points, a restoring Shields card beats a non-restoring one 70% of the time, restoring 3 to 4 times a fight, and each restored point swallows a whole attack. **Vulnerable (Kinetic)** costs about {vulnK}. Net, a plain Shields card is {shields} shield points.",
-      buffIntro: "Measured in the simulator (Mk I, exterior rows, 2026-09-30): what a buff is worth in health BP, next to 24 BP weapons of every shape. The card editor prices these effects on its own, by the card's placement; everything else goes in Effect BP.",
-      "m.activate": "19–34 behind the armor (about 1.5 × the target's attack BP); 4–10 in front, where its target is exposed too",
-      "m.doubleOnFront": "23–34: the card sits safe behind its target",
-      "m.doubleOnBehind": "17–24: the card shields its target but dies sooner, and the buff ends with it",
-      "m.attackOne": "4 per point per hit; about 5 on multi-hit targets, which waste less damage",
-      "m.attackAdjacent": "8–10 next to single-hit weapons, 21–33 next to multi-hit ones",
-      "m.attackAdjacentMult": "21–33",
-      intBuffIntro: "**Interior buffs on the weapon above** (measured 2026-09-30 against reference weapons, Mk I, on a 24 BP weapon right behind the Armor and at the back). An interior card's only adjacent weapon is the one above it, so \"adjacent\" effects on an interior card are priced as one weapon. They are worth about what the same buff is worth beside an exterior weapon, so the two tables agree.",
-      "mi.mult": "+1: 16–23 (13 in front of the Armor, 10 on a 2×2, 4–9 on a 1×3); +2: 30–44",
-      "mi.activate": "13–22",
-      "mi.double": "11–17",
-      "mi.attack": "2–5 on single hits, 10–20 on a 1×3",
-      "mi.aim": "13–18",
-      "mi.healthRepair": "+3 health 2–4; repair 2 a round 1–3",
-      "mi.resistPierce": "Resist 1: 2–6; Pierce: about 0",
-      "mi.ammoMax": "0–4",
-      "mi.shieldsRound": "+2 a round: 5",
-      "mi.hull": "+2 or +3: 1; +10: 2",
-      buffOther: "Other buffs measured the same way: +1 attack to all your weapons about 30 (5 a weapon). A full interior of six +1 mult cards shortens mirrored fights from about 13 rounds to 7.",
+      armor: "**Armor** at Mk I is {armor} health with **Vulnerable (Plasma)**, which gives back {vulnOther} BP.",
+      shields: "**Shields** at Mk I is {shields} shield points with **Vulnerable (Kinetic)**, which gives back {vulnK} BP, and its free Restore 1, worth {restore}.",
+      Attack: "The first hit. 6 attack and 12 health (2:1) is the only shape that kept mirror fights in or near 6 to 8 rounds in every sim configuration",
+      Health: "Flat: no placement discount",
+      Mult: "Each extra attack copies the attack at 8 a point, plus a surcharge (16, 40, 72, 112 for mult 2 to 5) for buff multiplication, overkill and beating Restore. Mk I Tri Gun: 1 attack, mult 3, 8 health",
+      Ammo: "Price per attack point: 8 × ammo ÷ (7 × reclaim), reclaim 30% + 70% × (ammo − 1) ÷ 6. 3.8 a point at 1 ammo, full price from 7. Baseline: a 6-attack Cannon deals 42 over 7 volleys",
+      MaxCharges: "Banking (spend-all dumps) and a reserve for repeated reactive triggers; spend-all scaling is unpriced upside",
+      TypeElectric: "Per hit. A 1-attack Electric gun's attack nets to 0",
+      FreeRestore: "Every Shields card has Restore equal to its mark",
+      VulnKinetic: "+1 damage per hit: about 2 hits a fight × 1 point × 8 BP",
+      Resist: "Resist 2 costs 64 at Mk I, so it is effectively Mk II+: it shouldn't hard-counter Mk I weapons",
+      Block: "A count; never scales with mark. Cheaper than Resist, since it is weak against mult. Revisit if it shuts down big single hits",
+      Reflect: "Escalates gently: Reflect never extends its own life",
+      Heal: "Self-Heal is cheap because the card usually dies within 1 or 2 ticks. Passed Heal is 30% off: Biological targets are rarer and squishier",
+      Repair: "Passing's flexibility cancels against the support-card tax, so passed Repair costs what Self-Repair does",
+      Regen: "Above Self-Heal: Restore can bring its trigger back, and Regen fires after Restore",
+      Restore: "Above Regen: the only thing that works while the shield is down",
+      Taunt: "Rises with mark for combo headroom, not survival. Indiscriminate, so it dies faster",
+      Guard: "Priced as Taunt: different tools, each sure to do its job. Split them if the sim shows one dominating",
+      Pierce: "Half of attack: it lands only when a card sits below the target, and never focus-fires. Revisit toward 5 to 6 a point once interiors are simulated full",
+      Splash: "Above attack: the rear splash nearly always lands and reaches past protectors. 10, not 12, because it doesn't focus-fire",
+      Flank: "Four attack points' worth: it reaches the glass cannons behind the tanks",
+      Execute: "Six attack points' worth: it nearly always secures kills. Nudge toward 64 if it proves oppressive",
+      Recharge: "A charge is a container, priced blind to its target; a shield point is the floor. The −4 is burst leverage",
+      Discharge: "Spreads onward instead of wasting, so it sits on the top tier",
+      Reload: "No surcharge: 1 ammo per volley means no burst leverage. The taper's slope is a sim knob",
+      MaxAmmo: "Nearly inert alone: it needs a reload to fill",
+      ChargeBlock: "The 1.5 is a refill premium, since charges can come back mid-fight. Only 1 pip is realistic at Mk I",
+      ChargeReflect: "Pip surcharge 0, 8, 20, 36, 56, 80 for 1 to 6 pips; never more than always-on Reflect",
+      GrantMult: "Fires once and persists if the grantor dies. A version that stacks each activation is a Mk III+ scaler, not formula-priced",
+      GrantAttack: "8 a point × 1.5 leverage",
+      GrantHealth: "The raw rate: an inert resource",
+      Activate: "Provisional: re-measure",
+      DoubleDamage: "Provisional: re-measure",
+      AttackPerWin: "Priced by break-even: base stats break even after about 1.5 cycles and the card pays back around cycle 3. On Death triggers balance themselves",
     },
-    // Rows priced by hand in Effect BP: [what, BP, note]
-    handPrices: [
-      ["Taunt, Guard", "Effect BP", "Depend on where the card sits; see Defensive keywords"],
-      ["Speed", "0.5 a point {guess}", "Initiative is worth about 12 BP of board; a point's worth depends on how often it flips initiative"],
-      ["Charges", "effect × charges", "Price a limited effect per use"],
-      ["Per-round effect", "value × 6", "× 3 on front-line cards, which die sooner"],
-      ["Once per fight", "value × 1", "Fight Start × 1.25, On Death × 0.75"],
-      ["On Attacked, React", "value × hits taken", "About 3 for front cards, 1 behind armor"],
-      ["Conditional (if, while)", "× 0.5 to 0.75", ""],
-      ["Permanent growth", "start near 70% of budget", "Breaks even after about two fights; up to about 4 BP of growth a fight at Mk I"],
-      ["Economy", "gives up about half its budget", "Should earn about its price back each cycle {guess}"],
-    ],
+    handPrices: [],
     buffPoints: [
-      "**A buff is worth what it adds to its target.** +1 attack is worth 4 BP per hit it boosts, so on a mult 3 gun it is worth three times as much. Weapons are priced as if unbuffed, and the buff card pays for its leverage; mult weapons are the best targets for per-hit buffs.",
-      "**+1 mult** is worth about 6 × the target's attack + 2 (5 to 31 at Mk I); **double damage** about the target's attack BP when it buffs two weapons, more for one; **an extra activation each round** about 1.5 × the target's attack BP.",
-      "**Placement matters.** A buff that must sit in front of the armor, or that shields its target, dies early and is worth far less. If an effect costs more than the card can afford, give the card a weakness: charges, low health, or a condition.",
-      "Measured at the card's best spot; a player won't always manage that, so prices sit a little under the measured mean.",
+      "**Price what a card offers, never who receives it.** A buff is priced for what it gives, not for the card that ends up with it.",
+      "**Price against maximums, never live state.** Pips mean maximum capacity.",
+      "**Don't price a keyword off another stat on the same card.** Rare synergies are unpriced upside; Mult reading attack and charge-fed effects reading pips are the exceptions.",
+      "**Effects on a card that dies early** (self-healing, Taunt, Guard) are priced low.",
     ],
     findings: [
-      "**The exterior formula (2026-09-30).** A weapon's worth, measured by swapping one slot in mirrored boards: behind the armor about 4 × attack + 1 × health; in front of it about 4 × attack + 1.9 × health − 7. Health's worth depends on how early the card gets hit: a 24-health wall is worth about 41 in front, 24 right behind the armor, and 10 at the back. Each card is priced for the best place it may stand, so moving the armor around gains nothing.",
-      "Where cards go: sturdy weapons right behind the armor (a 4/16 is worth 38 there, 29 at the back), glass cannons at the back (a 5/4 is worth 22 right behind the armor, 25.5 at the back).",
-      "Buffs favor mult: with +1 attack on every weapon, 1-attack ×3 shapes rise from about 43% to 62% and big single shots fall to about 43%. Weapons are priced unbuffed; buff cards pay for their leverage (Buff prices).",
-      "With Shields {shields}, Armor {armor}, hull {hull} and a 25% support bonus (a stand-in for the interior, since removed), fights ran about 8 rounds with four weapons a side and 7 with six: on target. With no support they run about 9.",
-      "Pricing attack cheaper shortens fights when card shapes stay fixed, because the same budget buys more attack and more health. At {atkExt} BP, fights land on target and balanced, attack-heavy and multi-hit shapes come out even. Cheaper, and attack-heavy shapes pull ahead.",
-      "Put every weapon behind the Armor. A gun in front of the Armor dies before the Armor does and loses its damage early: one Cannon among three Lasers won 80% behind the Armor and 44% in front of it.",
-      "Health-heavy weapons (1 attack to 3 health) lose at every price. The front line already supplies the time, so a weapon's damage matters far more than its health. At Mk I, keep a plain weapon's attack at 4 or more. A tanky weapon needs a defensive effect to earn its slot.",
-      "Under the old row phases the ship that acts first wins 85% to 90% of even fights. Alternating card by card, faster ship first, cuts that to about 55%.",
-      "Weapons with 1 or 2 attack lose to nearly everything at every exchange rate tested: every ship's large front line makes health cheap and damage precious.",
-      "A ship whose exterior row is gone has no guns, so hull only buys time. It matters against boarders, Pierce, hull hitters and the Maelstrom.",
-      "**The interior (2026-09-30).** Prices assume the reference enemy (DESIGN 6.8.2): an interior of two support cards and one defender, and boarders in half of all fights (30% one, 20% two).",
-      "**Boarding is about numbers, not stats.** The defender acts first on its own ship, so equal crews stall: one boarder against one defender is worth about 0 at every crew size tested. Two or three boarding cards against the reference interior are worth 9–15; against an empty interior, a 4-attack boarder or two boarders are worth about 60. Boarders that beat the defense go on to the hull.",
-      "**Interior defense matters only against two or more boarders:** a defender is worth 2–7 against one boarder and 10–58 against two. Walls and defenders are about equal.",
-      "**Always-on buffs end with their card** (DESIGN 7.3.4), so boarders that kill support cards take their buffs away; one slow boarder rarely gets there before the buffed weapon dies anyway.",
-      "**Measure with reference weapons, not plate health.** A plain plate's health behind the armor is worth less than 1 BP a point and breaks against aim effects and boarders, so prices measured in plate health run about 25% high (the exterior buff table was measured that way). Raw win rates on mirrored boards saturate: one extra 12 BP plate wins 99%.",
+      "**The 6/12 shape.** Mirror matches, 6v6 and 8v8 exterior rows, with and without a Shields (22) and Armor (25) pair, hull 20, Maelstrom from round 12: 6 attack, 12 health is the only shape that stays in or near 6 to 8 rounds in every configuration. Leaning to health runs into the Maelstrom; leaning to attack ends in about two rounds.",
+      "Damage matters most early, so weapons belong behind the Armor.",
+      "The first mover wins about 55% of even fights.",
+      "Boarding is about numbers: equal crews stall, and boarding pays off against a thin interior.",
+      "Pierce looked worthless only because the sims had empty interior rows.",
+      "To re-check: fight length with plain Shields at {shields} and Armor at {armor}.",
     ],
   };
+  // Notes written for a sheet's old number fields, shown beside the formula row that replaced them
+  const LEGACY_NOTE = { Health: "health", Attack: "attackExt", Mult: "extraHitExt", Pierce: "pierce", Splash: "splash", Ammo: "ammo", Resist: "resist", Block: "block", Reflect: "reflect",
+    Restore: "restore", Repair: "regen", VulnKinetic: "vuln", Activate: "m.activate", DoubleDamage: "m.doubleOnBehind", GrantAttack: "m.attackOne", GrantMult: "mi.mult", MaxAmmo: "mi.ammoMax" };
   function renderGuide() {
     $("#guide-edit").hidden = readOnly || !activeSheet();
     // While the guide editor is open, keep what's typed and show the editor instead (a sheet switch drops the draft)
     if (GE) { if (GE.sheet !== (activeSheet() || {}).id) GE = null; else { if ($("#ge-form")) readGuideForm(); renderGuideEditor(); return; } }
     $("#guide-edit").textContent = "Edit";
-    const R = ["I", "II", "III", "IV", "V"];
-    const btable = cls => {
-      const f = FORMULA[cls];
-      const head = `<tr><th>${f.label}</th>${R.map(r => `<th class="n">Mk ${r}</th>`).join("")}</tr>`;
-      const rows = [1, 2, 3, 4].map(L => `<tr><td>Mk ${R[L - 1]}+</td>${[1, 2, 3, 4, 5].map(m => m < L ? `<td class="n dim">·</td>` : `<td class="n">${budgetAt(cls, L, m)}</td>`).join("")}</tr>`).join("");
-      return `<table class="gtable">${head}${rows}</table>`;
-    };
-    const E = FORMULA.ext, I = FORMULA.int, refHp = E.base + E.pad - E.atk * 4;
+    const R = MARKS, BB = FORMULA.budget || FORMULA_SEED.budget, tol = Math.round((BB.tolerance ?? 0.1) * 100);
+    const btable = `<table class="gtable"><tr><th>Card</th>${R.map(r => `<th class="n">Mk ${r}</th>`).join("")}</tr>${[1, 2, 3, 4, 5].map(L => `<tr><td>Mk ${R[L - 1]}+</td>${[1, 2, 3, 4, 5].map(m => m < L ? `<td class="n dim">·</td>` : `<td class="n">${budgetAt("ext", L, m)}</td>`).join("")}</tr>`).join("")}</table>`;
     const tent = '<span class="tentative">guess</span>';
-    // This sheet's notes, over the seed for any the sheet doesn't have
-    const s = activeSheet(), G = { ...GUIDE_SEED, ...((s && s.guide) || {}) }, N = { ...GUIDE_SEED.notes, ...((s && s.guide && s.guide.notes) || {}) };
-    const V = { shields: defaultShields(), armor: defaultArmor(), hull: FORMULA.ship.hull, atkExt: E.atk, ammoRounds: FORMULA.ammoRounds, restore: FORMULA.restore, vulnK: -FORMULA.vulnKinetic, vulnOther: FORMULA.vulnOther, guess: tent };
+    // This sheet's notes; a sheet with none of its own shows the seed's
+    const s = activeSheet(), own = s && isObj(s.guide) ? s.guide : null, G = { ...GUIDE_SEED, ...(own || {}) }, N = own && isObj(own.notes) ? own.notes : GUIDE_SEED.notes;
+    const d = fxDefaults(), at = (id, vals = {}) => round2(rowVal(id, "base", { ...d, ...vals }).v);
+    const V = { shields: defaultShields(), armor: defaultArmor(), hull: FORMULA.ship.hull, atkExt: at("Attack", { A: 1, N: 1 }), restore: at("FreeRestore"), vulnK: -at("VulnKinetic", { Pc: 0 }), vulnOther: -at("VulnPlasma", { Pc: 0 }), ammoRounds: 7, guess: tent };
     const g = t => esc(t || "").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\{(\w+)\}/g, (m, k) => k in V ? V[k] : m).replace(/\n/g, "<br>");
     const n = k => g(N[k]);
-    const price = (item, bp, note = "") => `<tr><td>${item}</td><td>${bp}</td><td>${note}</td></tr>`;
+    const note = r => N[r.id] ? g(N[r.id]) : LEGACY_NOTE[r.id] && N[LEGACY_NOTE[r.id]] ? g(N[LEGACY_NOTE[r.id]]) : "";
+    const price = (item, bp, nt = "") => `<tr><td>${item}</td><td>${bp}</td><td>${nt}</td></tr>`;
+    const fcode = src => `<span class="fx-code">${fxPills(src, false)}</span>`;
+    const rowTable = gi => `<table class="gtable"><tr><th>Price</th><th>Formula</th><th>Examples</th></tr>${FROWS.filter(r => r.g === gi).map(r => {
+      const X = FORMULA.rows[r.id] || {};
+      const fs = ["base", "dumb", "smart"].filter(t => t === "base" || String(X[t] || "").trim()).map(t => `<div data-row="${r.id}" data-tier="${t}">${t === "base" ? "" : `<span class="hint">${t}:</span> `}${fcode(X[t])}<details class="ffgrid"><summary>Grid</summary><div class="ffgrid-body"></div></details></div>`).join("");
+      return `<tr><td><b>${esc(r.label)}</b><div class="hint">${esc(r.what)}${note(r) ? ". " + note(r) : ""}</div></td><td>${fs}</td><td class="hint">${fxHint(X.base, r.id, FORMULA.rows)}</td></tr>`;
+    }).join("")}</table>`;
     const lex = [
       ["Blaster, Plasma ___", "Plasma damage"], ["Laser, Beam, Flame", "Thermal damage"], ["Ion, Arc, Tesla, Shock, Storm", "Electric damage"],
       ["Cannon, Gun, Railgun, Coilgun, Mass Driver", "Kinetic damage. A type word overrides it: Radiation Cannon, Plasma Cannon"],
@@ -2127,107 +2610,68 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       ["Mining, Ore, Drill, Prospector", "Rugged and durable: sturdy, low attack, defensive keywords (Resist, Block), explosives, bonus against Defense"], ["Salvaged, Junkyard, Rustbucket", "Rough and cheap: over budget, with a drawback"],
       ["Scrap", "Credits from destroyed cards"], ["Array", "A System whose effect covers its whole layer, with no attack of its own"],
       ["Computer, CPU, AI", "Electronics system"], ["Capacitor", "Holds charges"], ["Battery", "A group of guns"],
-      ["Drone / Droid", "Exterior unmanned craft / interior Mechanical crew"], ["Regen", "Keyword: repairs or heals itself every activation"], ["Shield(s) / Screen, Deflector", "Shields card / damage-reduction system"],
-      ["Armor / Plating, Plate, Tiles / Bulkhead, Door", "Armor card / exterior Defense / interior Defense"],
+      ["Drone / Droid", "Exterior unmanned craft / interior Mechanical crew"], ["Regen", "Keyword: a Shields card tops up every activation while it is up"], ["Medic, Medbay / Welder, Mender", "Heal / Repair: passes health to neighbors"],
+      ["Shield(s) / Screen, Deflector", "Shields card / damage-reduction system"], ["Armor / Plating, Plate, Tiles / Bulkhead, Door", "Armor card / exterior Defense / interior Defense"],
       ["Hull", "Only on cards that touch the hull keyword"], ["Pad / Pod, Grapple, Tube", "Teleport boarding / physical boarding"],
     ];
     const head = s ? `<div class="sheet-note" style="margin-top:10px">Balance sheet <b>${esc(s.name)}</b>${s.author ? ` by ${esc(s.author)}` : ""}${s.about ? ": " + esc(String(s.about).replace(/[.\s]+$/, "")) : ""}. Prices and notes below are this sheet's; the rules sections are the same on every sheet.</div>
-      ${s.notes ? `<p>${g(s.notes)}</p>` : ""}${G.inherited ? `<p class="sheet-note warn">The measured notes and findings here were copied from ${esc(G.inherited)} and haven't been re-measured on this sheet.</p>` : ""}` : "";
+      ${s.notes ? `<p>${g(s.notes)}</p>` : ""}${G.inherited ? `<p class="sheet-note warn">The notes and findings here were copied from ${esc(G.inherited)} and haven't been re-measured on this sheet.</p>` : ""}${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}` : "";
+    const R0 = FORMULA.rows, f0 = id => fcode((R0[id] || {}).base);
     $("#guide-body").innerHTML = `${head}
-      <p>Every card has a budget in <b>budget points (BP)</b>. Health costs 1 BP a point and everything else is priced against it. A card's stats are stored at its lowest mark, and the BP chip on each card compares them with that mark's budget: green within ±${Math.round(FORMULA.tolerance * 100)}%, teal under, orange over.</p>
+      <p>Every card has a budget in <b>budget points (BP)</b>, and everything on it costs BP by this sheet's formulas. A card is priced at its lowest mark: its parts are added at full precision and the total is rounded once, half up. The BP chip on each card compares it with its budget: green within ±${tol}%, teal under, orange over. The design behind every formula is in docs/BALANCE.md.</p>
       <h3>Budget</h3>
-      <div class="formula">budget = mark × (base + step × (lowest mark − 1) + pad)</div>
-      <p>Exterior base ${E.base}, step ${E.step}. Interior base ${I.base}, step ${I.step}.${E.pad ? ` Every card also gets ${E.pad} health on top.` : ""} Shields and Armor cards use the exterior budget like any other exterior card, so a ship without shields or armor can fill that slot with something else.${I.base === E.base && I.step === E.step && I.pad === E.pad ? " An interior card is worth as much as an exterior one: both rows share one BP scale and one budget." : " Interior cards have a budget of their own."}</p>
-      ${btable("ext")}${btable("int")}
+      <div class="formula">budget = mark × B × (1 + p × floor steps)</div>
+      <p>B = ${BB.B}, p = ${round2(BB.p * 100)}%. Floor steps is how far a card's lowest mark sits above Mk I, and the extra is permanent: a fresh Mk III+ card (${budgetAt("ext", 3, 3)}) beats a Mk I+ card raised to Mk III (${budgetAt("ext", 1, 3)}), so spend the extra on effects more than raw numbers. Interior and exterior cards share one budget and one set of prices.</p>
+      ${btable}
       <h3>Shields and Armor</h3>
       <ul>
         <li>${n("armor")}</li>
-        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When it activates after a round with no damage, it restores 1 shield point per mark, even from 0. It has <b>Vulnerable (Kinetic)</b>.</li>
+        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free). <b>Regen</b> tops up a Shields card that is up. Every Shields card has <b>Vulnerable (Kinetic)</b>.</li>
         <li>${n("shields")}</li>
       </ul>
-      <p>A card that first appears at a higher mark gets ${Math.round(E.step / E.base * 100)}% more budget for each step, so a fresh Mk III+ card (${budgetAt("ext", 3, 3)}) beats a Mk I+ card raised to Mk IV (${budgetAt("ext", 1, 4)}). Spend that extra on effects more than on raw numbers.</p>
-      <p>The at-budget reference weapon is <b>4 attack, ${refHp} health</b> (Kinetic, Mk I).</p>
-      <h3>Prices</h3>
-      <table class="gtable"><tr><th>Item</th><th>BP</th><th>Note</th></tr>
-        ${price("Health", "1 a point", n("health"))}
-        ${price("Health on a front card", `${FORMULA.frontHealth} a point, minus ${FORMULA.frontOffset}`, n("frontHealth"))}
-        ${price("Attack, exterior", `${E.atk} a point on the first hit`, n("attackExt"))}
-        ${price("Attack and health, interior", `${I.atk} a point of attack per hit, health 1 a point`, n("attackInt"))}
-        ${price("Extra hit, exterior (mult above 1)", `${FORMULA.extraHitExt} a point of attack, per extra hit`, n("extraHitExt"))}
-        ${price("Extra hit, interior", `+${FORMULA.extraHit} each`, n("extraHitInt"))}
-        ${price("Damage type, exterior", `Kinetic ${FORMULA.typeExt.Kinetic}, Plasma ${FORMULA.typeExt.Plasma}, Thermal ${FORMULA.typeExt.Thermal}, Radiation ${FORMULA.typeExt.Radiation}, Electric ${FORMULA.typeExt.Electric}, per hit`, n("typeExt"))}
-        ${price("Plasma, interior", `+${FORMULA.plasma} per hit`, n("plasmaInt"))}
-        ${price("Thermal or Radiation, interior", `+${FORMULA.thermalInt} / +${FORMULA.radiationInt} per hit`, n("thermalInt"))}
-        ${price("Pierce N", `${FORMULA.pierce} a point, per hit`, n("pierce"))}
-        ${price("Splash N", `${FORMULA.splash} a point, per hit`, n("splash"))}
-        ${price("Ammo N, exterior", `attack × ${FORMULA.ammoWorth.slice(1, 7).join(" / ")} for 1 to 6 ammo; full from ${FORMULA.ammoWorth.length - 1}`, n("ammo"))}
-        ${price("Big hits, exterior", `attack per hit above ${FORMULA.bigHit.above} × lowest mark: ${FORMULA.bigHit.rate} a point`, n("bigHit"))}
-        ${price("+max health for the fight", "1 a point", n("maxHealth"))}
-        ${price("Regen N (keyword)", `${FORMULA.regen} per point`, n("regen"))}
-        ${price("Resist N (keyword)", `${FORMULA.resistFront} a point on a front card, ${FORMULA.resistShields} on Shields or Armor, ${FORMULA.resistBehind} elsewhere`, n("resist"))}
-        ${price("Block N (keyword)", `${FORMULA.blockFront} per Block per mark hit early, ${FORMULA.blockBehind} elsewhere`, n("block"))}
-        ${price("Reflect N (keyword)", `${FORMULA.reflectFront} a point hit early, ${FORMULA.reflectBehind} elsewhere`, n("reflect"))}
-        ${price("Vulnerable (type)", `${FORMULA.vulnKinetic} Kinetic, ${FORMULA.vulnOther} other`, n("vuln"))}
-        ${price("Restore N (keyword)", `${FORMULA.restore} per point`, n("restore"))}
-        ${price("Hull", `${FORMULA.intBuff.hull} a point`, n("hull"))}
-        ${(G.handPrices || []).map(([a, b, c]) => price(g(a), g(b), g(c))).join("")}
-      </table>
-      <h3>Buff prices</h3>
-      <p>${n("buffIntro")}</p>
-      <table class="gtable"><tr><th>Effect</th><th>Priced at</th><th>Measured</th></tr>
-        <tr><td>Activate the weapon behind (or in front of) this, On Activate</td><td>${FORMULA.buff.activate} × lowest mark; ${FORMULA.buff.activateFront} on a card that must sit in front of the armor</td><td>${n("m.activate")}</td></tr>
-        <tr><td>Double damage to the weapon in front of this</td><td>${FORMULA.buff.doubleOnFront} × lowest mark</td><td>${n("m.doubleOnFront")}</td></tr>
-        <tr><td>Double damage to the weapon behind this</td><td>${FORMULA.buff.doubleOnBehind} × lowest mark</td><td>${n("m.doubleOnBehind")}</td></tr>
-        <tr><td>+N attack to the weapon in front of or behind this</td><td>${FORMULA.buff.attackOne} per point</td><td>${n("m.attackOne")}</td></tr>
-        <tr><td>+N attack to adjacent weapons</td><td>${FORMULA.buff.attackAdjacent} per point</td><td>${n("m.attackAdjacent")}</td></tr>
-        <tr><td>+N attack to adjacent weapons with mult 2 or more</td><td>${FORMULA.buff.attackAdjacentMult} per point</td><td>${n("m.attackAdjacentMult")}</td></tr>
-      </table>
-      <p>${n("intBuffIntro")}</p>
-      <table class="gtable"><tr><th>Effect</th><th>Priced at</th><th>Measured</th></tr>
-        <tr><td>+N mult to the weapon above</td><td>${FORMULA.intBuff.mult} × lowest mark for the first point, ${FORMULA.intBuff.multExtra} for each more</td><td>${n("mi.mult")}</td></tr>
-        <tr><td>Activate the weapon above, On Activate</td><td>${FORMULA.buff.activate} × lowest mark</td><td>${n("mi.activate")}</td></tr>
-        <tr><td>Double damage to the weapon above</td><td>${FORMULA.buff.doubleOnBehind} × lowest mark</td><td>${n("mi.double")}</td></tr>
-        <tr><td>+N attack to the weapon above</td><td>${FORMULA.buff.attackOne} per point</td><td>${n("mi.attack")}</td></tr>
-        <tr><td>The weapon above aims elsewhere (lowest health, backmost)</td><td>${FORMULA.intBuff.aim} × lowest mark</td><td>${n("mi.aim")}</td></tr>
-        <tr><td>+N health to the card above; repair N a round</td><td>${FORMULA.intBuff.health} and ${FORMULA.intBuff.repair} per point</td><td>${n("mi.healthRepair")}</td></tr>
-        <tr><td>Resist N or Pierce N to the card above</td><td>${FORMULA.resistBehind} / ${FORMULA.pierce} per point</td><td>${n("mi.resistPierce")}</td></tr>
-        <tr><td>+N max ammo to the weapon above</td><td>${FORMULA.intBuff.ammoMax} per point</td><td>${n("mi.ammoMax")}</td></tr>
-        <tr><td>Your Shields gain N shield points each round</td><td>${FORMULA.intBuff.shieldsRound} per point</td><td>${n("mi.shieldsRound")}</td></tr>
-        <tr><td>Your ship gains N hull</td><td>${FORMULA.intBuff.hull} per point</td><td>${n("mi.hull")}</td></tr>
-      </table>
-      <p>${n("buffOther")}</p>
-      <ul>${(G.buffPoints || []).map(t => `<li>${g(t)}</li>`).join("")}</ul>
-      <p>Put what the effect is worth in the card's <b>Effect BP</b> field (it can be negative for drawbacks). <b>Fill health to budget</b> in the editor sets health so the card lands exactly on budget.</p>
+      <h3>How formulas work</h3>
+      ${fxGuideHtml()}
+      <h3>Targeting styles</h3>
+      <table class="gtable"><tr><th>Style</th><th>Reaches</th><th class="n">×</th></tr>${FSTYLES.map(st => `<tr><td>${st.label}</td><td>${esc(st.text)}</td><td class="n">${FORMULA.styles[st.k] ?? st.seed}</td></tr>`).join("")}</table>
+      ${FGROUPS.map((h, gi) => `<h3>${esc(h)}</h3>${rowTable(gi)}`).join("")}
+      ${(G.handPrices || []).length ? `<h3>Priced by hand</h3><table class="gtable"><tr><th>Item</th><th>BP</th><th>Note</th></tr>${G.handPrices.map(([a, b, c]) => price(g(a), g(b), g(c))).join("")}</table>` : ""}
+      ${(G.buffPoints || []).length ? `<h3>Pricing principles</h3><ul>${G.buffPoints.map(t => `<li>${g(t)}</li>`).join("")}</ul>` : ""}
+      <p>Effects no formula covers go in the card's <b>Effect BP</b> (negative for drawbacks); the editor lists them under the card's price. <b>Fill health to budget</b> sets health so the card lands on budget.</p>
       <h3>Balance sheets</h3>
       ${publicMode ? `<ul>
-        <li>This is the public copy of the Card Picker. Each <b>balance sheet</b> is a separate set of cards with its own formula and guide notes; switch sheets at the top. The published sheets are read-only: <b>Details</b> shows everything about a card, and <b>Sheet</b> shows the sheet's formula.</li>
-        <li><b>Make your own sheet</b> in <b>Sheet</b>, under Sheets: a copy of the sheet you're on, or an empty one. On your own sheets you can edit cards and add new ones, change the formula (then run <b>Auto Apply</b> to rebalance the cards to it), edit the guide's notes, and bring cards over from other sheets with <b>Not on this sheet</b> in the filters. Your sheets and boards are kept in this browser only.</li>
+        <li>This is the public copy of the Card Picker. Each <b>balance sheet</b> is a separate set of cards with its own formulas and guide notes; switch sheets at the top. The published sheets are read-only: <b>Details</b> shows everything about a card, and <b>Sheet</b> shows the sheet's formulas, with examples and a grid for each.</li>
+        <li><b>Make your own sheet</b> in <b>Sheet</b>, under Sheets: a copy of the sheet you're on, or an empty one. On your own sheets you can edit cards and add new ones, change the formulas (then run <b>Auto Apply</b> to rebalance the cards to them), edit the guide's notes, and bring cards over from other sheets with <b>Not on this sheet</b> in the filters. Your sheets and boards are kept in this browser only.</li>
         <li><b>To share a sheet</b>, export it (Sheet, Export and share) and upload the file to the sheets folder on GitHub; once it's accepted, it appears here for everyone. Keep the file as your backup: <b>Open a sheet file</b> loads it back, here or on another device.</li>
         <li>In the <b>Simulator</b>, build boards from the sheet's cards and fight them against each other or against the boards shared with the sheet. Boards you save stay in this browser only, on this device.</li>
       </ul>` : `<ul>
-        <li>A <b>balance sheet</b> is a complete, separate set of cards with its own formula and guide notes. Every card on it is the sheet's own copy: text, effects, tags, numbers, approval and picks. Editing a card on one sheet never changes another sheet. The rules (engine, keywords, effect vocabulary) are the same everywhere. Switch sheets at the top; <b>Sheet</b> edits the formula, makes a new sheet, or deletes one.</li>
-        <li><b>Auto Apply</b> rebalances a sheet's cards after its formula changes. Each card keeps where it sits against its budget and how its BP splits into attack, effects and health, as priced by the formula it was balanced to; attack scales to its share, hand-entered Effect BP scales with it, effects the formula prices get the new price, and health fills the rest. Mult, ammo, charges and effect amounts never change. Every card it changes is unapproved.</li>
-        <li><b>Not on this sheet</b> (in the filters) lists other sheets' cards that this sheet doesn't have, with buttons to copy one or every card shown. A copy arrives rebalanced to this sheet's formula, unapproved, and marked <b>Check</b> until you approve it here; from then on it is independent. A copy keeps its card id, so the sheet chips on a card show which sheets have a version of it.</li>
+        <li>A <b>balance sheet</b> is a complete, separate set of cards with its own formulas and guide notes. Every card on it is the sheet's own copy: text, effects, tags, numbers, approval and picks. Editing a card on one sheet never changes another sheet. The rules (engine, keywords, effect vocabulary) are the same everywhere. Switch sheets at the top; <b>Sheet</b> edits the formulas, makes a new sheet, or deletes one.</li>
+        <li><b>Auto Apply</b> rebalances a sheet's cards to their budgets after its formulas change. A card's effects are priced first, by the formulas, and the rest of its budget goes to attack and health in the card's current ratio. Mult, ammo, charges, effect amounts and Effect BP never change. Every card it touches is unapproved, and a card whose effects alone cost more than its budget is also marked <b>Check</b>.</li>
+        <li><b>Not on this sheet</b> (in the filters) lists other sheets' cards that this sheet doesn't have, with buttons to copy one or every card shown. A copy arrives rebalanced to this sheet's formulas, unapproved, and marked <b>Check</b> until you approve it here; from then on it is independent. A copy keeps its card id, so the sheet chips on a card show which sheets have a version of it.</li>
         <li><b>Open a sheet file</b> (Sheet, under Sheets) adds a sheet from an exported file, such as one a friend made in the public copy, as a new sheet here. Its cards arrive private.</li>
-        <li><b>Public and private.</b> Every card starts private. Flip a card to <b>Public</b> on its tile or in the editor, or every card shown at once, when it's ready to share. <b>Export</b> downloads the sheet for the public copy: its formula, guide and sheet notes, its public cards that aren't parked, and its saved boards made only of public cards. Private cards never leave the picker. The sheet has to be marked Public first (Sheet, Public export).</li>
+        <li><b>Public and private.</b> Every card starts private. Flip a card to <b>Public</b> on its tile or in the editor, or every card shown at once, when it's ready to share. <b>Export</b> downloads the sheet for the public copy: its formulas, guide and sheet notes, its public cards that aren't parked, and its saved boards made only of public cards. Private cards never leave the picker. The sheet has to be marked Public first (Sheet, Public export).</li>
       </ul>`}
       <h3>Placement</h3>
       <ul>
         <li>Armor always has a card slot on each side and never touches the Shields, so something always stands in front of it. Put the card that soaks the most for the least damage lost there (a defense card, a front-only weapon, or the sturdiest gun), then the Armor, then the other weapons with the most fragile at the back.</li>
-        <li>A <b>front-only</b> card (In front of armor) pays for its health at the front rate, since health there buys the most time; a sturdy front-only weapon therefore has less health than the same weapon allowed behind, and a glass cannon forced in front has more.</li>
         <li>Cards that belong in front: defensive cards (Resist, Block, Reflect, Taunt), cards with On Death effects, and cards whose buffs matter most in the first round.</li>
         <li>In a fight, every card shows its place in the activation order, so who acts when is always visible.</li>
       </ul>
-      <h3>Defensive keywords</h3>
-      <table class="gtable"><tr><th>Keyword</th><th>Rule</th><th>BP</th></tr>
-        <tr><td>Resist N</td><td>Every instance of damage it takes is N lower, never below 0: hits, splash, pierce and stack damage alike.</td><td>${FORMULA.resistFront} a point on a front card, ${FORMULA.resistShields} on Shields or Armor, ${FORMULA.resistBehind} elsewhere</td></tr>
-        <tr><td>Block N</td><td>Completely stops the next N attacks against this card each fight: no damage and nothing the attack would trigger. Block never scales with mark.</td><td>${FORMULA.blockFront} per Block per mark</td></tr>
-        <tr><td>Reflect N</td><td>Each time an attack hits this card, the attacker takes N damage, untyped.</td><td>${FORMULA.reflectFront} a point on a card hit early (Reflect 2 or more there is worth far more), ${FORMULA.reflectBehind} elsewhere</td></tr>
-        <tr><td>Vulnerable (type)</td><td>Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable (Kinetic), every Armor card Vulnerable (Plasma).</td><td>${FORMULA.vulnKinetic} for Kinetic, ${FORMULA.vulnOther} for another type</td></tr>
-        <tr><td>Taunt</td><td>Attacks against its row target this card first, wherever it sits.</td><td>Enter in Effect BP: a tanky card with Taunt protects everything around it</td></tr>
-        <tr><td>Guard</td><td>An attack aimed at the card directly in front of or behind it, in the same row or boarder column, hits this card instead.</td><td>Enter in Effect BP: worth most between two fragile weapons</td></tr>
+      <h3>Keyword rules</h3>
+      <table class="gtable"><tr><th>Keyword</th><th>Rule</th><th>Formula</th></tr>
+        <tr><td>Resist N</td><td>Every instance of damage it takes is N lower, never below 0: hits, splash, pierce and stack damage alike.</td><td>${f0("Resist")}</td></tr>
+        <tr><td>Block N</td><td>Completely stops the next N attacks against this card each fight: no damage and nothing the attack would trigger. Block never scales with mark.</td><td>${f0("Block")}</td></tr>
+        <tr><td>Reflect N</td><td>Each time an attack hits this card, the attacker takes N damage, untyped.</td><td>${f0("Reflect")}</td></tr>
+        <tr><td>Self-Heal N, Self-Repair N</td><td>When the card activates, it restores N of its own health: Self-Heal on a Biological card, Self-Repair on anything else.</td><td>${f0("Heal")}</td></tr>
+        <tr><td>Heal N, Repair N</td><td>When the card activates, it passes N health to its neighbors, each point to the first that is damaged: below, then behind, then in front (from an interior card above, behind, in front). Heal reaches Biological cards, Repair the rest.</td><td>Their rows' smart formulas</td></tr>
+        <tr><td>Regen N</td><td>Shields only: a Shields card that is up gains N shield points each activation, after any Restore.</td><td>${f0("Regen")}</td></tr>
+        <tr><td>Restore N</td><td>A down Shields card comes back with N shield points when it activates after a round with no damage. Every Shields card has Restore equal to its mark for free.</td><td>${f0("Restore")}, N above the free Restore</td></tr>
+        <tr><td>Vulnerable (type)</td><td>Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable (Kinetic), every Armor card Vulnerable (Plasma); any card can carry one as a weakness.</td><td>Gives BP back: ${f0("VulnKinetic")} for Kinetic</td></tr>
+        <tr><td>Taunt</td><td>Attacks against its row target this card first, wherever it sits.</td><td>${f0("Taunt")}</td></tr>
+        <tr><td>Guard</td><td>An attack aimed at the card directly in front of or behind it, in the same row or boarder column, hits this card instead.</td><td>${f0("Guard")}</td></tr>
+        <tr><td>Flank</td><td>Its attacks target the backmost enemy card in its layer. Taunt still draws them first.</td><td>${f0("Flank")}</td></tr>
+        <tr><td>Execute</td><td>Its attacks target the enemy card with the lowest health in its layer. Taunt still draws them first.</td><td>${f0("Execute")}</td></tr>
       </table>
-      <p>Keywords count toward a card's own BP only when they start a sentence ("Resist 1."). A card that grants one ("Adjacent cards have Resist 1.") prices that in Effect BP.</p>
+      <p>A keyword on the card itself is priced by its row's base formula. Given to other cards ("Adjacent cards have Resist 1."), it is priced by its dumb or smart formula × the targeting style.</p>
       <h3>Writing card text</h3>
       <ul>
         <li>Build effects in the editor: each has a <b>When</b> (trigger), what it <b>Does</b>, and who it's <b>To</b>. The card text is written from them, so wording stays consistent and the simulator can run them. Ideas the builder can't express yet go in <b>Other effects</b>, which shows on the card but isn't simulated.</li>
@@ -2243,10 +2687,9 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       <p>Stats and flat effect numbers scale: attack, health, Pierce, Splash, "+2 attack", "repair 2". The value at Mk <i>m</i> is the value at the lowest mark × <i>m</i> ÷ lowest mark. Mult, ammo, charges, counts and targeting never scale.</p>
       <h3>Targets</h3>
       <ul>
-        <li>Filler lands within ±${Math.round(FORMULA.tolerance * 100)}% of budget.</li>
+        <li>Filler lands within ±${tol}% of budget.</li>
         <li>Centerpieces and build-arounds may run over when their condition is met and under when it isn't.</li>
-        <li>Avoid extremes: attack 1, or health under about 4 at Mk I, loses to nearly everything. Give such a card an effect that needs it.</li>
-        <li>Small edges swing fights hard: +2 health on each of four weapons (about 8% of a board) lifts the ship going second from 17% to 39% wins.</li>
+        <li>Avoid extremes: attack 1, or very little health at Mk I, loses to nearly everything. Give such a card an effect that needs it.</li>
       </ul>
       <h3>What the simulator found</h3>
       <ul>${(G.findings || []).map(t => `<li>${g(t)}</li>`).join("")}</ul>
@@ -2260,14 +2703,12 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   let GE = null;
   const GUIDE_NOTE_GROUPS = [
     ["Shields and Armor", [["armor", "Armor"], ["shields", "Shields"]]],
-    ["Prices", [["health", "Health"], ["frontHealth", "Health on a front card"], ["attackExt", "Attack, exterior"], ["attackInt", "Attack and health, interior"], ["extraHitExt", "Extra hit, exterior"], ["extraHitInt", "Extra hit, interior"], ["typeExt", "Damage type, exterior"], ["plasmaInt", "Plasma, interior"], ["thermalInt", "Thermal or Radiation, interior"], ["pierce", "Pierce N"], ["splash", "Splash N"], ["ammo", "Ammo N, exterior"], ["bigHit", "Big hits, exterior"], ["maxHealth", "+max health for the fight"], ["regen", "Regen N"], ["resist", "Resist N"], ["block", "Block N"], ["reflect", "Reflect N"], ["vuln", "Vulnerable (type)"], ["restore", "Restore N"], ["hull", "Hull"]]],
-    ["Buff prices, exterior", [["buffIntro", "Introduction"], ["m.activate", "Activate a neighbor"], ["m.doubleOnFront", "Double damage to the weapon in front"], ["m.doubleOnBehind", "Double damage to the weapon behind"], ["m.attackOne", "+attack to one weapon"], ["m.attackAdjacent", "+attack to adjacent weapons"], ["m.attackAdjacentMult", "+attack to adjacent mult weapons"]]],
-    ["Buff prices, interior", [["intBuffIntro", "Introduction"], ["mi.mult", "+mult to the weapon above"], ["mi.activate", "Activate the weapon above"], ["mi.double", "Double damage to the weapon above"], ["mi.attack", "+attack to the weapon above"], ["mi.aim", "The weapon above aims elsewhere"], ["mi.healthRepair", "+health, repair"], ["mi.resistPierce", "Resist or Pierce"], ["mi.ammoMax", "+max ammo"], ["mi.shieldsRound", "Shield points each round"], ["mi.hull", "Hull"], ["buffOther", "Other buffs"]]],
+    ...FGROUPS.map((h, gi) => [h, FROWS.filter(r => r.g === gi).map(r => [r.id, r.label])]),
   ];
   function openGuideEditor() {
     const s = activeSheet(); if (!s || readOnly) return;
     const G = { ...GUIDE_SEED, ...clone(s.guide || {}) };
-    GE = { sheet: s.id, notes: { ...clone(GUIDE_SEED.notes), ...clone((s.guide && s.guide.notes) || {}) }, handPrices: clone(G.handPrices || []), buffPoints: clone(G.buffPoints || []), findings: clone(G.findings || []), inherited: G.inherited || "", keepInherited: !!G.inherited };
+    GE = { sheet: s.id, notes: clone((s.guide && isObj(s.guide.notes) && s.guide.notes) || GUIDE_SEED.notes), handPrices: clone(G.handPrices || []), buffPoints: clone(G.buffPoints || []), findings: clone(G.findings || []), inherited: G.inherited || "", keepInherited: !!G.inherited };
     renderGuide();
     $("#guide-body").scrollTop = 0;
   }
@@ -2287,12 +2728,12 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const hand = GE.handPrices.map((r, i) => `<div class="ge-item"><div class="ge-hand">${["What", "BP", "Note"].map((h, j) => `<div class="field"><label>${h}</label><input type="text" data-ghp="${j}" value="${esc(r[j] || "")}"></div>`).join("")}</div>${tools("handPrices", i, GE.handPrices.length)}</div>`).join("");
     $("#guide-edit").textContent = "Editing";
     $("#guide-body").innerHTML = `<div id="ge-form">
-      <div class="sheet-note" style="margin-top:10px">Editing the guide of <b>${esc(s.name)}</b>. These notes are this sheet's only, and go out with its export. Write <b>**bold**</b> for bold, and <b>{shields}</b>, <b>{armor}</b>, <b>{hull}</b>, <b>{atkExt}</b>, <b>{ammoRounds}</b>, <b>{restore}</b>, <b>{vulnK}</b> or <b>{vulnOther}</b> for live values, <b>{guess}</b> for a guess tag. The rules sections (placement, keywords, card text) are part of the page; ask Claude to change those.</div>
+      <div class="sheet-note" style="margin-top:10px">Editing the guide of <b>${esc(s.name)}</b>. These notes are this sheet's only, and go out with its export. Write <b>**bold**</b> for bold, and <b>{shields}</b>, <b>{armor}</b>, <b>{hull}</b>, <b>{atkExt}</b>, <b>{restore}</b>, <b>{vulnK}</b> or <b>{vulnOther}</b> for live values, <b>{guess}</b> for a guess tag. Each note sits beside its formula row in the guide. The rules sections (placement, keywords, card text) are part of the page; ask Claude to change those.</div>
       ${GE.inherited ? `<label class="checkrow"><span><input type="checkbox" id="ge-inh" ${GE.keepInherited ? "checked" : ""}> Keep the warning that these notes were copied from ${esc(GE.inherited)} and not re-measured here</span></label>` : ""}
       <h3>What the simulator found</h3>${textList("findings", "gfind", GE.findings, "Finding")}<div><button class="btn" type="button" data-gadd="findings">Add a finding</button></div>
-      <h3>Notes beside the prices</h3>${[...GUIDE_NOTE_GROUPS, ...(other.length ? [["Other notes", other]] : [])].map(([h, rows]) => `<div class="ge-h">${esc(h)}</div>${rows.map(note).join("")}`).join("")}
+      <h3>Notes beside the formulas</h3>${[...GUIDE_NOTE_GROUPS, ...(other.length ? [["Other notes", other]] : [])].map(([h, rows]) => `<div class="ge-h">${esc(h)}</div>${rows.map(note).join("")}`).join("")}
       <h3>Priced by hand</h3>${hand}<div><button class="btn" type="button" data-gadd="handPrices">Add a row</button></div>
-      <h3>Buff points</h3>${textList("buffPoints", "gbp", GE.buffPoints, "Buff point")}<div><button class="btn" type="button" data-gadd="buffPoints">Add a point</button></div>
+      <h3>Pricing principles</h3>${textList("buffPoints", "gbp", GE.buffPoints, "Buff point")}<div><button class="btn" type="button" data-gadd="buffPoints">Add a point</button></div>
       <div class="ge-foot"><button class="btn primary" type="button" id="ge-save">Save guide</button><button class="btn" type="button" id="ge-cancel">Cancel</button></div>
     </div>`;
   }
@@ -2341,7 +2782,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
     const mkCard = (c, own, zone, i) => ({ ...c, uid: own.label + (zone === "ext" ? "e" : "i") + i, own, zone, homeZone: zone, homeIdx: i, host: null,
       atk: c.atk.map(a => ({ ...a })), heat: 0, rad: 0, fire: 0, ammoLeft: c.ammo == null ? null : c.ammoEmpty ? 0 : c.ammo, chargeMax: c.charges || 0,
       chargesLeft: c.charges && !c.chargesEmpty ? c.charges : 0, blockLeft: c.block || 0, max: c.hp, lastHit: -1,
-      dealt: 0, overkill: 0, hullDmg: 0, kills: 0, taken: 0, diedIn: null, pierced: 0, boarded: 0, uses: new Map(), dmgMods: [], aim: c.aim || null, baseTaunt: !!c.taunt, baseGuard: !!c.guard });
+      dealt: 0, overkill: 0, hullDmg: 0, kills: 0, taken: 0, diedIn: null, pierced: 0, boarded: 0, uses: new Map(), dmgMods: [], aim: c.aim || null, baseAim: c.aim || null, baseTaunt: !!c.taunt, baseGuard: !!c.guard });
     const mk = (sp, side) => {
       const s = { side, label: side ? "B" : "A", hull: sp.hull, maxHull: sp.hull, col: [], hullResist: [] };
       s.ext = (sp.ext || sp.row || []).map((c, i) => c ? mkCard(c, s, "ext", i) : null);
@@ -2394,6 +2835,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         case "above": return one(nbr(c, "above"));
         case "below": return one(nbr(c, "below"));
         case "adjacent": return neighbors(c);
+        case "lateral": return [nbr(c, "front"), nbr(c, "behind")].filter(alive);
         case "front_weapon": return oneW(nbr(c, "front"));
         case "behind_weapon": return oneW(nbr(c, "behind"));
         case "above_weapon": return oneW(nbr(c, "above"));
@@ -2415,6 +2857,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
         case "weapons_behind": return L.slice(j + 1).filter(weapon);
         case "your_weapons": return mine(me).filter(weapon);
         case "row": return L.filter(alive);
+        case "opposite_row": return c.zone === "ext" ? me.int.filter(alive) : c.zone === "int" ? me.ext.filter(alive) : [];
         case "single_weapons": return mine(me).filter(x => weapon(x) && x.mult === 1);
         case "ammo_weapons": return mine(me).filter(x => weapon(x) && x.ammoLeft !== null && x.ammoLeft !== undefined);
         case "tagged": return mine(me).filter(x => alive(x) && hasTag(x, e.tag));
@@ -2439,6 +2882,9 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       if (kw === "Resist") t.resist = (t.resist || 0) + n; else if (kw === "Block") t.blockLeft = (t.blockLeft || 0) + n;
       else if (kw === "Reflect") t.reflect = (t.reflect || 0) + n; else if (kw === "Regen") t.regen = (t.regen || 0) + n;
       else if (kw === "Restore") t.restore = (t.restore || 0) + n;
+      else if (kw === "Self-Heal" || kw === "Self-Repair") t.selfHeal = (t.selfHeal || 0) + n;
+      else if (kw === "Heal") t.passHeal = (t.passHeal || 0) + n; else if (kw === "Repair") t.passRepair = (t.passRepair || 0) + n;
+      else if (kw === "Flank") t.aim = "backmost"; else if (kw === "Execute") t.aim = "lowest_health";
       else if (kw === "Pierce") { t.pierce = (t.pierce || 0) + n; if (type) t.pierceType = type; }
       else if (kw === "Splash") { t.splash = (t.splash || 0) + n; if (type) t.splashType = type; }
       else if (kw === "Taunt") t.taunt = true; else if (kw === "Guard") t.guard = true; else if (kw === "Vulnerable") t.vuln = type;
@@ -2449,6 +2895,8 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       if (kw === "Resist") less("resist"); else if (kw === "Block") less("blockLeft"); else if (kw === "Reflect") less("reflect");
       else if (kw === "Regen") less("regen"); else if (kw === "Restore") less("restore"); else if (kw === "Pierce") less("pierce");
       else if (kw === "Splash") less("splash"); else if (kw === "Taunt") t.taunt = t.baseTaunt; else if (kw === "Guard") t.guard = t.baseGuard;
+      else if (kw === "Self-Heal" || kw === "Self-Repair") less("selfHeal"); else if (kw === "Heal") less("passHeal"); else if (kw === "Repair") less("passRepair");
+      else if (kw === "Flank" || kw === "Execute") t.aim = t.baseAim;
     }
     // Always-on effects on other cards: { src, t, undo }. They end when the source is destroyed or boards (DESIGN 7.3.4).
     const auras = [];
@@ -2685,17 +3133,27 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       const prev = actor; actor = c; // the card acting, for playback
       try { act(c, depth); } finally { actor = prev; }
     }
+    // Heal N / Repair N: each point to the first damaged neighbor, in Discharge's order (Heal: Biological cards; Repair: the rest)
+    function passOn(c, n, heal) {
+      const order = c.zone === "ext" ? ["below", "behind", "front"] : c.zone === "int" ? ["above", "behind", "front"] : ["behind", "front"];
+      const takes = t => alive(t) && t.kind !== "S" && t.hp < t.max && (t.tags || []).includes("Biological") === heal, got = new Map();
+      for (let k = 0; k < n; k++) { const t = order.map(d => nbr(c, d)).find(takes); if (!t) break; t.hp++; got.set(t, (got.get(t) || 0) + 1); }
+      got.forEach((v, t) => say(`${nm(c)} ${heal ? "heals" : "repairs"} ${t.name} ${v} (${t.hp})`));
+    }
     function act(c, depth) {
-      // Shields are never destroyed: at 0 they are down, still activate, and after a round with no damage
-      // (last round or this one so far) they restore shield points each time they activate.
-      if (c.kind === "S" && c.restore && c.lastHit < round - 1 && c.hp < c.max) {
-        c.hp = Math.min(c.max, Math.max(0, c.hp) + c.restore);
+      // Shields are never destroyed: at 0 they are down and still activate. A down Shields card that took no damage last
+      // round (or this one so far) comes back with its Restore; one that is up tops up with Regen, after any Restore.
+      if (c.kind === "S" && c.restore && c.hp <= 0 && c.lastHit < round - 1) {
+        c.hp = Math.min(c.max, c.restore);
         say(`${nm(c)} restores to ${c.hp}`);
       }
       if (c.hp <= 0) return;
+      if (c.kind === "S" && c.regen && c.hp < c.max) { c.hp = Math.min(c.max, c.hp + c.regen); say(`${nm(c)} regens to ${c.hp}`); }
       if (c.fire > 0) { c.fire--; stackHit(c, 1, "fire damage"); if (c.hp <= 0) return; } // fire ticks at the start and burns itself out
       if (fire(c, "on_activate", depth)) { fire(c, "after_activate", depth); return; } // it activated another card, which ends its own activation
-      if (c.regen && c.hp < c.max) { c.hp = Math.min(c.max, c.hp + c.regen); say(`${nm(c)} regens to ${c.hp}`); }
+      if (c.selfHeal && c.kind !== "S" && c.hp < c.max) { c.hp = Math.min(c.max, c.hp + c.selfHeal); say(`${nm(c)} ${(c.tags || []).includes("Biological") ? "heals" : "repairs"} itself to ${c.hp}`); }
+      if (c.passHeal) passOn(c, c.passHeal, true);
+      if (c.passRepair) passOn(c, c.passRepair, false);
       // Defenders at home attack only boarders; with none on their ship they don't attack, and spend no ammo
       const hasFoe = c.zone !== "int" || c.own.col.some(alive);
       if (c.atk.length && hasFoe && c.ammoLeft === 0) say(`${nm(c)} is out of ammo`); // it still activated; it just can't attack
@@ -2790,7 +3248,9 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       atk: (c.atkVar ? [] : c.attack || []).map(a => ({ type: a.type, amt: Math.round((Number(a.amt) || 0) * s) })).filter(a => a.amt > 0),
       mult: Math.max(1, Number(c.mult) || 1), hp: Math.max(1, Math.round((Number(c.health) || 1) * s)), ammo: c.ammo || null, ammoEmpty: !!c.ammoEmpty, charges: Number(c.charges) || 0, chargesEmpty: !!c.chargesEmpty,
       pierce: Math.round(effNum(c, "Pierce") * s), pierceType: kwType("Pierce"), splash: Math.round(effNum(c, "Splash") * s), splashType: kwType("Splash"),
-      regen: Math.round(effNum(c, "Regen") * s), resist: Math.round(effNum(c, "Resist") * s),
+      regen: tagged(c, "Shields") ? Math.round(effNum(c, "Regen") * s) : 0, resist: Math.round(effNum(c, "Resist") * s),
+      selfHeal: Math.round((effNum(c, "Self-Heal") + effNum(c, "Self-Repair")) * s), passHeal: Math.round(effNum(c, "Heal") * s), passRepair: Math.round(effNum(c, "Repair") * s),
+      aim: hasKw(c, "Execute") ? "lowest_health" : hasKw(c, "Flank") ? "backmost" : null,
       reflect: Math.round(effNum(c, "Reflect") * s), block: effNum(c, "Block"), // Block is a count: it never scales
       taunt: hasKw(c, "Taunt"), guard: hasKw(c, "Guard"), vuln: vulnType(c),
       restore: tagged(c, "Shields") ? Math.max(mark, Math.round(effNum(c, "Restore") * s)) : Math.round(effNum(c, "Restore") * s),
@@ -2800,8 +3260,6 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // Specs are cached per card and mark (the engine copies them); the cache empties whenever the cards change
   const specCache = new Map();
   const specOf = (id, mark) => { const k = id + "@" + mark; if (!specCache.has(k)) { const c = cards.get(id); specCache.set(k, c ? simCard(c, Math.max(Number(mark) || 1, c.minMark || 1)) : null); } return specCache.get(k); };
-  const defaultShields = () => FORMULA.ext.base + FORMULA.ext.pad - FORMULA.shieldRestore;
-  const defaultArmor = () => FORMULA.ext.base + FORMULA.ext.pad - FORMULA.vulnOther;
 
   // A board: { v: 2, hull, baseSpeed, cargo, ext: [{ id, mark } | null], int: [...] }. Empty card slots are null and keep their place.
   const BOARD = { min: 4, max: 8, baseSpeed: 68, cargo: 6 };
@@ -3261,7 +3719,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   // the crew below it gets the hardest-hitting crew left under it. Effects are otherwise ignored, except that a card that
   // gains attack per weapon counts as a 4-attack weapon.
   const soak = c => (Math.max(1, c.hp) + 3 * (c.block || 0)) * (c.resist ? 3.5 / Math.max(1, 3.5 - c.resist) : 1);
-  const punch = c => ((c.effects || []).some(e => e.action === "gain_attack" && e.source === "weapons" && e.target === "self") ? 4 : c.atk.reduce((s, a) => s + a.amt, 0)) * c.mult * (c.ammo ? FORMULA.ammoWorth[Math.min(c.ammo, FORMULA.ammoWorth.length - 1)] : 1);
+  const punch = c => ((c.effects || []).some(e => e.action === "gain_attack" && e.source === "weapons" && e.target === "self") ? 4 : c.atk.reduce((s, a) => s + a.amt, 0)) * c.mult * (c.ammo ? ammoFactor(c.ammo) : 1);
   const byRatio = list => [...list].sort((a, b) => punch(a) / soak(a) - punch(b) / soak(b));
   function arrangeRow(row) {
     const rest = row.filter(c => c.kind === "W");
@@ -3677,6 +4135,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   }
   function enterPublicMode() {
     publicMode = true;
+    try { sheetId = localStorage.getItem("jango-cards-sheet") || null; } catch (e) { sheetId = null; } // Ross Balance unless the visitor chose another
     document.body.classList.add("public");
     document.title = "Jango Cards";
     $(".brand h1").textContent = "Jango Cards";
