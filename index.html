@@ -207,6 +207,32 @@ legend { font-family: var(--display); font-size: 12px; letter-spacing: .12em; te
 .sheet-note { font-size: 13px; color: var(--muted); background: var(--sunk); border-radius: 6px; padding: 8px 10px; }
 .sheet-note.warn { background: var(--warn-soft); color: var(--warn); }
 .fgroup { display: grid; gap: 6px; }
+/* the Sheet panel: a full page, its sections as tabs (a list on the left; a scrolling row on a phone) */
+#sheet.editor { left: 0; width: 100%; }
+#sheet .ed-body { display: block; padding: 0; }
+.sh-layout { display: grid; grid-template-columns: 220px minmax(0, 880px); justify-content: center; gap: 28px; padding: 16px 20px 0; align-items: start; }
+.sh-layout [hidden] { display: none !important; }
+.sh-nav { position: sticky; top: 16px; display: grid; gap: 2px; }
+.sh-nav h5 { margin: 12px 10px 4px; font: 600 10.5px/1.4 var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.sh-find { width: 100%; box-sizing: border-box; border: 1px solid var(--rule); background: var(--paper); border-radius: 6px; padding: 7px 9px; font-size: 14px; }
+.sh-tab { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--ink); }
+.sh-tab:hover { background: var(--sunk); }
+.sh-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sh-tab[aria-selected="true"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+.sh-dot { font: 600 11px/18px var(--mono); min-width: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: var(--accent); color: var(--surface); text-align: center; }
+.sh-main { display: grid; gap: 14px; min-width: 0; padding-bottom: 8px; }
+.sh-sec { display: grid; gap: 12px; min-width: 0; }
+.sh-sec > h3 { margin: 0; font-family: var(--display); font-size: 20px; }
+.sh-layout.finding .sh-sec .fgroup > :is(.dnote-box, .dnote, p.hint), .sh-layout.finding .sh-sec > p.sh-lead { display: none; }
+.sh-foot { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 0 12px; background: var(--surface); border-top: 1px solid var(--rule); }
+.sh-foot .muted { font-size: 13px; }
+@media (max-width: 760px) {
+  .sh-layout { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 0 14px; }
+  .sh-nav { top: 0; z-index: 3; display: flex; gap: 6px; overflow-x: auto; padding: 8px 0; background: var(--surface); border-bottom: 1px solid var(--rule); }
+  .sh-nav h5 { display: none; }
+  .sh-find { flex: 0 0 140px; }
+  .sh-tab { flex: none; white-space: nowrap; }
+}
 .fgroup h4 { font-family: var(--display); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 0; font-weight: 600; }
 .frow { display: grid; grid-template-columns: 1fr 96px; gap: 8px; align-items: center; font-size: 13.5px; }
 .frow input { width: 100%; border: 1px solid var(--rule); background: var(--paper); border-radius: 5px; padding: 4px 6px; font-family: var(--mono); font-size: 13px; }
@@ -1026,6 +1052,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     { id: "GrantHealth", g: 4, label: "+N health", tiers: true, kind: "standing", what: "Given to another card: the raw rate", base: "4*N" },
     { id: "Activate", g: 4, label: "Activate another card", tiers: true, kind: "activation", what: "On Activate. Provisional: the Beta sheet's measured price × 4", base: "64*M" },
     { id: "DoubleDamage", g: 4, label: "Double damage", tiers: true, kind: "standing", what: "Given to another card. Provisional: the Beta sheet's measured price × 4", base: "52*M" },
+    { id: "Ramp", g: 5, label: "+N attack during the fight", kind: "activation", what: "On the card itself, each time its trigger fires, for the rest of the fight: After Attack × X; On Activate, After Activate or End of round once a round", base: "12*N*X" },
+    { id: "RampEarly", g: 5, label: "+N attack during the fight, before it attacks", what: "Added for On Activate: the gain lands before the card attacks, so even its first attack gets it", base: "8*N*X" },
     { id: "AttackPerWin", g: 5, label: "+N attack per win", what: "On winning a fight, permanently", base: "24*N" },
     { id: "AttackPerFight", g: 5, label: "+N attack per fight survived", what: "End of fight, permanently", base: "22*N" },
     { id: "HealthPerWin", g: 5, label: "+N health per win", what: "On winning a fight, permanently", base: "12*N" },
@@ -1276,7 +1304,14 @@ textarea.dnote-f::placeholder { color: var(--faint); }
           const row = e.trigger === "on_win" ? (atk ? "AttackPerWin" : "HealthPerWin") : e.trigger === "end_of_fight" ? (atk ? "AttackPerFight" : "HealthPerFight") : null;
           return row ? { row, tier: "base", style: "single", times: 1, N: n } : { why: `no scaler formula for ${trigLabel(e.trigger || "")}` };
         }
-        if (self) return { why: "a gain on the card itself counts as its stats" };
+        if (self) { // a gain on the card itself: its stats when it's there from the start, a ramp when it grows during the fight
+          if (STANDING.has(e.trigger || "")) return { why: "a gain on the card itself from the start is just its stats: raise its attack or health instead" };
+          if (!atk) return { why: "no formula yet for health a card gains during the fight" };
+          if (n <= 0) return { why: "it's a loss, not a gain" };
+          const p = plan("Ramp", "activation", { tier: "base" });
+          if (p.row && e.trigger === "on_activate") p.plus = "RampEarly";
+          return p;
+        }
         if (n <= 0) return { why: "it's a loss, not a gain" };
         return plan(atk ? "GrantAttack" : "GrantHealth", "standing");
       }
@@ -1324,6 +1359,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       const reads = new Set(), r = val(p.row, p.tier, p.N, reads), x = (Number((FORMULA.styles || {})[p.style]) || 1) * p.times;
       if (p.spends && reads.has("Pc")) pipsPriced = true;
       parts.push({ label: text, bp: r.v * x, group: "effects", row: p.row, tier: r.tier, style: p.style, times: p.times, i });
+      if (p.plus) parts.push({ label: text + " (before it attacks)", bp: val(p.plus, "base", p.N).v * x, group: "effects", row: p.plus, tier: "base", style: p.style, times: p.times, i });
     });
     if (env.Pc > 0 && !pipsPriced) parts.push({ label: `Max charges ${env.Pc}`, bp: val("MaxCharges", "base", env.Pc).v, group: "stats", row: "MaxCharges" });
     const adj = Number(c.bpAdj) || 0;
@@ -2333,7 +2369,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   }
   function fxRowHtml(r, was, ro) {
     const cur = FORMULA.rows[r.id] || {}, b = (was.rows || {})[r.id] || {};
-    return `<div class="frm-row" id="frm-${r.id}"><div class="frm-head"><b>${esc(r.label)}</b><code>${r.id}</code>${r.factor ? `<span class="hint">a factor</span>` : ""}<span class="hint">${esc(r.what)}</span></div>
+    return `<div class="frm-row" id="frm-${r.id}" data-find="${esc((r.label + " " + r.id + " " + r.what).toLowerCase())}"><div class="frm-head"><b>${esc(r.label)}</b><code>${r.id}</code>${r.factor ? `<span class="hint">a factor</span>` : ""}<span class="hint">${esc(r.what)}</span></div>
       ${(r.tiers ? ["base", "dumb", "smart"] : ["base"]).map(t => fxFieldHtml(r.id, t, cur[t], b[t], ro)).join("")}${noteBox(r.id, r.label, ro, "why this price?")}</div>`;
   }
   // Design notes: one per formula row (keyed by row id) and one per section of the Sheet panel. They are the sheet's guide
@@ -2360,6 +2396,10 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <p><b>Targeting styles</b> multiply a targeted effect by how many cards it reaches. <b>Triggers:</b> keywords and given buffs are priced always on or at Fight Start; healing, charges, ammo and activating another card once a round (On Activate, After Activate, End of round), and After Attack × X. Anything else, and anything with a condition, a limit or a cost (other than charge-fed Block and Reflect), is priced by hand in the card's Effect BP; the editor lists those.</p>`;
   }
   let SH = { plan: null };
+  // The Sheet panel's tab (remembered between visits) and the text in its Find box
+  let shTab = "budget", shFind = "";
+  try { shTab = localStorage.getItem("jango-sheet-tab") || shTab; } catch (e) {}
+  const SH_FORMULA_TABS = new Set(["budget", ...FGROUPS.map((h, gi) => "g" + gi), "styles", "ship"]);
   function openSheetPanel() { SH = { plan: null }; $("#sheet").hidden = false; $("#sh-scrim").hidden = false; renderSheetPanel(); }
   function closeSheetPanel() { $("#sheet").hidden = true; $("#sh-scrim").hidden = true; SH = { plan: null }; }
   const statsText = c => `${c.atkVar ? "?" : (c.attack || []).map(a => a.amt).join("+") || "0"}${(c.mult || 1) > 1 ? "×" + c.mult : ""}/${c.health ?? "–"}${c.bpAdj ? ` · effect ${c.bpAdj}` : ""}`;
@@ -2376,17 +2416,24 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const on = [...cardsOfSheet(s.id).values()], only = on.filter(c => sheetsOf(c.id).length === 1).length;
     const check = on.filter(c => c.check).length, boards = builds.size, src = s.from && sheets.get(s.from);
     const was = upgradeFormula(s.baseline || s.formula), ro = !!readOnly;
-    const num = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" inputmode="decimal" data-fpath="${p}" value="${esc(v)}" ${dis}></label>`; };
-    const txt = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" class="wide" data-fstr="${p}" value="${esc(v)}" spellcheck="false" ${dis}></label>`; };
-    const flag = (p, label) => `<label class="frow fx-flag"><input type="checkbox" data-fbool="${p}" ${getPath(FORMULA, p) !== false ? "checked" : ""} ${dis}><span>${label}</span></label>`;
-    const groups = `<details class="fx-help"><summary>How formulas work</summary>${fxGuideHtml()}</details>
-      ${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}
-      <div class="fgroup"><h4>Budget</h4>${noteBox(secKey("Budget"), "Budget", ro, "the thinking behind the budget")}${num("budget.B", "B: the Mk I budget")}${num("budget.p", "p: more per floor step (0.125 is 12.5%)")}${num("budget.tolerance", "On budget within (0.1 is ±10%)")}
-        <p class="hint">budget = mark × B × (1 + p × floor steps). At each card's lowest mark: ${MARKS.map((m, i) => `Mk ${m}+ ${budgetAt("ext", i + 1, i + 1)}`).join(", ")}.</p></div>
-      ${FGROUPS.map((h, gi) => `<div class="fgroup"><h4>${esc(h)}</h4>${noteBox(secKey(h), h, ro, "the thinking behind this section")}${FROWS.filter(r => r.g === gi).map(r => fxRowHtml(r, was, ro)).join("")}</div>`).join("")}
-      <div class="fgroup"><h4>Targeting styles</h4>${noteBox(secKey("Targeting styles"), "Targeting styles", ro, "the thinking behind these multipliers")}<p class="hint">A targeted effect costs its tier's formula × its style × its trigger (After Attack: × X).</p>${FSTYLES.map(st => num("styles." + st.k, `${st.label}: ${esc(st.text)}`)).join("")}</div>
-      <div class="fgroup"><h4>Ship and fight</h4>${noteBox(secKey("Ship and fight"), "Ship and fight", ro, "the thinking behind these numbers")}${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}${txt("ship.storm", "Maelstrom damage: N is its round (1 for the first), M the cycle")}
-        <p class="hint">Each round it deals this to each ship's exterior row (front to back, then the hull) and half, rounded down, to its interior. At cycle 1: ${[1, 2, 3, 4, 5].map(k => stormDmg(k)).join(", ")} …</p>${flag("ship.emp", "Shields stop restoring once the Maelstrom starts (their shield points, Regen and charges still work)")}</div>`;
+    const fnd = label => `data-find="${esc(String(label).replace(/<[^>]+>/g, "").toLowerCase())}"`;
+    const num = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${fnd(label)} ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" inputmode="decimal" data-fpath="${p}" value="${esc(v)}" ${dis}></label>`; };
+    const txt = (p, label) => { const v = getPath(FORMULA, p), b = getPath(was, p), changed = v !== b; return `<label class="frow ${changed ? "changed" : ""}" ${fnd(label)} ${changed ? `title="The cards were balanced at ${esc(b)}"` : ""}><span>${label}</span><input type="text" class="wide" data-fstr="${p}" value="${esc(v)}" spellcheck="false" ${dis}></label>`; };
+    const flag = (p, label) => `<label class="frow fx-flag" ${fnd(label)}><input type="checkbox" data-fbool="${p}" ${getPath(FORMULA, p) !== false ? "checked" : ""} ${dis}><span>${label}</span></label>`;
+    // How many prices in each tab differ from what the cards were balanced to
+    const rowDiff = r => ["base", "dumb", "smart"].some(t => String((FORMULA.rows[r.id] || {})[t] || "").trim() !== String(((was.rows || {})[r.id] || {})[t] || "").trim());
+    const pathDiff = ps => ps.filter(p => getPath(FORMULA, p) !== getPath(was, p)).length;
+    const changedIn = {
+      budget: pathDiff(["budget.B", "budget.p", "budget.tolerance"]), styles: pathDiff(FSTYLES.map(st => "styles." + st.k)), ship: pathDiff(["ship.hull", "ship.speed", "ship.maelstrom", "ship.storm", "ship.emp"]),
+      ...Object.fromEntries(FGROUPS.map((h, gi) => ["g" + gi, FROWS.filter(r => r.g === gi && rowDiff(r)).length])),
+    };
+    const fsec = (key, title, inner) => `<section class="sh-sec" data-sec="${key}" data-kind="formula"><h3>${esc(title)}</h3><div class="fgroup">${inner}</div></section>`;
+    const formulaSecs = fsec("budget", "Budget", `${noteBox(secKey("Budget"), "Budget", ro, "the thinking behind the budget")}${num("budget.B", "B: the Mk I budget")}${num("budget.p", "p: more per floor step (0.125 is 12.5%)")}${num("budget.tolerance", "On budget within (0.1 is ±10%)")}
+        <p class="hint">budget = mark × B × (1 + p × floor steps). At each card's lowest mark: ${MARKS.map((m, i) => `Mk ${m}+ ${budgetAt("ext", i + 1, i + 1)}`).join(", ")}.</p>`)
+      + FGROUPS.map((h, gi) => fsec("g" + gi, h, `${noteBox(secKey(h), h, ro, "the thinking behind this section")}${FROWS.filter(r => r.g === gi).map(r => fxRowHtml(r, was, ro)).join("")}`)).join("")
+      + fsec("styles", "Targeting styles", `${noteBox(secKey("Targeting styles"), "Targeting styles", ro, "the thinking behind these multipliers")}<p class="hint">A targeted effect costs its tier's formula × its style × its trigger (After Attack: × X).</p>${FSTYLES.map(st => num("styles." + st.k, `${st.label}: ${esc(st.text)}`)).join("")}`)
+      + fsec("ship", "Ship and fight", `${noteBox(secKey("Ship and fight"), "Ship and fight", ro, "the thinking behind these numbers")}${num("ship.hull", "Hull")}${num("ship.speed", "Speed")}${num("ship.maelstrom", "Maelstrom from round")}${txt("ship.storm", "Maelstrom damage: N is its round (1 for the first), M the cycle")}
+        <p class="hint">Each round it deals this to each ship's exterior row (front to back, then the hull) and half, rounded down, to its interior. At cycle 1: ${[1, 2, 3, 4, 5].map(k => stormDmg(k)).join(", ")} …</p>${flag("ship.emp", "Shields stop restoring once the Maelstrom starts (their shield points, Regen and charges still work)")}`);
     const stale = !sameFormula(s.formula, s.baseline || s.formula);
     const plan = SH.plan;
     const planHtml = plan ? (plan.length ? `<p class="muted">${plan.length} card${plan.length === 1 ? "" : "s"} will be unapproved${plan.some(x => x.r.check) ? `; ${plan.filter(x => x.r.check).length} will also be marked for a check` : ""}. Effects are priced first, by the formulas; attack and health share the rest in each card's current ratio. Mult, ammo, charges, effect amounts and Effect BP stay as they are.</p>
@@ -2411,42 +2458,89 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const counts = publicMode && s.mine ? `Your sheet, kept in this browser · ${on.length} card${on.length === 1 ? "" : "s"} · ${boards} saved board${boards === 1 ? "" : "s"}${src ? ` · copied from ${esc(src.name)}` : ""}`
       : publicMode ? `${on.length} cards · ${boards} shared board${boards === 1 ? "" : "s"}${s.exported ? ` · exported ${esc(String(s.exported).slice(0, 10))}` : ""}. Make your own copy under Sheets to change it.`
       : `${on.length} cards · ${only} only on this sheet · ${check} to check · ${on.filter(c => c.public).length} public · ${boards} saved board${boards === 1 ? "" : "s"}${src ? ` · copied from ${esc(src.name)}` : ""}`;
-    body.innerHTML = `
+    const nChanged = Object.values(changedIn).reduce((a, b) => a + b, 0);
+    const tabs = [["This sheet", [["sheet", "Sheet"], ...(publicMode && readOnly ? [] : [["apply", "Auto Apply"]]), ["share", publicMode ? "Share and sheets" : "Export and sheets"]]],
+      ["Formulas", [["budget", "Budget"], ...FGROUPS.map((h, gi) => ["g" + gi, h]), ["styles", "Targeting styles"], ["ship", "Ship and fight"], ["help", "How formulas work"]]]];
+    const nav = `<nav class="sh-nav" aria-label="Sheet sections"><input type="search" class="sh-find" id="sh-find" placeholder="Find a price" aria-label="Find a price on this sheet" value="${esc(shFind)}">
+      ${tabs.map(([h, list]) => `<h5>${h}</h5>${list.map(([k, l]) => `<button type="button" class="sh-tab" role="tab" data-shtab="${k}" aria-selected="false"><span>${esc(l)}</span>${changedIn[k] ? `<span class="sh-dot" title="${changedIn[k]} changed since the cards were balanced">${changedIn[k]}</span>` : k === "apply" && stale ? `<span class="sh-dot" title="The formula has changed since the cards were balanced">!</span>` : ""}</button>`).join("")}`).join("")}</nav>`;
+    const foot = readOnly ? "" : `<div class="sh-foot"><button class="btn primary" type="button" id="sh-save-formula">Save formula</button><button class="btn" type="button" id="sh-revert" ${stale ? "" : "disabled"}>Back to the balanced formula</button>
+      <span class="muted">${stale ? `${nChanged ? `${nChanged} saved price${nChanged === 1 ? " differs" : "s differ"}` : "The saved formula differs"} from what the cards were balanced to: run Auto Apply to rebalance them.` : "Edit any price, then Save formula; Auto Apply then rebalances the cards."}</span>${stale ? `<button class="btn" type="button" data-shtab="apply">Auto Apply…</button>` : ""}</div>`;
+    body.innerHTML = `<div class="sh-layout">${nav}<div class="sh-main">
+      <section class="sh-sec" data-sec="sheet" data-kind="sheet"><h3>Sheet</h3>
       <div class="sheet-note">${counts}</div>
       <fieldset><legend>About this sheet</legend><div class="fgrid">
         <div class="field wide"><label for="sh-name">Name</label><input type="text" id="sh-name" value="${esc(s.name || "")}" ${dis}></div>
         ${publicMode || s.author ? `<div class="field wide"><label for="sh-author">Made by</label><input type="text" id="sh-author" value="${esc(s.author || "")}" placeholder="${publicMode ? "Your name, shown on this sheet and the cards you make" : ""}" maxlength="40" ${dis}></div>` : ""}
         <div class="field wide"><label for="sh-about">What it tests</label><textarea id="sh-about" rows="2" ${dis}>${esc(s.about || "")}</textarea></div>
         <div class="field wide"><label for="sh-notes">Sheet notes</label><textarea id="sh-notes" rows="3" ${dis}>${esc(s.notes || "")}</textarea><span class="hint">${publicMode && readOnly ? "The designer's notes on this sheet." : "Your notes; they show at the top of the Guide on this sheet."}</span></div>
-      </div>${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn" type="button" id="sh-save-meta">Save</button></div>`}</fieldset>
-      ${publicMode && readOnly ? "" : `<fieldset><legend>Auto Apply</legend>
+      </div>${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn" type="button" id="sh-save-meta">Save</button></div>`}</fieldset></section>
+      ${publicMode && readOnly ? "" : `<section class="sh-sec" data-sec="apply" data-kind="sheet"><h3>Auto Apply</h3><fieldset><legend>Auto Apply</legend>
         <p class="muted" style="margin:0 0 8px">${stale ? "The formula has changed since the cards were last balanced to it." : "The cards are balanced to this formula."} Auto Apply rebalances every card on this sheet to its budget: its effects are priced first, by the formulas, and attack and health share the rest of the budget in the card's current ratio. Every card it touches is unapproved; one whose effects alone cost more than its budget is also marked for a check.</p>
-        ${plan ? planHtml : `<div class="fab-row"><button class="btn ${stale ? "primary" : ""}" type="button" id="sh-plan">Preview Auto Apply</button></div>`}</fieldset>`}
+        ${plan ? planHtml : `<div class="fab-row"><button class="btn ${stale ? "primary" : ""}" type="button" id="sh-plan">Preview Auto Apply</button></div>`}</fieldset></section>`}
+      ${formulaSecs}
+      <section class="sh-sec" data-sec="help" data-kind="help"><h3>How formulas work</h3>
+        <p class="muted" style="margin:0">What everything costs on this sheet, in BP. A highlighted price differs from what the cards were balanced to; the number on a tab counts them. Save, then run Auto Apply. ${readOnly ? "" : "Design notes save as soon as you leave them, and show in the Guide."}</p>
+        ${FORMULA.legacy ? `<p class="sheet-note">This sheet was made before formula rows: its old number fields are now plain per-point formulas, and its placement rules (front health, prices for cards hit early, big hits) are gone.</p>` : ""}
+        <div class="fx-help-body">${fxGuideHtml()}</div></section>
+      <section class="sh-sec" data-sec="share" data-kind="sheet"><h3>${publicMode ? "Share and sheets" : "Export and sheets"}</h3>
       ${exportHtml}
-      <fieldset><legend>Formula</legend>
-        <p class="muted" style="margin:0 0 8px">What everything costs on this sheet, in BP. A highlighted row differs from what the cards were balanced to. Save, then run Auto Apply. ${readOnly ? "" : "Design notes save as soon as you leave them, and show in the Guide."}</p>
-        ${groups}
-        ${readOnly ? "" : `<div class="fab-row" style="margin-top:10px"><button class="btn primary" type="button" id="sh-save-formula">Save formula</button><button class="btn" type="button" id="sh-revert" ${stale ? "" : "disabled"}>Back to the balanced formula</button></div>`}</fieldset>
       ${readOnly && !publicMode ? "" : `<fieldset><legend>Sheets</legend>${publicMode ? `<p class="muted" style="margin:0 0 8px">Make a sheet of your own to change cards, the formula and the guide, and to add new cards. It's kept in this browser; export it to keep a copy or to share it.</p>` : ""}<div class="fgrid">
         <div class="field wide"><label for="sh-newname">New sheet</label><input type="text" id="sh-newname" value="${esc(publicMode ? uniqueSheetName("My Balance") : nextSheetName())}"></div></div>
         <div class="checkrow" style="margin-top:8px"><label><input type="radio" name="sh-start" id="sh-copy" value="copy" checked> A copy of this sheet</label><label><input type="radio" name="sh-start" id="sh-empty" value="empty"> Start empty</label></div>
         <div class="checkrow" style="margin-top:6px"><label><input type="checkbox" id="sh-newboards" checked> Copy its ${boards} saved board${boards === 1 ? "" : "s"} too</label></div>
         <p class="muted" id="sh-start-note">The copy starts with this sheet's formula, guide notes and every card's numbers. Change its formula, then run Auto Apply.</p>
-        <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}`;
-    body.querySelectorAll("[data-dnote]").forEach(fitNote);
+        <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}</section>
+      <p class="muted" id="sh-nofind" hidden>No price matches.</p>
+      ${foot}</div></div>`;
+    showShTab(shTab, true);
+    if (shFind) applyShFind(shFind);
   }
+  // Shows one tab of the Sheet panel. Every tab stays in the page, so edits on one survive a visit to another.
+  function showShTab(k, keepScroll = false) {
+    const body = $("#sh-body"), lay = body.querySelector(".sh-layout"); if (!lay) return;
+    if (!lay.querySelector(`[data-sec="${k}"]`)) k = "budget";
+    shTab = k; try { localStorage.setItem("jango-sheet-tab", k); } catch (e) {}
+    if (shFind) { shFind = ""; const f = $("#sh-find"); if (f) f.value = ""; lay.classList.remove("finding"); lay.querySelectorAll("[data-find]").forEach(x => { x.hidden = false; }); }
+    lay.querySelectorAll("[data-sec]").forEach(x => { x.hidden = x.dataset.sec !== k; });
+    lay.querySelectorAll(".sh-tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.shtab === k)));
+    const nav = lay.querySelector(".sh-nav"), on = nav && nav.querySelector(".sh-tab[aria-selected=\"true\"]");
+    if (on && nav.scrollWidth > nav.clientWidth + 1) nav.scrollLeft = Math.max(0, on.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2); // a phone: the tabs scroll sideways
+    const foot = lay.querySelector(".sh-foot"); if (foot) foot.hidden = !SH_FORMULA_TABS.has(k);
+    const nf = $("#sh-nofind"); if (nf) nf.hidden = true;
+    lay.querySelectorAll(`[data-sec="${k}"] [data-dnote]`).forEach(fitNote); // a note sizes to its text only once it's showing
+    if (!keepScroll) body.scrollTop = 0;
+  }
+  // Find: every price whose name, id or description holds the text, from every formula tab at once
+  function applyShFind(q) {
+    const lay = $("#sh-body .sh-layout"); if (!lay) return;
+    shFind = q; q = q.trim().toLowerCase();
+    if (!q) { lay.classList.remove("finding"); lay.querySelectorAll("[data-find]").forEach(x => { x.hidden = false; }); const k = shTab; shTab = ""; showShTab(k); return; }
+    lay.classList.add("finding");
+    let any = 0;
+    lay.querySelectorAll("[data-sec]").forEach(sec => {
+      if (sec.dataset.kind !== "formula") { sec.hidden = true; return; }
+      let n = 0; sec.querySelectorAll("[data-find]").forEach(x => { const m = x.dataset.find.includes(q); x.hidden = !m; if (m) n++; });
+      sec.hidden = !n; any += n;
+      if (n) sec.querySelectorAll("[data-dnote]").forEach(fitNote);
+    });
+    lay.querySelectorAll(".sh-tab").forEach(b => b.setAttribute("aria-selected", "false"));
+    const nf = $("#sh-nofind"); if (nf) nf.hidden = !!any;
+    const foot = lay.querySelector(".sh-foot"); if (foot) foot.hidden = false;
+  }
+  // Brings a field into view, opening its tab first (a formula that can't be saved, say)
+  function revealShField(el) { const sec = el && el.closest("[data-sec]"); if (sec && sec.hidden) showShTab(sec.dataset.sec); }
   // The formula as typed in the panel, or null (with a message) when a field isn't right
   function readFormulaForm() {
     const f = clone(FORMULA);
     delete f.legacy; f.v = 2;
     for (const el of document.querySelectorAll("#sh-body [data-fpath]")) {
       const raw = el.value.trim(), n = Number(raw);
-      if (raw === "" || isNaN(n)) { toast("Every number field needs a number."); el.focus(); return null; }
+      if (raw === "" || isNaN(n)) { toast("Every number field needs a number."); revealShField(el); el.focus(); return null; }
       setPath(f, el.dataset.fpath, n);
     }
     for (const el of document.querySelectorAll("#sh-body [data-fstr]")) {
       const v = el.value.replace(/\s+/g, " ").trim(), chk = v ? fxCheck(v, f.rows) : { ok: false, msg: "write a formula" };
-      if (!chk.ok) { toast(`Maelstrom damage: ${chk.msg}`); el.focus(); return null; }
+      if (!chk.ok) { toast(`Maelstrom damage: ${chk.msg}`); revealShField(el); el.focus(); return null; }
       setPath(f, el.dataset.fstr, v);
     }
     document.querySelectorAll("#sh-body [data-fbool]").forEach(el => setPath(f, el.dataset.fbool, el.checked));
@@ -2458,7 +2552,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       if (!chk.ok) {
         toast(`${r.label}, ${TIER_NAME[t].toLowerCase()}: ${chk.msg}`);
         const box = document.querySelector(`#sh-body .ffield[data-row="${r.id}"][data-tier="${t}"] .ffbox`);
-        if (box) { box.scrollIntoView({ block: "center" }); ffEdit(box); }
+        if (box) { revealShField(box); box.scrollIntoView({ block: "center" }); ffEdit(box); }
         return null;
       }
     }
@@ -2500,6 +2594,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const box = e.target.closest(".ffbox");
     if (box && !box.classList.contains("editing")) ffEdit(box);
   });
+  $("#sh-body").addEventListener("click", e => { const t = e.target.closest("[data-shtab]"); if (t) { showShTab(t.dataset.shtab); if (!t.classList.contains("sh-tab")) { const b = $(`#sh-body .sh-tab[data-shtab="${t.dataset.shtab}"]`); if (b) b.focus(); } } });
+  $("#sh-body").addEventListener("input", e => { if (e.target.id === "sh-find") applyShFind(e.target.value); });
   $("#sh-body").addEventListener("focusin", e => { if (e.target.classList && e.target.classList.contains("ffbox")) ffEdit(e.target); });
   $("#sh-body").addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("ffin")) ffIdle(e.target.closest(".ffbox")); });
   $("#sh-body").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.classList && e.target.classList.contains("ffin")) { e.preventDefault(); e.target.blur(); } });
@@ -2646,6 +2742,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       GrantHealth: "The raw rate: an inert resource",
       Activate: "Provisional: re-measure",
       DoubleDamage: "Provisional: re-measure",
+      Ramp: "Measured (2026-10-08, Test Board C against random boards): +1 after each attack on a 1-attack gun wins like a 2.5-attack gun, about 12 BP. With mult 2 the gains come twice as often and land on twice the hits, so After Attack is × X twice",
+      RampEarly: "On Activate measured like a 3.7-attack gun, about 22 BP: the Ramp's 12 plus one attack point (8 × X), since the first gain lands before the first attack",
       AttackPerWin: "Priced by break-even: base stats break even after about 1.5 cycles and the card pays back around cycle 3. On Death triggers balance themselves",
     },
     handPrices: [],
@@ -4329,10 +4427,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       toast(publicMode ? `${s.id}.json saved: upload it to the sheets folder on GitHub to share it` : `${s.id}.json ready: put it in the public copy's sheets folder`);
     } catch (err) { if (!err || err.code !== "declined") toast("The download didn't start. Try again in a moment."); }
   }
-  $("#export-sheet").addEventListener("click", () => {
-    openSheetPanel();
-    setTimeout(() => { const f = $("#sh-export"); if (f && f.scrollIntoView) f.scrollIntoView({ block: "start", behavior: "smooth" }); }, 30);
-  });
+  $("#export-sheet").addEventListener("click", () => { shTab = "share"; shFind = ""; openSheetPanel(); });
   // Card data for the game: the active sheet's cards plus the effect vocabulary. tools/sync_cards.py turns it into data/cards/cards.json.
   $("#export-json").addEventListener("click", async () => {
     const s = activeSheet();

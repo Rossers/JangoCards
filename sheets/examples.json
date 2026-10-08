@@ -1,7 +1,7 @@
 {
  "jango": "balance-sheet",
  "format": 1,
- "exported": "2026-10-08T06:25:33.453Z",
+ "exported": "2026-10-08T06:52:18.313Z",
  "vocab": 6,
  "sheet": {
   "id": "examples",
@@ -139,6 +139,16 @@
     },
     "Pierce": {
      "base": "4*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "Ramp": {
+     "base": "12*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "RampEarly": {
+     "base": "8*N*X",
      "dumb": "",
      "smart": ""
     },
@@ -390,6 +400,16 @@
      "dumb": "",
      "smart": ""
     },
+    "Ramp": {
+     "base": "12*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "RampEarly": {
+     "base": "8*N*X",
+     "dumb": "",
+     "smart": ""
+    },
     "Recharge": {
      "base": "12*N-4",
      "dumb": "",
@@ -546,6 +566,8 @@
     "MaxCharges": "Banking (spend-all dumps) and a reserve for repeated reactive triggers; spend-all scaling is unpriced upside",
     "Mult": "Each extra attack copies the attack at 8 a point, plus a surcharge (16, 40, 72, 112 for mult 2 to 5) for buff multiplication, overkill and beating Restore. Mk I Tri Gun: 1 attack, mult 3, 8 health",
     "Pierce": "Half of attack: it lands only when a card sits below the target, and never focus-fires. Revisit toward 5 to 6 a point once interiors are simulated full",
+    "Ramp": "Measured (2026-10-08, Test Board C against random boards): +1 after each attack on a 1-attack gun wins like a 2.5-attack gun, about 12 BP. With mult 2 the gains come twice as often and land on twice the hits, so After Attack is × X twice",
+    "RampEarly": "On Activate measured like a 3.7-attack gun, about 22 BP: the Ramp's 12 plus one attack point (8 × X), since the first gain lands before the first attack",
     "Recharge": "A charge is a container, priced blind to its target; a shield point is the floor. The −4 is burst leverage",
     "Reflect": "Escalates gently: Reflect never extends its own life",
     "Regen": "Above Self-Heal: Restore can bring its trigger back, and Regen fires after Restore",
