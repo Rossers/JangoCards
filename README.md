@@ -16,13 +16,13 @@ Browse existing cards, read the design guide, and arrange boards of cards to fig
 - **Fights are deterministic.** The larger a ship is (the more card slots), the slower it is, and the faster ship acts first. Each round, the two exterior rows take turns, card by card; then each ship's interior plays out, with its crew fighting any enemy boarders, defenders first.
 - **Attacks hit the frontmost enemy card.** Once a row is empty, they hit the hull. Last ship with an intact hull wins!
 - **Shields** never die: at 0 they go down, and recover after a round without damage. **Armor** is a sturdy wall. Shields are weak to Kinetic damage, Armor to Plasma.
-- **The Maelstrom** starts at a set round (12 on Ross Balance) and damages both hulls a little more each round, so no fight ends in a stalemate.
+- **The Maelstrom** starts at a set round (12 on Ross Examples) and damages both hulls a little more each round, so no fight ends in a stalemate.
 
 ## Using the tool
 
 ### Balance sheets
 
-A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on **Ross Balance**, the main design sheet. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
+A Balance Sheet is a complete set of cards with its own pricing rules and design notes. Each sheet tests a different balance idea, so the same card can have different numbers on different sheets. Switch sheets with the sheet name at the top left; the tool opens on **Ross Examples**: one example card for each of the main design sheet's formulas. **Sheet** shows that sheet's formulas: what everything costs, with worked examples and a grid under each.
 
 ### Cards
 

@@ -1,0 +1,1578 @@
+{
+ "jango": "balance-sheet",
+ "format": 1,
+ "exported": "2026-10-08T03:12:27.312Z",
+ "vocab": 6,
+ "sheet": {
+  "id": "ross-examples",
+  "name": "Ross Examples",
+  "order": 4,
+  "about": "Example cards for Ross Balance's formulas: one card per formula, each note showing how its BP adds up",
+  "notes": "Prices are formulas: open Sheet to see them, with examples and a grid under each. To try your own ideas, make a sheet of your own under Sheet (a copy, or start empty with these formulas).",
+  "author": "Ross",
+  "start": true,
+  "formula": {
+   "budget": {
+    "B": 96,
+    "p": 0.125,
+    "tolerance": 0.1
+   },
+   "rows": {
+    "Activate": {
+     "base": "64*M",
+     "dumb": "",
+     "smart": ""
+    },
+    "Ammo": {
+     "base": "min(1, Pa/(7*(0.3+0.7*(Pa-1)/6)))",
+     "dumb": "",
+     "smart": ""
+    },
+    "Attack": {
+     "base": "8*A",
+     "dumb": "",
+     "smart": ""
+    },
+    "AttackPerFight": {
+     "base": "22*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "AttackPerWin": {
+     "base": "24*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "Block": {
+     "base": "6*N*(N+3)-8",
+     "dumb": "",
+     "smart": ""
+    },
+    "ChargeBlock": {
+     "base": "1.5*Block(Pc)",
+     "dumb": "",
+     "smart": ""
+    },
+    "ChargeReflect": {
+     "base": "min(3*N*Pc + 2*Pc*(Pc+1) - 4, Reflect(N))",
+     "dumb": "",
+     "smart": ""
+    },
+    "Discharge": {
+     "base": "16*N-4",
+     "dumb": "",
+     "smart": ""
+    },
+    "DoubleDamage": {
+     "base": "52*M",
+     "dumb": "",
+     "smart": ""
+    },
+    "Execute": {
+     "base": "48",
+     "dumb": "",
+     "smart": ""
+    },
+    "Flank": {
+     "base": "32",
+     "dumb": "",
+     "smart": ""
+    },
+    "FreeRestore": {
+     "base": "16*M",
+     "dumb": "",
+     "smart": ""
+    },
+    "GrantAttack": {
+     "base": "12*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "GrantHealth": {
+     "base": "4*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "GrantMult": {
+     "base": "48*N + 6*N*(N-1)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Guard": {
+     "base": "2*M*(M+1)+4",
+     "dumb": "",
+     "smart": ""
+    },
+    "Heal": {
+     "base": "2*N*(N+1)",
+     "dumb": "1.4*N*(N+1)",
+     "smart": "1.4*N*(N+1)"
+    },
+    "Health": {
+     "base": "4*H",
+     "dumb": "",
+     "smart": ""
+    },
+    "HealthPerFight": {
+     "base": "10*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "HealthPerWin": {
+     "base": "12*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "MaxAmmo": {
+     "base": "4*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "MaxCharges": {
+     "base": "8*Pc",
+     "dumb": "",
+     "smart": ""
+    },
+    "Mult": {
+     "base": "4*(X-1)*(2*A+X+2)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Pierce": {
+     "base": "4*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "Recharge": {
+     "base": "12*N-4",
+     "dumb": "",
+     "smart": "16*N-4"
+    },
+    "Reflect": {
+     "base": "2*N*(N+5)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Regen": {
+     "base": "2*N*(N+2)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Reload": {
+     "base": "8*min(N,3) + 8*min(max(N-3,0),7) - min(max(N-3,0),7)*(min(max(N-3,0),7)+1)/2 + max(N-10,0)",
+     "dumb": "",
+     "smart": "12*min(N,5) + 12*min(max(N-5,0),11) - min(max(N-5,0),11)*(min(max(N-5,0),11)+1)/2 + max(N-16,0)"
+    },
+    "Repair": {
+     "base": "2*N*(N+1)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Resist": {
+     "base": "8*N*(N+2)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Restore": {
+     "base": "2*N*(N+4)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Splash": {
+     "base": "10*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "Taunt": {
+     "base": "2*M*(M+1)+4",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeElectric": {
+     "base": "-8*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeKinetic": {
+     "base": "0",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypePlasma": {
+     "base": "0",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeRadiation": {
+     "base": "-4*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeThermal": {
+     "base": "0",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnElectric": {
+     "base": "-16+12*min(Pc,1)",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnKinetic": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnPlasma": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnRadiation": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnThermal": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    }
+   },
+   "ship": {
+    "hull": 20,
+    "maelstrom": 12,
+    "speed": 50
+   },
+   "styles": {
+    "adjacent": 2,
+    "lateral": 1.5,
+    "most": 3,
+    "oneWay": 2,
+    "opposite": 4,
+    "row": 4,
+    "single": 1,
+    "some": 2,
+    "someNeighbors": 1.5
+   },
+   "v": 2
+  },
+  "baseline": {
+   "budget": {
+    "B": 96,
+    "p": 0.125,
+    "tolerance": 0.1
+   },
+   "rows": {
+    "Activate": {
+     "base": "64*M",
+     "dumb": "",
+     "smart": ""
+    },
+    "Ammo": {
+     "base": "min(1, Pa/(7*(0.3+0.7*(Pa-1)/6)))",
+     "dumb": "",
+     "smart": ""
+    },
+    "Attack": {
+     "base": "8*A",
+     "dumb": "",
+     "smart": ""
+    },
+    "AttackPerFight": {
+     "base": "22*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "AttackPerWin": {
+     "base": "24*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "Block": {
+     "base": "6*N*(N+3)-8",
+     "dumb": "",
+     "smart": ""
+    },
+    "ChargeBlock": {
+     "base": "1.5*Block(Pc)",
+     "dumb": "",
+     "smart": ""
+    },
+    "ChargeReflect": {
+     "base": "min(3*N*Pc + 2*Pc*(Pc+1) - 4, Reflect(N))",
+     "dumb": "",
+     "smart": ""
+    },
+    "Discharge": {
+     "base": "16*N-4",
+     "dumb": "",
+     "smart": ""
+    },
+    "DoubleDamage": {
+     "base": "52*M",
+     "dumb": "",
+     "smart": ""
+    },
+    "Execute": {
+     "base": "48",
+     "dumb": "",
+     "smart": ""
+    },
+    "Flank": {
+     "base": "32",
+     "dumb": "",
+     "smart": ""
+    },
+    "FreeRestore": {
+     "base": "16*M",
+     "dumb": "",
+     "smart": ""
+    },
+    "GrantAttack": {
+     "base": "12*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "GrantHealth": {
+     "base": "4*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "GrantMult": {
+     "base": "48*N + 6*N*(N-1)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Guard": {
+     "base": "2*M*(M+1)+4",
+     "dumb": "",
+     "smart": ""
+    },
+    "Heal": {
+     "base": "2*N*(N+1)",
+     "dumb": "1.4*N*(N+1)",
+     "smart": "1.4*N*(N+1)"
+    },
+    "Health": {
+     "base": "4*H",
+     "dumb": "",
+     "smart": ""
+    },
+    "HealthPerFight": {
+     "base": "10*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "HealthPerWin": {
+     "base": "12*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "MaxAmmo": {
+     "base": "4*N",
+     "dumb": "",
+     "smart": ""
+    },
+    "MaxCharges": {
+     "base": "8*Pc",
+     "dumb": "",
+     "smart": ""
+    },
+    "Mult": {
+     "base": "4*(X-1)*(2*A+X+2)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Pierce": {
+     "base": "4*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "Recharge": {
+     "base": "12*N-4",
+     "dumb": "",
+     "smart": "16*N-4"
+    },
+    "Reflect": {
+     "base": "2*N*(N+5)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Regen": {
+     "base": "2*N*(N+2)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Reload": {
+     "base": "8*min(N,3) + 8*min(max(N-3,0),7) - min(max(N-3,0),7)*(min(max(N-3,0),7)+1)/2 + max(N-10,0)",
+     "dumb": "",
+     "smart": "12*min(N,5) + 12*min(max(N-5,0),11) - min(max(N-5,0),11)*(min(max(N-5,0),11)+1)/2 + max(N-16,0)"
+    },
+    "Repair": {
+     "base": "2*N*(N+1)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Resist": {
+     "base": "8*N*(N+2)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Restore": {
+     "base": "2*N*(N+4)",
+     "dumb": "",
+     "smart": ""
+    },
+    "Splash": {
+     "base": "10*N*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "Taunt": {
+     "base": "2*M*(M+1)+4",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeElectric": {
+     "base": "-8*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeKinetic": {
+     "base": "0",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypePlasma": {
+     "base": "0",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeRadiation": {
+     "base": "-4*X",
+     "dumb": "",
+     "smart": ""
+    },
+    "TypeThermal": {
+     "base": "0",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnElectric": {
+     "base": "-16+12*min(Pc,1)",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnKinetic": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnPlasma": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnRadiation": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    },
+    "VulnThermal": {
+     "base": "-16",
+     "dumb": "",
+     "smart": ""
+    }
+   },
+   "ship": {
+    "hull": 20,
+    "maelstrom": 12,
+    "speed": 50
+   },
+   "styles": {
+    "adjacent": 2,
+    "lateral": 1.5,
+    "most": 3,
+    "oneWay": 2,
+    "opposite": 4,
+    "row": 4,
+    "single": 1,
+    "some": 2,
+    "someNeighbors": 1.5
+   },
+   "v": 2
+  },
+  "guide": {
+   "buffPoints": [
+    "**Price what a card offers, never who receives it.** A buff is priced for what it gives, not for the card that ends up with it.",
+    "**Price against maximums, never live state.** Pips mean maximum capacity.",
+    "**Don't price a keyword off another stat on the same card.** Rare synergies are unpriced upside; Mult reading attack and charge-fed effects reading pips are the exceptions.",
+    "**Effects on a card that dies early** (self-healing, Taunt, Guard) are priced low."
+   ],
+   "findings": [
+    "**The 6/12 shape.** Mirror matches, 6v6 and 8v8 exterior rows, with and without a Shields (22) and Armor (25) pair, hull 20, Maelstrom from round 12: 6 attack, 12 health is the only shape that stays in or near 6 to 8 rounds in every configuration. Leaning to health runs into the Maelstrom; leaning to attack ends in about two rounds.",
+    "Damage matters most early, so weapons belong behind the Armor.",
+    "The first mover wins about 55% of even fights.",
+    "Boarding is about numbers: equal crews stall, and boarding pays off against a thin interior.",
+    "Pierce looked worthless only because the sims had empty interior rows.",
+    "To re-check: fight length with plain Shields at {shields} and Armor at {armor}."
+   ],
+   "handPrices": [],
+   "notes": {
+    "Activate": "Provisional: re-measure",
+    "Ammo": "Price per attack point: 8 × ammo ÷ (7 × reclaim), reclaim 30% + 70% × (ammo − 1) ÷ 6. 3.8 a point at 1 ammo, full price from 7. Baseline: a 6-attack Cannon deals 42 over 7 volleys",
+    "Attack": "The first hit. 6 attack and 12 health (2:1) is the only shape that kept mirror fights in or near 6 to 8 rounds in every sim configuration",
+    "AttackPerWin": "Priced by break-even: base stats break even after about 1.5 cycles and the card pays back around cycle 3. On Death triggers balance themselves",
+    "Block": "A count; never scales with mark. Cheaper than Resist, since it is weak against mult. Revisit if it shuts down big single hits",
+    "ChargeBlock": "The 1.5 is a refill premium, since charges can come back mid-fight. Only 1 pip is realistic at Mk I",
+    "ChargeReflect": "Pip surcharge 0, 8, 20, 36, 56, 80 for 1 to 6 pips; never more than always-on Reflect",
+    "Discharge": "Spreads onward instead of wasting, so it sits on the top tier",
+    "DoubleDamage": "Provisional: re-measure",
+    "Execute": "Six attack points' worth: it nearly always secures kills. Nudge toward 64 if it proves oppressive",
+    "Flank": "Four attack points' worth: it reaches the glass cannons behind the tanks",
+    "FreeRestore": "Every Shields card has Restore equal to its mark",
+    "GrantAttack": "8 a point × 1.5 leverage",
+    "GrantHealth": "The raw rate: an inert resource",
+    "GrantMult": "Fires once and persists if the grantor dies. A version that stacks each activation is a Mk III+ scaler, not formula-priced",
+    "Guard": "Priced as Taunt: different tools, each sure to do its job. Split them if the sim shows one dominating",
+    "Heal": "Self-Heal is cheap because the card usually dies within 1 or 2 ticks. Passed Heal is 30% off: Biological targets are rarer and squishier",
+    "Health": "Flat: no placement discount",
+    "MaxAmmo": "Nearly inert alone: it needs a reload to fill",
+    "MaxCharges": "Banking (spend-all dumps) and a reserve for repeated reactive triggers; spend-all scaling is unpriced upside",
+    "Mult": "Each extra attack copies the attack at 8 a point, plus a surcharge (16, 40, 72, 112 for mult 2 to 5) for buff multiplication, overkill and beating Restore. Mk I Tri Gun: 1 attack, mult 3, 8 health",
+    "Pierce": "Half of attack: it lands only when a card sits below the target, and never focus-fires. Revisit toward 5 to 6 a point once interiors are simulated full",
+    "Recharge": "A charge is a container, priced blind to its target; a shield point is the floor. The −4 is burst leverage",
+    "Reflect": "Escalates gently: Reflect never extends its own life",
+    "Regen": "Above Self-Heal: Restore can bring its trigger back, and Regen fires after Restore",
+    "Reload": "No surcharge: 1 ammo per volley means no burst leverage. The taper's slope is a sim knob",
+    "Repair": "Passing's flexibility cancels against the support-card tax, so passed Repair costs what Self-Repair does",
+    "Resist": "Resist 2 costs 64 at Mk I, so it is effectively Mk II+: it shouldn't hard-counter Mk I weapons",
+    "Restore": "Above Regen: the only thing that works while the shield is down",
+    "Splash": "Above attack: the rear splash nearly always lands and reaches past protectors. 10, not 12, because it doesn't focus-fire",
+    "Taunt": "Rises with mark for combo headroom, not survival. Indiscriminate, so it dies faster",
+    "TypeElectric": "Per hit. A 1-attack Electric gun's attack nets to 0",
+    "VulnKinetic": "+1 damage per hit: about 2 hits a fight × 1 point × 8 BP",
+    "armor": "**Armor** at Mk I is {armor} health with **Vulnerable (Plasma)**, which gives back {vulnOther} BP.",
+    "shields": "**Shields** at Mk I is {shields} shield points with **Vulnerable (Kinetic)**, which gives back {vulnK} BP, and its free Restore 1, worth {restore}."
+   }
+  }
+ },
+ "cards": {
+  "D01": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 6,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Cannon",
+   "notes": "The reference card: attack 48 + health 48 = 96.",
+   "order": 0,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "D05": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 3,
+   "name": "Tri Gun",
+   "notes": "Mult 3 at Mk I is locked to 1 attack: attack 8 + mult 56 + health 32.",
+   "order": 1,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D06": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Vulnerable (Kinetic). Restore 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Vulnerable",
+     "target": "self",
+     "trigger": "",
+     "type": "Kinetic"
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "keyword": "Restore",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 24,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Stock Shield",
+   "notes": "The starter ship's shields. Shield points 96 − Vulnerable 16 + free Restore 16.",
+   "order": 2,
+   "parked": false,
+   "pick": false,
+   "place": "Shields slot",
+   "public": true,
+   "recipes": [
+    "starting_item"
+   ],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Shields"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D07": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Vulnerable (Plasma).",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Vulnerable",
+     "target": "self",
+     "trigger": "",
+     "type": "Plasma"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 28,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Stock Armor",
+   "notes": "The starter ship's armor. Health 112 − Vulnerable 16.",
+   "order": 3,
+   "parked": false,
+   "pick": false,
+   "place": "Armor slot",
+   "public": true,
+   "recipes": [
+    "starting_item"
+   ],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Armor"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "X59": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "On winning a fight: Gain +1 attack permanently.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "duration": "permanent",
+     "source": "value",
+     "stat": "attack",
+     "target": "self",
+     "trigger": "on_win"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 10,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Veteran Cannon",
+   "notes": "The settled scaler example: attack 32 + health 40 + scaler 24.",
+   "order": 4,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Scaler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "R01": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Resist 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 1,
+     "keyword": "Resist",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Prospector Cannon",
+   "notes": "Mining's Cannon: tough and slow. The sketch of 4/16 with Resist was 120 BP; 3/12 with Resist 1 is 96.",
+   "order": 5,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "R02": {
+   "ammo": 3,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 8,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "End of round: Reload 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "reload",
+     "amount": 1,
+     "source": "value",
+     "target": "self",
+     "trigger": "end_of_round"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 9,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Frontier Repeater",
+   "notes": "Frontier's Cannon: high attack, low health, limited ammo it reloads itself.",
+   "order": 6,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "X102": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Electric"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "After Attack: Discharge 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "discharge",
+     "amount": 1,
+     "source": "value",
+     "target": "self",
+     "trigger": "after_attack"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 10,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 2,
+   "name": "Arc Projector",
+   "notes": "Research: Electric and Discharge. After Attack prices × X, so Discharge 1 costs 2 × 12.",
+   "order": 7,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "X30": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Taunt.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Taunt",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 22,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Decoy Buoy",
+   "notes": "Taunt 8 at Mk I.",
+   "order": 8,
+   "parked": false,
+   "pick": false,
+   "place": "Front",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "X35": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": 2,
+   "check": "",
+   "effect": "On Attacked: Spend a charge: block the attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "block_attack",
+     "cost": "charge",
+     "costCount": 1,
+     "target": "attack",
+     "trigger": "on_attacked"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 5,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Ablative Tiles",
+   "notes": "Charge-fed Block with 2 pips: 1.5 × Block(2) = 78. The formula reads Pc, so the pips aren't charged again.",
+   "order": 9,
+   "parked": false,
+   "pick": false,
+   "place": "Front",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "user",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "X36": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Adjacent weapons have Execute.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Execute",
+     "target": "adjacent_weapons",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 6,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Targeting Array",
+   "notes": "Execute 48, given to adjacent weapons: × 1.5 (some neighbors).",
+   "order": 10,
+   "parked": false,
+   "pick": false,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Exterior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "System",
+    "Electronics"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "R03": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Self-Repair 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Self-Repair",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 21,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Patchwork Plating",
+   "notes": "Frontier self-sufficiency: Self-Repair 2 is 12.",
+   "order": 11,
+   "parked": false,
+   "pick": false,
+   "place": "Front",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Defense",
+    "Mechanical"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "R04": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "charges": null,
+   "check": "",
+   "effect": "Vulnerable (Kinetic). Restore 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Vulnerable",
+     "target": "self",
+     "trigger": "",
+     "type": "Kinetic"
+    },
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Restore",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 22,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Flux Shield",
+   "notes": "Research's flip-flop shield: a smaller pool, bigger Restore. Restore 2 pays for the 1 above the free Restore (10).",
+   "order": 12,
+   "parked": false,
+   "pick": false,
+   "place": "Shields slot",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "Shields"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "D17": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Flank.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Flank",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 10,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Assassin",
+   "notes": "Flank 32: attack 24 + Flank 32 + health 40.",
+   "order": 13,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "D23": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "The weapon above this gains +1 mult.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_mult",
+     "amount": 1,
+     "target": "above_weapon",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 10,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Gunner",
+   "notes": "Granted mult +1 is 48: attack 8 + 48 + health 40.",
+   "order": 14,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "I38": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Heal 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Heal",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 18,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Medic",
+   "notes": "Heal 2 passes to Biological neighbors: 30% off, 8.4. 96.4 rounds to 96, once.",
+   "order": 15,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [
+    "medical"
+   ],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I12": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Guard.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "keyword": "Guard",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Bodyguard",
+   "notes": "Guard 8 at Mk I.",
+   "order": 16,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "I32": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "On Activate: The weapon above this reloads 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "reload",
+     "amount": 2,
+     "source": "value",
+     "target": "above_weapon",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Loader",
+   "notes": "A fixed reload: 8 an ammo.",
+   "order": 17,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "industrial"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "I47": {
+   "ammo": null,
+   "approved": false,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "interior",
+   "charges": null,
+   "check": "",
+   "effect": "Repair 2.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "keyword": "Repair",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "",
+   "from": "",
+   "gearSlots": null,
+   "health": 21,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Repair Droid",
+   "notes": "Repair 2 passes to neighbors that aren't Biological: 12, the same as Self-Repair.",
+   "order": 18,
+   "parked": false,
+   "pick": false,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Mechanical"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  }
+ },
+ "boards": []
+}

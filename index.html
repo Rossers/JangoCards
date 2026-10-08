@@ -1383,7 +1383,8 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   const fidOf = (e, i) => e.id || "f" + (i + 1);
   const newFid = () => "f" + Math.random().toString(36).slice(2, 7);
   const sheetList = () => [...sheets.values()].sort((a, b) => (a.order || 0) - (b.order || 0) || String(a.id).localeCompare(String(b.id)));
-  const activeSheet = () => sheets.get(sheetId) || sheets.get("ross") || sheetList()[0] || null;
+  // With no sheet chosen yet, the page opens on a sheet marked `start` (Ross Examples), else Ross Balance, else the first
+  const activeSheet = () => sheets.get(sheetId) || sheetList().find(x => x.start) || sheets.get("ross") || sheetList()[0] || null;
   const shortName = s => s ? String(s.name || s.id).split(/\s+/)[0] : "";
   const onSheet = (s, id) => !!(s && cardsOfSheet(s.id).has(id));
   const sheetsOf = id => sheetList().filter(s => onSheet(s, id));
@@ -4005,7 +4006,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
       if (bad.length) skipped.push({ name: b.name, cards: bad.map(id => (cardsOfSheet(s.id).get(id) || { name: id }).name) });
       else boards.push({ id: b.id, name: b.name, order: b.order || 0, board: B });
     });
-    const sheet = { id: s.id, name: s.name, order: s.order || 0, about: s.about || "", notes: s.notes || "", ...(s.author ? { author: s.author } : {}), formula: clone(s.formula || FORMULA_SEED), baseline: clone(s.baseline || s.formula || FORMULA_SEED), guide: clone(s.guide || {}) };
+    const sheet = { id: s.id, name: s.name, order: s.order || 0, about: s.about || "", notes: s.notes || "", ...(s.author ? { author: s.author } : {}), ...(s.start ? { start: true } : {}), formula: clone(s.formula || FORMULA_SEED), baseline: clone(s.baseline || s.formula || FORMULA_SEED), guide: clone(s.guide || {}) };
     return {
       file: { jango: "balance-sheet", format: 1, exported: new Date().toISOString(), vocab: VOCAB.version, sheet, cards: Object.fromEntries(out.map(c => [c.id, storedCard(credit(c, s.author))])), boards },
       cards: out.length, privateCards: all.filter(c => !c.public).length, parkedPublic: all.filter(c => c.public && c.parked).length, skipped,
@@ -4135,7 +4136,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
   }
   function enterPublicMode() {
     publicMode = true;
-    try { sheetId = localStorage.getItem("jango-cards-sheet") || null; } catch (e) { sheetId = null; } // Ross Balance unless the visitor chose another
+    try { sheetId = localStorage.getItem("jango-cards-sheet") || null; } catch (e) { sheetId = null; } // the start sheet unless the visitor chose another
     document.body.classList.add("public");
     document.title = "Jango Cards";
     $(".brand h1").textContent = "Jango Cards";
