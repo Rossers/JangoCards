@@ -6,7 +6,7 @@ A card browser and fight simulator for **Jango**, a tableau-builder, sci-fi, aut
 
 Browse existing cards, read the design guide, and arrange boards of cards to fight in the simulator.
 
-[How a fight works](#how-a-fight-works) · [Using the tool](#using-the-tool) · [Make your own sheet](#make-your-own-sheet-optional) · [Share your sheet](#share-your-sheet)
+[How a fight works](#how-a-fight-works) · [Using the tool](#using-the-tool) · [Make your own sheet](#make-your-own-sheet-optional) · [Use it offline](#use-it-offline-on-a-phone) · [Share your sheet](#share-your-sheet)
 
 ## How a fight works
 
@@ -78,6 +78,18 @@ For trying your own balance ideas or cards.
    - Pick **Not on this sheet** in the filters to see cards from other sheets, and **Add from …** to bring one over.
 4. Your sheet is saved in this browser, on this device only, so you must export it to save a backup.
 
+## Use it offline on a phone
+
+The site keeps a copy of itself and its sheets once you've opened it with a connection, so it also works with no signal.
+
+1. **With a connection**, open https://rossers.github.io/JangoCards/ in Chrome and wait for the cards to show.
+2. Chrome's **⋮** menu, then **Add to Home screen** (or **Install app**). A Jango Cards icon appears on your home screen.
+3. Make your own sheet (above) while you still have a connection, if you want to change cards.
+4. **Offline**, open it from the home screen icon. Everything works: browse, edit your own sheets, build boards and run fights. Your sheets stay on the phone.
+5. Export your sheet now and then (Sheet, Export and share): the file saves to the phone's Downloads, even offline, and is your backup.
+
+With a weak signal the site waits a few seconds for the network, then uses its kept copy. Opening it again with a connection picks up any newer cards.
+
 ## Share your sheet
 
 **1. Export it.** In **Sheet**, under **Export and share**, press **Export**. A file such as `my-balance-k3x9.json` downloads. Keep it: **Open a sheet file** (in Sheet, under Sheets) loads it back, here or on another device.
@@ -113,3 +125,4 @@ Ross gets a notification and will review it when he can. Once he accepts it, you
   - Press `Export <sheet id>.json` (e.g. `Export alpha.json`), then upload the file like normal.
   - Newer exports replace older ones of the same name.
 - **To Remove a Sheet**, delete its file from `sheets/`.
+- **Merge Edits Back** (a copy of one of your sheets, edited in the public copy or on a phone): **Open a sheet file** in the Card Picker loads the export as a new sheet. Then open your sheet, and in Sheet > Export and sheets > **Merge cards from another sheet**, pick it: its new cards and the ones it changed are listed, each with a tick. Merged cards are unapproved and marked for a check. Delete the loaded sheet afterwards.

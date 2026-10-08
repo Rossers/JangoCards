@@ -551,6 +551,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .bp-un, .bp-live .fx-err { flex-basis: 100%; font-family: var(--body); font-size: 13px; }
 .bp-un ul { margin: 4px 0 0; padding-left: 18px; }
 .bp-un.warn { color: var(--warn); }
+/* merging cards from another sheet */
+.mlist { display: grid; gap: 2px; max-height: 340px; overflow-y: auto; background: var(--sunk); border-radius: 6px; padding: 6px 8px; }
+.mrow { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; padding: 2px 0; cursor: pointer; }
+.mrow input { flex: none; }
 /* design notes: one per formula row and per section of the Sheet panel */
 /* Design notes: secondary text, set apart by a small label, a thin grey stripe, a faint wash and italics; the accent shows
    only while a note is being written, and an empty box stays bare until used */
@@ -1704,6 +1708,38 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // The name a visitor last put in Made by, for their next sheet
   const lastAuthor = () => { try { return localStorage.getItem("jango-cards-author") || ""; } catch (e) { return ""; } };
   function uniqueSheetName(base) { const used = new Set(sheetList().map(s => String(s.name || "").toLowerCase())); let n = 1, name = base; while (used.has(name.toLowerCase())) name = `${base} ${++n}`; return name; }
+  // Merging another sheet's cards into this one: the cards it has that this sheet doesn't, and the ones whose design differs
+  // there (credit and list order aside). Nothing is deleted. Merged cards are unapproved and marked for a check.
+  function mergePlan(srcId, dstId) {
+    const A = cardsOfSheet(srcId), B = cardsOfSheet(dstId), out = [], key = c => designKey(c, ["by", "src", "order"]);
+    A.forEach((c, id) => { const d = B.get(id); if (!d) out.push({ id, c, kind: "new" }); else if (key(c) !== key(d)) out.push({ id, c, d, kind: "changed" }); });
+    return out.sort((x, y) => (x.c.order ?? 1e9) - (y.c.order ?? 1e9));
+  }
+  // What changed on a card, in a few words: "4/14 → 4/12 · card text · flavor"
+  function mergeWhat(d, c) {
+    const same = (...ks) => ks.every(k => JSON.stringify(d[k] ?? null) === JSON.stringify(c[k] ?? null)), out = [];
+    if (statsText(d) !== statsText(c)) out.push(`${statsText(d)} → ${statsText(c)}`);
+    if (!same("ammo", "ammoEmpty", "charges", "chargesEmpty")) out.push("ammo or charges");
+    if (d.name !== c.name) out.push(`was ${d.name}`);
+    if (effectCache(d) !== effectCache(c)) out.push("card text");
+    if (!same("tags")) out.push("tags");
+    if (!same("sources", "tech", "recipes")) out.push("sectors");
+    if (!same("minMark", "row", "place", "role", "bucket", "kind", "attach")) out.push("mark, row or role");
+    if (!same("flavor")) out.push("flavor");
+    if (!same("notes")) out.push("design notes");
+    return out.join(" · ") || "details";
+  }
+  function applyMerge(s, src, M) {
+    const rows = mergePlan(src.id, s.id).filter(r => !M.skip.has(r.id)), changes = {};
+    rows.forEach(({ id, c, d }) => {
+      const x = storedCard(c);
+      if (M.mine) { if (x.src === "community") x.src = "user"; x.by = ""; x.edited = false; x.editedBy = ""; }
+      Object.assign(x, d ? { pick: !!d.pick, public: !!d.public, parked: !!d.parked, order: d.order } : { public: publicMode }, { approved: false, check: `Merged from ${src.name}`, from: src.id });
+      changes[id] = x;
+    });
+    const takeF = !!M.formula && !sameFormula(src.formula, s.formula);
+    return { n: rows.length, takeF, done: Promise.all([rows.length ? writeCards(s.id, changes) : null, takeF ? writeSheet(s.id, { formula: clone(src.formula) }) : null]) };
+  }
   // Writes a whole new sheet: its document, its 8 chunks, then its boards
   async function writeNewSheet(id, doc, chunks, boards = []) {
     sheets.set(id, { ...doc, id }); chunkData.set(id, chunks); sheetCardCache.delete(id);
@@ -2423,6 +2459,14 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const lines = fxLinesHtml(c);
     $("#fx-preview").innerHTML = (lines || (c.effectNote ? "" : `<span class="none">No effect.</span>`)) + (c.effectNote ? `<div class="fx-note">${typeColor(esc(c.effectNote))}</div>` : "");
   }
+  // A card's design only, for telling a real change from none: effects as the editor cleans them, no review or picking
+  // marks, and empty values dropped. extra: more fields to leave out.
+  function designKey(c, extra = []) {
+    const o = storedCard({ ...c, effects: (c.effects || []).map(e => { const { id: _f, ...x } = cleanEffect({ ...e }); return x; }) });
+    ["effect", "edited", "editedBy", "check", "approved", "pick", "parked", "public", "timing", "from", ...extra].forEach(k => delete o[k]);
+    Object.keys(o).forEach(k => { const v = o[k]; if (v == null || v === "" || v === false || (Array.isArray(v) && !v.length) || ((k === "mult" || k === "minMark") && Number(v) === 1)) delete o[k]; });
+    return JSON.stringify(canon(o));
+  }
   // Keep only the fields an effect's action uses, so stored effects stay tidy
   function cleanEffect(e) {
     const A = ACT[e.action] || {}, P = A.params || [], k = KW[e.keyword] || {}, out = { ...(e.id ? { id: e.id } : {}), trigger: e.trigger || "", target: e.target, action: e.action };
@@ -2503,14 +2547,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (!data.name) { toast("Give the card a name first."); $("#e-name").focus(); return; }
     const id = editing.id, doc = storedCard({ ...editing, ...data, check: data.approved ? "" : (editing.check || "") });
     // In the public copy, a visitor's change to a card from elsewhere marks it as edited (and by whom, once their sheet has a name)
-    const was = cards.get(id), plain = c => {
-      // The card's design only: effects as the editor cleans them, no review or picking marks, and empty values dropped
-      const o = storedCard({ ...c, effects: (c.effects || []).map(e => { const { id: _f, ...x } = cleanEffect({ ...e }); return x; }) });
-      ["effect", "edited", "editedBy", "check", "approved", "pick", "parked", "public", "timing", "from"].forEach(k => delete o[k]);
-      Object.keys(o).forEach(k => { const v = o[k]; if (v == null || v === "" || v === false || (Array.isArray(v) && !v.length) || ((k === "mult" || k === "minMark") && Number(v) === 1)) delete o[k]; });
-      return JSON.stringify(canon(o));
-    };
-    if (publicMode && was && doc.src !== "community" && plain(was) !== plain(doc)) { doc.edited = true; doc.editedBy = s.author || was.editedBy || ""; }
+    const was = cards.get(id);
+    if (publicMode && was && doc.src !== "community" && designKey(was) !== designKey(doc)) { doc.edited = true; doc.editedBy = s.author || was.editedBy || ""; }
     closeEditor();
     writeCards(s.id, { [id]: doc }).then(() => toast(isNew ? "Card added" : "Saved")).catch(() => {});
     renderAll();
@@ -2760,12 +2798,32 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         <div class="checkrow" style="margin-top:8px"><label><input type="radio" name="sh-start" id="sh-copy" value="copy" checked> A copy of this sheet</label><label><input type="radio" name="sh-start" id="sh-empty" value="empty"> Start empty</label></div>
         <div class="checkrow" style="margin-top:6px"><label><input type="checkbox" id="sh-newboards" checked> Copy its ${boards} saved board${boards === 1 ? "" : "s"} too</label></div>
         <p class="muted" id="sh-start-note">The copy starts with this sheet's formula, guide notes and every card's numbers. Change its formula, then run Auto Apply.</p>
-        <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}</section>
+        <div class="fab-row"><button class="btn" type="button" id="sh-create">Create sheet</button><label class="btn" title="Open a sheet file the Export button made, as a new sheet">Open a sheet file<input type="file" id="sh-import" accept=".json,application/json" hidden></label><span class="spacer"></span>${readOnly ? "" : `<button class="btn danger" type="button" id="sh-delete" ${sheets.size < 2 ? "disabled title=\"The only sheet can't be deleted\"" : ""}>Delete this sheet</button>`}</div></fieldset>`}
+      ${mergeHtml(s)}</section>
       <p class="muted" id="sh-nofind" hidden>No price matches.</p>
       ${foot}</div></div>`;
     showShTab(shTab, true);
     if (shFind) applyShFind(shFind);
   }
+  // The Merge fieldset: pick a sheet, see its new and changed cards (each can be left out), then merge
+  function mergeHtml(s) {
+    const others = sheetList().filter(x => x.id !== s.id);
+    if (readOnly || !others.length) return "";
+    const M = SH.merge || (SH.merge = { from: "", skip: new Set(), mine: null, formula: false });
+    const src = others.find(x => x.id === M.from) || null, rows = src ? mergePlan(src.id, s.id) : [];
+    const fDiff = !!src && !sameFormula(src.formula, s.formula), mine = M.mine ?? (!src || !src.author || src.author === s.author);
+    const n = rows.filter(r => !M.skip.has(r.id)).length, nNew = rows.filter(r => r.kind === "new").length;
+    const list = rows.map(r => `<label class="mrow"><input type="checkbox" data-mpick="${esc(r.id)}" ${M.skip.has(r.id) ? "" : "checked"}><span><b>${esc(r.c.name)}</b> <span class="hint">${r.kind === "new" ? "new card" : esc(mergeWhat(r.d, r.c))}</span></span></label>`).join("");
+    const body = !src ? "" : !rows.length && !fDiff ? `<p class="muted">Every card on ${esc(src.name)} matches this sheet.</p>`
+      : `${rows.length ? `<p class="hint" style="margin:8px 0 4px">${nNew} new, ${rows.length - nNew} changed. Untick any to leave it out.</p><div class="mlist">${list}</div>` : `<p class="muted">The cards match; only the formula differs.</p>`}
+        <div class="checkrow" style="margin-top:8px">${rows.length ? `<label><input type="checkbox" id="sh-mmine" ${mine ? "checked" : ""}> They're mine: no friend credit or Edited marks</label>` : ""}${fDiff ? `<label><input type="checkbox" id="sh-mformula" ${M.formula ? "checked" : ""}> Also take its formula</label>` : ""}</div>
+        <div class="fab-row" style="margin-top:8px"><button class="btn primary" type="button" id="sh-mgo" ${n || (fDiff && M.formula) ? "" : "disabled"}>Merge ${n} card${n === 1 ? "" : "s"}${fDiff && M.formula ? " and the formula" : ""} into ${esc(s.name)}</button></div>`;
+    return `<fieldset id="sh-merge"><legend>Merge cards from another sheet</legend>
+      <p class="muted" style="margin:0 0 8px">Brings cards from another sheet into ${esc(s.name)}: the ones it has that this sheet doesn't, and the ones whose design differs there (stats, effects, text, tags, sectors). Use it to bring back a copy you edited elsewhere, such as a sheet you exported from the public copy and opened here with <b>Open a sheet file</b>. Nothing on this sheet is deleted, and every card merged in is unapproved and marked for a check.</p>
+      <div class="fgrid"><div class="field wide"><label for="sh-mfrom">From</label><select id="sh-mfrom"><option value="">Pick a sheet</option>${others.map(x => `<option value="${esc(x.id)}" ${src && x.id === src.id ? "selected" : ""}>${esc(x.name)}${publicMode && x.mine ? " (yours)" : ""}</option>`).join("")}</select></div></div>
+      ${body}</fieldset>`;
+  }
+  const reShare = () => { const b = $("#sh-body"), top = b.scrollTop; renderSheetPanel(); b.scrollTop = top; };
   // Shows one tab of the Sheet panel. Every tab stays in the page, so edits on one survive a visit to another.
   function showShTab(k, keepScroll = false) {
     const body = $("#sh-body"), lay = body.querySelector(".sh-layout"); if (!lay) return;
@@ -2912,6 +2970,11 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       writeSheet(s.id, { public: v }).then(() => toast(v ? `${s.name} can be exported` : `${s.name} is private`)).catch(() => {});
       renderSheetPanel(); return;
     }
+    const M = SH.merge;
+    if (e.target.id === "sh-mfrom" && M) { SH.merge = { from: e.target.value, skip: new Set(), mine: null, formula: false }; reShare(); return; }
+    if (e.target.dataset && e.target.dataset.mpick && M) { if (e.target.checked) M.skip.delete(e.target.dataset.mpick); else M.skip.add(e.target.dataset.mpick); reShare(); return; }
+    if (e.target.id === "sh-mmine" && M) { M.mine = e.target.checked; return; }
+    if (e.target.id === "sh-mformula" && M) { M.formula = e.target.checked; reShare(); return; }
     if (e.target.name !== "sh-start") return;
     const empty = $("#sh-empty").checked, src = activeSheet();
     $("#sh-newboards").disabled = empty;
@@ -2954,6 +3017,16 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       applyFormula(activeSheet().formula); rebuildCards(); renderGuide(); renderAll(); SH.plan = null; renderSheetPanel(); return;
     }
     if (e.target.closest("#sh-export-btn")) { downloadExport(s); return; }
+    const mg = e.target.closest("#sh-mgo");
+    if (mg && SH.merge && sheets.get(SH.merge.from)) {
+      const src = sheets.get(SH.merge.from), M = SH.merge;
+      if (M.mine === null) M.mine = !src.author || src.author === s.author;
+      if (!mg.dataset.armed) { mg.dataset.armed = "1"; mg.textContent = "Tap again to merge"; return; }
+      const r = applyMerge(s, src, M);
+      r.done.then(() => toast(`Merged ${r.n} card${r.n === 1 ? "" : "s"}${r.takeF ? " and the formula" : ""} from ${src.name}. They're marked for a check.`)).catch(() => {});
+      if (r.takeF) { applyFormula(activeSheet().formula); syncSimMaelstrom(true); rebuildCards(); renderGuide(); }
+      SH.merge = null; renderAll(); reShare(); return;
+    }
     if (e.target.closest("#sh-plan")) { SH.plan = autoApplyPlan(s); renderSheetPanel(); return; }
     if (e.target.closest("#sh-cancel")) { SH.plan = null; renderSheetPanel(); return; }
     if (e.target.closest("#sh-mark")) { writeSheet(s.id, { baseline: clone(s.formula) }).then(() => toast("Marked as balanced")).catch(() => {}); SH.plan = null; renderSheetPanel(); return; }
@@ -4865,9 +4938,26 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const seg = location.pathname.split("/").filter(Boolean)[0] || "";
     return { owner: gh[1], repo: seg && !seg.includes(".") ? seg : gh[1] + ".github.io" };
   }
+  // The public copy works offline once it has been opened with a connection: a service worker (sw.js beside the page) keeps
+  // the page, the sheet files and the fonts, answering from its copy when the network is gone or too slow, and the manifest
+  // lets a phone install it as an app. The page tells the worker which files it read, so the first visit is enough.
+  const offlineUrls = [];
+  function offlineReady() {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    const head = document.head || document.body, add = (tag, attrs) => { const el = document.createElement(tag); Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v)); head.appendChild(el); };
+    add("link", { rel: "manifest", href: "manifest.webmanifest" });
+    add("meta", { name: "theme-color", content: "#12161C" });
+    const fonts = document.querySelector('link[href*="fonts.googleapis.com/css"]');
+    navigator.serviceWorker.register("sw.js").then(() => navigator.serviceWorker.ready).then(reg => {
+      if (reg.active) reg.active.postMessage({ keep: [...offlineUrls, ...(fonts ? [fonts.href] : [])] });
+    }).catch(() => {});
+    // Ask the browser to keep this site's storage (the visitor's own sheets) rather than clear it when space runs low
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  }
   async function sheetFiles() {
     const gh = publicRepo(), json = n => /\.json$/i.test(n) && n.toLowerCase() !== "index.json";
     if (gh) {
+      offlineUrls.push(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/sheets`);
       // The API allows a visitor 60 calls an hour; the last list it gave is kept in case it refuses
       const KEY = "jango-cards-files";
       try {
@@ -4882,6 +4972,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   }
   async function publicDb() {
     const names = await sheetFiles();
+    offlineUrls.push("sheets/index.json", "sheets/", ...names.map(n => "sheets/" + encodeURIComponent(n)));
     const files = await Promise.all(names.map(n => fetch("sheets/" + encodeURIComponent(n), { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)));
     const store = { sheets: {}, builds: {} };
     files.forEach((f, k) => {
@@ -4951,6 +5042,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     try { sheetId = localStorage.getItem("jango-cards-sheet") || null; } catch (e) { sheetId = null; } // the start sheet unless the visitor chose another
     document.body.classList.add("public");
     document.title = "Jango Cards";
+    offlineReady();
     $(".brand h1").textContent = "Jango Cards";
     setReadOnly();
     // Filters that only mean something in the picker
