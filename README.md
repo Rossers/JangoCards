@@ -51,7 +51,7 @@ The **Cards** view shows the sheet's cards. The tabs split them by group, the se
 **Simulator** has three tabs:
 
 - **Board Builder:** build a ship from the sheet's cards. Tap **+** to add a card; tap a card to move or remove it. **Fill with random** and **Arrange like a player** get you started. Save a board to fight with it.
-- **Fight Sim:** pick two boards and watch one fight, step by step, with a log of every hit.
+- **Fight Sim:** pick two boards and watch them fight, step by step, with a log of every hit. The ships face each other as they will in the game: the exterior rows meet in the middle, and the top ship is drawn upside down (its rows keep their usual above and below).
 - **Mass Sim:** fight one board against all the others, or against hundreds of random boards, and see how often it wins and which cards were the most/least effective.
 
 Sheets can come with boards to fight against, marked "Shared". Boards you save stay in your browser.

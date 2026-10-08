@@ -401,6 +401,10 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .fbody { display: flex; gap: 8px; align-items: flex-end; width: max-content; min-width: 100%; }
 .fbody .shipgrid { flex: 1; }
 .column { display: flex; flex-direction: column-reverse; gap: 6px; width: 110px; flex: none; padding: 4px; border-radius: 8px; background: var(--warn-soft); }
+/* Facing ships: B on top, drawn interior-first so the two exterior rows meet in the middle; each name sits on the outer edge */
+.fship.top .fbody { align-items: flex-start; }
+.fship.top .column { flex-direction: column; }
+.fship.bottom .board-scroll, .box.face-bottom .board-scroll { padding: 8px 2px 4px; }
 .collabel { font-family: var(--display); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--warn); text-align: center; }
 .mini.foe .mn::before { content: "▸ "; color: var(--warn); }
 .slot.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 0 14px 2px var(--accent); }
@@ -3544,10 +3548,11 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     return null;
   }
   const swapSlots = (B, z, i, k) => withSlots(B, [[z, k, B[z][i]], [z, i, B[z][k]]]);
-  function shipGrid(B, slot) {
+  // flip: draw the interior row on top, for the ship at the top of the Fight Sim, so the two ships face each other
+  function shipGrid(B, slot, flip = false) {
     const n = Math.max(B.ext.length, B.int.length);
     const row = z => `<div class="rowlabel">${z === "ext" ? "Exterior" : "Interior"}</div>` + Array.from({ length: n }, (_, i) => i < B[z].length ? slot(z, i) : `<div class="noslot"></div>`).join("");
-    return `<div class="shipgrid" style="--n:${n}">${row("ext")}${row("int")}</div>`;
+    return `<div class="shipgrid" style="--n:${n}">${flip ? row("int") + row("ext") : row("ext") + row("int")}</div>`;
   }
   function detailHtml(B) {
     if (!selSlot) return "";
@@ -3874,11 +3879,13 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   }
 
   // A read-only look at a saved board: its cards as compact cards, front on the left
-  function boardPreview(b, label) {
+  // face: "top" or "bottom" draws the board as the Fight Sim does, facing the other ship (see stageShip)
+  function boardPreview(b, label, face = "") {
     const B = buildBoard(b), st = boardStats(B), errs = validate(B);
     const slot = (z, i) => { const s = B[z][i], x = s && specOf(s.id, s.mark); return x ? `<div class="slot filled">${mini(x, liveOf(x), null, x.kind === "S" ? "is-s" : x.kind === "A" ? "is-a" : "")}</div>` : `<div class="slot empty dim"></div>`; };
-    return `<div class="box"><div class="fhead"><b>${label ? label + " · " : ""}${warnIcon(errs)}${esc(b.name)}</b><span class="muted">${sizeOf(B)} · ${st.n} cards · ${st.bp} BP · speed ${st.speed} · hull ${st.hull}</span></div>
-      <div class="board-scroll">${shipGrid(B, slot)}</div></div>`;
+    const head = `<div class="fhead"><b>${label ? label + " · " : ""}${warnIcon(errs)}${esc(b.name)}</b><span class="muted">${sizeOf(B)} · ${st.n} cards · ${st.bp} BP · speed ${st.speed} · hull ${st.hull}</span></div>`;
+    const grid = `<div class="board-scroll">${shipGrid(B, slot, face === "top")}</div>`;
+    return `<div class="box${face ? " face-" + face : ""}">${face === "bottom" ? grid + head : head + grid}</div>`;
   }
 
   // ---------- Fight Sim ----------
@@ -3895,7 +3902,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       ${f.a && f.b && builds.get(f.a) && builds.get(f.b) ? `<p class="muted">Speed: A ${boardSpecOf(buildBoard(builds.get(f.a))).speed}, B ${boardSpecOf(buildBoard(builds.get(f.b))).speed}.</p>` : ""}
       <div class="fab-row"><button class="btn primary" type="button" id="f-go">Fight</button></div>
       ${[f.a, f.b].map(id => id && builds.get(id) && buildErrors(builds.get(id)).length ? `<p class="errline">${ICON_WARN}${esc(builds.get(id).name)} breaks a placement rule; it still fights here, but the Mass Sim skips it.</p>` : "").join("")}</div>`;
-    const previews = [["A", f.a], ["B", f.b]].filter(([, id]) => id && builds.get(id)).map(([l, id]) => boardPreview(builds.get(id), l)).join("");
+    const previews = [["B", f.b, "top"], ["A", f.a, "bottom"]].filter(([, id]) => id && builds.get(id)).map(([l, id, face]) => boardPreview(builds.get(id), l, face)).join("");
     $("#sim-body").innerHTML = pickers + `<div id="stage">${previews}</div>`;
     if (play) renderStage();
   }
@@ -3932,9 +3939,13 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const n = Math.max(rows.ext.length, rows.int.length);
     const row = (z, label) => `<div class="rowlabel">${label}</div>` + Array.from({ length: n }, (_, i) => i < rows[z].length ? card(rows[z][i]) : `<div class="noslot"></div>`).join("");
     const hullFlash = prev && prev.hull[side] !== st.hull[side] ? " flash" : "";
-    const col = rows.col.length ? `<div class="column" title="Enemy boarders on this ship, the frontmost at the bottom"><div class="collabel">Boarders</div>${rows.col.map(card).join("")}</div>` : "";
-    return `<div class="fship"><div class="fhead"><b>${side ? "B" : "A"} · ${esc(P.names[side])}</b><span class="hull${hullFlash}">Hull ${Math.max(0, st.hull[side])} / ${spec.hull}</span><span class="muted">Speed ${spec.speed}</span></div>
-      <div class="board-scroll"><div class="fbody">${col}<div class="shipgrid" style="--n:${n}">${row("ext", "Exterior")}${row("int", "Interior")}</div></div></div></div>`;
+    // The two ships face each other: B, on top, is drawn interior first so the exterior rows meet in the middle. Only the
+    // drawing flips; above and below (adjacency, pierce) are the ship's own, unchanged.
+    const top = side === 1;
+    const col = rows.col.length ? `<div class="column" title="Enemy boarders on this ship, the frontmost ${top ? "at the top" : "at the bottom"}, beside the interior row"><div class="collabel">Boarders</div>${rows.col.map(card).join("")}</div>` : "";
+    const head = `<div class="fhead"><b>${side ? "B" : "A"} · ${esc(P.names[side])}</b><span class="hull${hullFlash}">Hull ${Math.max(0, st.hull[side])} / ${spec.hull}</span><span class="muted">Speed ${spec.speed}</span></div>`;
+    const body = `<div class="board-scroll"><div class="fbody">${col}<div class="shipgrid" style="--n:${n}">${top ? row("int", "Interior") + row("ext", "Exterior") : row("ext", "Exterior") + row("int", "Interior")}</div></div></div>`;
+    return `<div class="fship ${top ? "top" : "bottom"}">${top ? head + body : body + head}</div>`;
   }
   function renderStage() {
     const P = play, st = $("#stage"); if (!P || !st) return;
