@@ -182,6 +182,21 @@ details.panel[open] > summary::after { content: "–"; }
 .edit-btn { border: 0; background: none; color: var(--accent-ink); font-weight: 500; font-size: 13.5px; padding: 4px 2px; }
 .edit-btn:hover { text-decoration: underline; }
 .empty, .state { padding: 40px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--rule); border-radius: 8px; }
+/* group headings (sorted by mark, type and sector) and reordering by drag */
+.grp { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; margin: 12px 0 -4px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); font-family: var(--display); font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.grp:first-child { margin-top: 0; }
+.grp b { color: var(--ink); font-weight: 600; }
+.grp .n { margin-left: auto; font-family: var(--mono); letter-spacing: 0; font-weight: 400; }
+.c-idrow { display: inline-flex; align-items: center; gap: 4px; }
+.drag { border: 0; background: none; color: var(--faint); padding: 2px; margin: -2px 0; border-radius: 4px; cursor: grab; touch-action: none; line-height: 0; }
+.drag svg { width: 14px; height: 14px; }
+.drag:hover, .drag:focus-visible { color: var(--ink); background: var(--sunk); }
+.card.dragging { opacity: .45; }
+.card.drop-before { box-shadow: -4px 0 0 var(--accent); }
+.card.drop-after { box-shadow: 4px 0 0 var(--accent); }
+.grid[data-cols="1"] .card.drop-before { box-shadow: 0 -4px 0 var(--accent); }
+.grid[data-cols="1"] .card.drop-after { box-shadow: 0 4px 0 var(--accent); }
+body.reordering, body.reordering * { cursor: grabbing !important; user-select: none; }
 
 /* ---------- editor ---------- */
 .scrim { position: fixed; inset: 0; background: rgba(10,14,18,.35); z-index: 40; }
@@ -340,6 +355,19 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .fx-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13.5px; }
 .fx-row label.fx-c { display: inline-flex; align-items: center; gap: 5px; font-family: var(--body); font-size: 13.5px; letter-spacing: 0; text-transform: none; color: var(--ink); font-weight: 400; }
 .fx-moves { margin-left: auto; display: inline-flex; gap: 4px; }
+.fx-price { font-size: 13px; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.fx-price .bpn { font-family: var(--mono); font-weight: 500; }
+.fx-price .unp { color: var(--warn); }
+.fx-price .btn { padding: 2px 9px; font-size: 12.5px; }
+.fx-adders { display: grid; gap: 8px; }
+.fx-common { border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; background: var(--paper); }
+.fx-common summary { cursor: pointer; font-size: 13.5px; color: var(--accent-ink); font-weight: 500; }
+.fx-cg { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; }
+.fx-cgl { flex-basis: 100%; font-family: var(--display); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+.fx-chip { border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: 3px 10px; font-size: 13px; color: var(--ink); text-align: left; }
+.fx-chip:hover, .fx-chip:focus-visible { border-color: var(--accent); }
+.fx-chip .tm { font-family: var(--display); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin-right: 4px; }
+.fx-chip .cbp { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-left: 6px; }
 .fx-moves .btn { padding: 3px 9px; }
 .fx-preview { padding: 8px 10px; background: var(--sunk); border-radius: 6px; font-size: 14px; display: grid; gap: 4px; }
 .fx-preview .timing, .c-effect .timing { font-family: var(--display); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin-right: 6px; }
@@ -522,6 +550,7 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .bp-parts tr.tot td { font-weight: 600; border-bottom: 0; }
 .bp-un, .bp-live .fx-err { flex-basis: 100%; font-family: var(--body); font-size: 13px; }
 .bp-un ul { margin: 4px 0 0; padding-left: 18px; }
+.bp-un.warn { color: var(--warn); }
 /* design notes: one per formula row and per section of the Sheet panel */
 /* Design notes: secondary text, set apart by a small label, a thin grey stripe, a faint wash and italics; the accent shows
    only while a note is being written, and an empty box stays bare until used */
@@ -593,7 +622,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     <select id="f-public" aria-label="Public or private"><option value="">Public or private</option><option value="yes">Public</option><option value="no">Private</option></select>
     <select id="f-sheet" aria-label="Balance sheets"><option value="">On this sheet</option><option value="only">Only on this sheet</option><option value="shared">Also on another sheet</option><option value="check">Needs a check</option><option value="off">Not on this sheet</option></select>
     <select id="f-sort" aria-label="Sort">
-      <option value="order">List order</option><option value="name">Name</option><option value="mark">Lowest mark</option><option value="role">Role</option><option value="attack">Attack</option><option value="health">Health</option><option value="budget">Budget use</option>
+      <option value="order">List order</option><option value="group">Mark, type, sector</option><option value="name">Name</option><option value="mark">Lowest mark</option><option value="role">Role</option><option value="attack">Attack</option><option value="health">Health</option><option value="budget">Budget use</option>
     </select>
   </div>
 
@@ -684,7 +713,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // and, to simulate it, a case in the engine's runFx(). Anything marked sim: false is shown but not simulated.
   /* CARD-VOCAB START */
   const VOCAB = {
-    "version": 6,
+    "version": 7,
     "triggers": [
       { "key": "", "label": "Always on", "sim": true },
       { "key": "fight_start", "label": "Fight Start", "sim": true },
@@ -698,6 +727,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       { "key": "on_kill", "label": "On Kill", "sim": true },
       { "key": "on_death", "label": "On Death", "sim": true },
       { "key": "on_ally_death", "label": "On ally death", "sim": true },
+      { "key": "on_row_ally_death", "label": "On ally death in this row", "sim": true },
+      { "key": "on_adjacent_ally_death", "label": "On adjacent ally death", "sim": true },
+      { "key": "on_lateral_ally_death", "label": "On ally death in front or behind", "sim": true },
       { "key": "on_enemy_death", "label": "On enemy death", "sim": true },
       { "key": "on_shields_down", "label": "When your Shields go down", "sim": true },
       { "key": "on_hull_damage", "label": "On damaging the enemy hull", "sim": true },
@@ -936,6 +968,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     return out;
   }
   const trigLabel = k => (TRIG[k] || { label: k }).label;
+  // Damage type words in card text ("Gain +2 kinetic.") in their type's color; html is already escaped
+  const typeColor = html => String(html).replace(/\b(kinetic|thermal|electric|plasma|radiation)\b/gi, w => `<span class="t-${cap1(w.toLowerCase())}">${w}</span>`);
+  const fxLinesHtml = c => effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${typeColor(esc(l.text))}</div>`).join("");
   // Plain-text copy of the card text, stored as `effect` for search, the CSV, and older views
   const effectCache = c => [...effectLines(c).map(l => (l.trigger ? trigLabel(l.trigger) + ": " : "") + l.text), ...(c.effectNote ? [c.effectNote] : [])].join("\n");
   // Old free-text cards: keyword sentences become effects; everything else waits in the free-text field
@@ -1015,7 +1050,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // The formula rows. amt: the variable a row is "about", stepped in its examples and grid (N unless named); from: where
   // the examples start; tiers: the row has dumb and smart formulas; kind: the triggers it is written for (standing: always
   // on or Fight Start; activation: once a round, After Attack × X); factor: a multiplier, not BP.
-  const FGROUPS = ["Stats", "Shields and weaknesses", "Keywords", "Charges and ammo", "Granted buffs", "Scalers"];
+  const FGROUPS = ["Stats", "Shields and weaknesses", "Keywords", "Charges and ammo", "Granted buffs", "Scalers", "Triggers and limits"];
   const TAPER8 = "8*min(N,3) + 8*min(max(N-3,0),7) - min(max(N-3,0),7)*(min(max(N-3,0),7)+1)/2 + max(N-10,0)";
   const TAPER12 = "12*min(N,5) + 12*min(max(N-5,0),11) - min(max(N-5,0),11)*(min(max(N-5,0),11)+1)/2 + max(N-16,0)";
   const FROWS = [
@@ -1059,12 +1094,15 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     { id: "GrantHealth", g: 4, label: "+N health", tiers: true, kind: "standing", what: "Given to another card: the raw rate", base: "4*N" },
     { id: "Activate", g: 4, label: "Activate another card", tiers: true, kind: "activation", what: "On Activate. Provisional: the Beta sheet's measured price × 4", base: "64*M" },
     { id: "DoubleDamage", g: 4, label: "Double damage", tiers: true, kind: "standing", what: "Given to another card. Provisional: the Beta sheet's measured price × 4", base: "52*M" },
+    { id: "Speed", g: 4, label: "+N speed (your ship)", what: "Always on only: initiative is decided before Fight Start. Speed helps only when it gives your ship initiative, which depends on the other ship. Negative speed gives BP back", base: "max(-8, min(N, 8))/2" },
     { id: "Ramp", g: 5, label: "+N attack during the fight", kind: "activation", what: "On the card itself, each time its trigger fires, for the rest of the fight: After Attack × X; On Activate, After Activate or End of round once a round", base: "12*N*X" },
     { id: "RampEarly", g: 5, label: "+N attack during the fight, before it attacks", what: "Added for On Activate: the gain lands before the card attacks, so even its first attack gets it", base: "8*N*X" },
     { id: "AttackPerWin", g: 5, label: "+N attack per win", what: "On winning a fight, permanently", base: "24*N" },
     { id: "AttackPerFight", g: 5, label: "+N attack per fight survived", what: "End of fight, permanently", base: "22*N" },
     { id: "HealthPerWin", g: 5, label: "+N health per win", what: "On winning a fight, permanently", base: "12*N" },
     { id: "HealthPerFight", g: 5, label: "+N health per fight survived", what: "End of fight, permanently", base: "10*N" },
+    { id: "AllyDeath", g: 6, label: "On ally death", factor: true, what: "A factor on a once-a-round price, for the ally-death triggers. N is the most allies the trigger can see: 15 for any ally, 7 in this row, 3 adjacent, 2 in front or behind", base: "0.5*min(1, N/7)" },
+    { id: "Limit", g: 6, label: "At most N times per fight", factor: true, what: "The most a limited effect is worth, counted in once-a-round prices (a card acts in about 6 rounds of a fight). Once per round caps After Attack at once a round", base: "N/6" },
   ];
   const FROW = Object.fromEntries(FROWS.map(r => [r.id, r]));
   // Targeting styles multiply an effect's price by how many cards it reaches, priced for a typical row
@@ -1256,35 +1294,46 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   const cardEnv = c => ({ M: c.minMark || 1, X: Math.max(1, Number(c.mult) || 1), A: atkSum(c), H: Math.max(0, Number(c.health) || 0), N: 0,
     Pa: Number(c.ammo) || 0, Pc: Number(c.charges) || 0, int: c.row === "Exterior" ? 0 : 1, bio: tagged(c, "Biological") ? 1 : 0 });
   const STANDING = new Set(["", "fight_start"]), ROUNDLY = new Set(["on_activate", "after_activate", "end_of_round"]);
+  // The ally-death triggers, by the most allies each can see on a full 8 × 8 board (the AllyDeath row's N)
+  const DEATH_RANGE = { on_ally_death: 15, on_row_ally_death: 7, on_adjacent_ally_death: 3, on_lateral_ally_death: 2 };
+  const factorRow = (id, N, env) => { const r = rowVal(id, "base", { ...env, N }); return r.err ? 0 : Math.max(0, r.v); };
   // Which row prices a keyword on the card itself. Heal N and Repair N pass health on, so they use their row's smart formula;
   // Self-Heal and Self-Repair are the base.
   const KW_ROW = { Resist: "Resist", Block: "Block", Reflect: "Reflect", Regen: "Regen", Restore: "Restore", Taunt: "Taunt", Guard: "Guard",
     Pierce: "Pierce", Splash: "Splash", Flank: "Flank", Execute: "Execute", "Self-Heal": "Heal", "Self-Repair": "Repair", Heal: "Heal", Repair: "Repair" };
   const PASSING = new Set(["Heal", "Repair"]);
-  // What prices one effect: { row, tier, style, times, N } (times: the trigger factor), or { why } when no formula covers it
-  // and it is priced by hand in Effect BP
+  // What prices one effect: { row, tier, style, times, N, notes } (times: the trigger factor, with a limit applied; notes say
+  // why it isn't 1), or { why } when no formula covers it and it is priced by hand in Effect BP. A `fix` names a rewrite the
+  // editor offers.
   function fxPlan(e, c, env) {
     const tgt = e.target || "self", self = tgt === "self" || tgt === "host", n = Number(e.amount) || 0;
     if (e.condition) return { why: "it has a condition" };
-    if (e.limit) return { why: "it has a limit" };
     if (e.where) return { why: "it works only " + ((WHERE[e.where] || {}).label || e.where) };
     if (e.duration === "round") return { why: "it lasts only the round" };
     if (e.source && e.source !== "value") return { why: "its amount is counted during the fight" };
     if (e.cost) {
-      if (e.cost === "charge" && Number(e.costCount ?? 1) === 1 && e.trigger === "on_attacked") {
+      if (e.cost === "charge" && Number(e.costCount ?? 1) === 1 && e.trigger === "on_attacked" && !e.limit) {
         if (e.action === "block_attack") return { row: "ChargeBlock", tier: "base", style: "single", times: 1, N: env.Pc, spends: true };
         if (e.action === "deal_damage" && tgt === "it") return { row: "ChargeReflect", tier: "base", style: "single", times: 1, N: n, spends: true };
       }
+      if (e.action === "keyword" && self && (e.keyword === "Block" || e.keyword === "Reflect") && e.cost === "charge")
+        return { why: `charge-fed ${e.keyword} is written On Attacked, "Spend a charge: ${e.keyword === "Block" ? "block the attack" : `deal ${n} damage to it`}." An always-on effect with a cost pays once, at Fight Start`, fix: "charge" + e.keyword };
       return { why: "it has a cost" };
     }
     const tp = TARGET_PRICE[tgt];
     const plan = (row, kind, o = {}) => {
       if (!tp) return { why: "it reaches the enemy, the attacker or the attack" };
-      const trig = e.trigger || "";
-      const times = kind === "standing" ? (STANDING.has(trig) ? 1 : null) : ROUNDLY.has(trig) ? 1 : trig === "after_attack" ? env.X : null;
+      const trig = e.trigger || "", notes = [];
+      let times = kind === "standing" ? (STANDING.has(trig) ? 1 : null) : ROUNDLY.has(trig) ? 1 : trig === "after_attack" ? env.X : null;
+      if (times == null && kind !== "standing" && DEATH_RANGE[trig]) { times = factorRow("AllyDeath", DEATH_RANGE[trig], env); notes.push(`${trigLabel(trig).toLowerCase()} × ${round2(times)}`); }
       if (times == null) return { why: `no formula is written for ${trigLabel(trig)}` };
+      // A limit caps how many once-a-round prices the effect can be worth; on an always-on or Fight Start effect it changes nothing
+      if (e.limit && kind !== "standing") {
+        const [cnt, per] = String(e.limit).split("/"), cap = per === "round" ? 1 : factorRow("Limit", Number(cnt) || 0, env);
+        if (cap < times) { times = cap; notes.push(`${(LIMIT[e.limit] || { text: e.limit }).text}: × ${round2(cap)}`); }
+      }
       const tier = o.tier || (FROW[row].tiers ? tp[0] : "base");
-      return { row, tier, style: tp[1], times, N: o.N ?? n };
+      return { row, tier, style: tp[1], times, N: o.N ?? n, notes };
     };
     switch (e.action) {
       case "keyword": {
@@ -1303,6 +1352,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       case "reload": return plan("Reload", "activation");
       case "discharge": return plan("Discharge", "activation");
       case "gain_ammo_max": return plan("MaxAmmo", "standing");
+      case "gain_speed":
+        if (tgt !== "ship") return { why: "speed is the ship's" };
+        return e.trigger ? { why: "speed counts only always on: initiative is decided before Fight Start, so a later gain changes nothing" } : { row: "Speed", tier: "base", style: "single", times: 1, N: n };
       case "gain_mult": return self ? { why: "a card's own mult is its Mult stat" } : e.duration ? { why: "it lasts beyond the fight" } : plan("GrantMult", "standing");
       case "gain_attack": case "gain_health": {
         const atk = e.action === "gain_attack";
@@ -1350,10 +1402,28 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     ["Pierce", "Splash"].forEach(k => { const n = effNum(c, k); if (n) atk.push({ label: `${k} ${n}${env.X > 1 ? `, ${env.X} hits` : ""}`, bp: val(k, "base", n).v, row: k }); });
     let attack = atk.reduce((s, p) => s + p.bp, 0);
     atk.forEach(p => parts.push({ ...p, group: "attack" }));
+    const inAmmo = new Set(); // reloads priced as more ammo
+    let ammoF = 1; // the ammo factor on the attack, which After Attack effects share: they fire only when the card attacks
     if (env.Pa > 0 && atk.length) {
       const f = val("Ammo", "base", env.Pa).v;
       parts.push({ label: `Ammo ${env.Pa} (×${round2(f)})`, bp: attack * (f - 1), group: "attack", row: "Ammo" });
-      attack *= f;
+      // A weapon that reloads itself fires as if it had more ammo: each firing of the reload adds what it reloads (never more
+      // than its pips hold), and a once-a-round firing is worth 1 ÷ Limit(1) firings a fight (6), or the limit
+      const perFight = 1 / Math.max(1e-9, factorRow("Limit", 1, env));
+      let more = 0;
+      (c.effects || []).forEach((e, i) => {
+        if (e.action !== "reload" || !(e.target === "self" || e.target === "host" || !e.target)) return;
+        const p = fxPlan(e, c, env); if (!p.row) return;
+        const per = Math.min(Number(e.amount) || 0, env.Pa); if (per <= 0) return;
+        more += per * p.times * perFight; inAmmo.add(i);
+      });
+      if (more > 0) {
+        const pa = env.Pa + more, gr = rowVal("Ammo", "base", { ...env, Pa: pa, N: pa }), g = gr.err ? f : gr.v;
+        inAmmo.forEach(i => { const e = c.effects[i]; parts.push({ label: (e.trigger ? trigLabel(e.trigger) + ": " : "") + effectText(e, c), bp: 0, group: "attack", row: "Ammo", i }); });
+        const last = parts[parts.length - 1];
+        last.bp = attack * (g - f); last.notes = [`fires like ammo ${round2(pa)}: ×${round2(g)}`];
+        attack *= g; ammoF = g;
+      } else { attack *= f; ammoF = f; }
     }
     const health = val("Health", "base", env.H).v;
     parts.push({ label: `${shields ? "Shield points" : "Health"} ${env.H}`, bp: health, group: "health", row: "Health" });
@@ -1361,11 +1431,13 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     let pipsPriced = false;
     (c.effects || []).forEach((e, i) => {
       if (e.action === "keyword" && (e.keyword === "Pierce" || e.keyword === "Splash") && (e.target || "self") === "self" && !e.trigger && !e.condition && !e.cost) return; // in the attack
+      if (inAmmo.has(i)) return; // priced as more ammo
       const p = fxPlan(e, c, env), text = (e.trigger ? trigLabel(e.trigger) + ": " : "") + effectText(e, c);
-      if (!p.row) { unpriced.push({ i, text, why: p.why }); return; }
-      const reads = new Set(), r = val(p.row, p.tier, p.N, reads), x = (Number((FORMULA.styles || {})[p.style]) || 1) * p.times;
+      if (!p.row) { unpriced.push({ i, text, why: p.why, fix: p.fix }); return; }
+      const af = e.trigger === "after_attack" && ammoF < 1 ? ammoF : 1, notes = af < 1 ? [...(p.notes || []), `ammo ×${round2(af)}`] : p.notes;
+      const reads = new Set(), r = val(p.row, p.tier, p.N, reads), x = (Number((FORMULA.styles || {})[p.style]) || 1) * p.times * af;
       if (p.spends && reads.has("Pc")) pipsPriced = true;
-      parts.push({ label: text, bp: r.v * x, group: "effects", row: p.row, tier: r.tier, style: p.style, times: p.times, i });
+      parts.push({ label: text, bp: r.v * x, group: "effects", row: p.row, tier: r.tier, style: p.style, times: p.times, notes, i });
       if (p.plus) parts.push({ label: text + " (before it attacks)", bp: val(p.plus, "base", p.N).v * x, group: "effects", row: p.plus, tier: "base", style: p.style, times: p.times, i });
     });
     if (env.Pc > 0 && !pipsPriced) parts.push({ label: `Max charges ${env.Pc}`, bp: val("MaxCharges", "base", env.Pc).v, group: "stats", row: "MaxCharges" });
@@ -1829,8 +1901,20 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     }
     return true;
   }
+  // Grouping for the "Mark, type, sector" sort: lowest mark, then the card's type (its first type tag, or its group for
+  // items and economy cards), then its source sectors; list order inside a group
+  const TYPE_ORDER = [["Weapon", "Weapons"], ["Defense", "Defense"], ["Shields", "Shields"], ["Armor", "Armor"], ["System", "Systems"], ["Crew", "Crew"], ["Gear", "Gear"], ["Mod", "Mods"], ["Food", "Food"], ["Economy", "Economy and utility"], ["Other", "No type tag"]];
+  const TYPE_RANK = Object.fromEntries(TYPE_ORDER.map(([k], i) => [k, i])), TYPE_NAME = Object.fromEntries(TYPE_ORDER);
+  const SECTOR_ORDER = ["neutral", "industrial", "trade", "frontier", "research"];
+  const cardType = c => c.bucket === "gear" ? "Gear" : c.bucket === "mod" ? "Mod" : c.bucket === "food" ? "Food" : c.bucket === "economy" ? "Economy"
+    : ["Shields", "Armor", "Weapon", "Defense", "Crew", "System"].find(t => tagged(c, t)) || "Other";
+  function groupOf(c) {
+    const m = c.minMark || 1, t = cardType(c), src = (c.sources || []).filter(x => SECTOR_ORDER.includes(x)).sort((a, b) => SECTOR_ORDER.indexOf(a) - SECTOR_ORDER.indexOf(b));
+    return { key: `${m}|${t}|${src.join(",")}`, m, t: TYPE_RANK[t] ?? 99, s: src.length ? SECTOR_ORDER.indexOf(src[0]) * 10 + src.length : 99, label: `<b>Mk ${MARKS[m - 1]}+</b> · ${esc(TYPE_NAME[t] || t)} · ${src.length ? src.map(x => esc(SECTOR_NAME[x])).join(" + ") : "No sector"}` };
+  }
   const sorters = {
     order: (a, b) => (a.order ?? 1e9) - (b.order ?? 1e9),
+    group: (a, b) => { const x = groupOf(a), y = groupOf(b); return x.m - y.m || x.t - y.t || x.s - y.s || x.key.localeCompare(y.key) || (a.order ?? 1e9) - (b.order ?? 1e9); },
     name: (a, b) => a.name.localeCompare(b.name),
     mark: (a, b) => (a.minMark || 1) - (b.minMark || 1) || a.name.localeCompare(b.name),
     role: (a, b) => String(a.role || a.kind).localeCompare(String(b.role || b.kind)) || (a.order - b.order),
@@ -1841,7 +1925,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
 
   // ---------- card tile ----------
   // `off` lists the sheets holding a card that isn't on the active sheet (the "Not on this sheet" view), else it is null
-  function tile(c, off = null) {
+  const ICON_GRIP = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="3.5" r="1.4"/><circle cx="10.5" cy="3.5" r="1.4"/><circle cx="5.5" cy="8" r="1.4"/><circle cx="10.5" cy="8" r="1.4"/><circle cx="5.5" cy="12.5" r="1.4"/><circle cx="10.5" cy="12.5" r="1.4"/></svg>';
+  function tile(c, off = null, reorder = false) {
     const b = BK[c.bucket], here = activeSheet();
     const rowGlyph = c.row === "Exterior" ? `<span class="glyph g-ext">${ICON_EXT}Exterior</span>`
       : c.row === "Interior" ? `<span class="glyph g-int">${ICON_INT}Interior</span>`
@@ -1862,8 +1947,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const stats = atks + mult + hp + pip(c.charges, c.chargesEmpty ? "empty" : "", (c.charges === 1 ? "charge" : "charges") + (c.chargesEmpty ? ", starts empty" : "")) + pip(c.ammo, "ammo" + (c.ammoEmpty ? " empty" : ""), "ammo" + (c.ammoEmpty ? ", starts empty" : "")) + val;
     let effect;
     if (structured(c)) {
-      effect = effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${esc(l.text)}</div>`).join("")
-        + (c.effectNote ? `<div class="fx-note" title="Free text: not in the effect system yet, so not simulated">${esc(c.effectNote)}</div>` : "");
+      effect = fxLinesHtml(c)
+        + (c.effectNote ? `<div class="fx-note" title="Free text: not in the effect system yet, so not simulated">${typeColor(esc(c.effectNote))}</div>` : "");
       if (!effect) effect = `<span class="none">No effect.</span>`;
     } else {
       const timing = c.timing && c.timing !== "None" && c.timing !== "Static" ? `<span class="timing">${esc(c.timing)}</span>` : ""; // no trigger = always on
@@ -1871,12 +1956,13 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     }
     const hiddenBits = [(c.sources || []).map(s => SECTOR_NAME[s] || s).join(" / "), c.tech ? c.tech + " tech" : "", (c.recipes || []).join(", ")].filter(Boolean).join(" · ");
     const pubBtn = readOnly || publicMode ? "" : `<button class="pub" type="button" data-public="${esc(c.id)}" aria-pressed="${!!c.public}" title="${c.public ? "Public: exported to the public copy (unless parked). Tap to make it private." : "Private: never exported. Tap to make it public."}">${ICON_EYE}${c.public ? "Public" : "Private"}</button>`;
-    return `<article class="card ${c.pick && !publicMode ? "picked" : ""} ${c.parked ? "parked" : ""} ${off ? "offsheet" : ""}" data-id="${esc(c.id)}">
+    const grip = reorder ? `<button type="button" class="drag" data-drag="${esc(c.id)}" title="Drag to move it (or arrow keys)" aria-label="Move ${esc(c.name || "this card")}: drag, or use the arrow keys">${ICON_GRIP}</button>` : "";
+    return `<article class="card ${c.pick && !publicMode ? "picked" : ""} ${c.parked ? "parked" : ""} ${off ? "offsheet" : ""}" data-id="${esc(c.id)}" ${reorder && F.sort === "group" ? `data-group="${esc(groupOf(c).key)}"` : ""}>
       <div class="c-head">
         <label class="pick" title="${c.pick ? "Picked" : "Pick this card"}"><input type="checkbox" ${c.pick ? "checked" : ""} ${readOnly || c.parked || off ? "disabled" : ""} aria-label="Pick ${esc(c.name)}"><span>${ICON_CHECK}</span></label>
         <div class="c-title"><div class="c-name">${esc(c.name || "Untitled card")}</div>
           <div class="c-meta">${rowGlyph}${place}${role}<span>Mk ${MARKS[(c.minMark || 1) - 1]}+</span></div></div>
-        <div class="c-id"><span>${c.approved && !off ? `<span class="ok-mark" title="Approved">${ICON_CHECK_BOLD}</span> ` : ""}${esc(c.id)}</span>${badges}</div>
+        <div class="c-id"><span class="c-idrow">${c.approved && !off ? `<span class="ok-mark" title="Approved">${ICON_CHECK_BOLD}</span> ` : ""}${esc(c.id)}${grip}</span>${badges}</div>
       </div>
       ${sheetChips}
       <div class="statline">${stats || '<span class="pips">No stats</span>'}<span class="price">${bpChip(c)} ${price(c)} cr</span></div>
@@ -1908,10 +1994,19 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   function renderGrid() {
     const off = sheets.size > 0 && F.sheet === "off", s = activeSheet();
     const list = (off ? offSheetCards() : [...cards.values()]).filter(matches).sort(sorters[F.sort] || sorters.order);
+    shownIds = off ? [] : list.map(c => c.id);
     const shownPicked = list.filter(c => c.pick).length, shownPublic = list.filter(c => c.public).length;
     $("#result-count").textContent = off ? `${list.length} card${list.length === 1 ? "" : "s"} not on ${s.name}` : publicMode ? `${list.length} card${list.length === 1 ? "" : "s"} shown` : `${list.length} card${list.length === 1 ? "" : "s"} shown · ${shownPicked} picked · ${shownPublic} public`;
     const emptyMsg = off ? `Every card is on ${esc(s.name)}.` : s && !cards.size ? `No cards on ${esc(s.name)} yet. Use Add card, or pick <b>Not on this sheet</b> in the filters to bring cards over from another sheet.` : "No cards match these filters.";
-    $("#grid").innerHTML = list.length ? list.map(c => tile(c, off ? c._off : null)).join("") : `<div class="empty">${emptyMsg}</div>`;
+    const reo = !off && canReorder(), grouped = F.sort === "group" && !off, counts = {};
+    if (grouped) list.forEach(c => { const k = groupOf(c).key; counts[k] = (counts[k] || 0) + 1; });
+    let lastGroup = null;
+    $("#grid").innerHTML = list.length ? list.map(c => {
+      let h = "";
+      if (grouped) { const g = groupOf(c); if (g.key !== lastGroup) { lastGroup = g.key; h = `<h3 class="grp"><span>${g.label}</span><span class="n">${counts[g.key]}</span></h3>`; } }
+      return h + tile(c, off ? c._off : null, reo);
+    }).join("") : `<div class="empty">${emptyMsg}</div>`;
+    if (regrip) focusGrip();
     // Bringing over every card the filters show, from one source sheet, in one write
     bulkIds = off ? list.map(c => c.id) : [];
     const sources = off ? sheetList().filter(x => x.id !== s.id && bulkIds.some(id => onSheet(x, id))) : [];
@@ -1965,6 +2060,80 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     fillSelect($("#f-sector"), SOURCES, s => SECTOR_NAME[s] + (s === "neutral" ? "" : " sources"));
     $("#f-role").value = F.role; $("#f-type").value = F.type; $("#f-sector").value = F.sector;
   }
+
+  // ---------- reordering ----------
+  // In List order, or inside a group when sorted by mark, type and sector, a card's grip moves it: drag it, or focus it and
+  // use the arrow keys. Its `order` becomes the midpoint of its new neighbors' (one write); when they leave no room, the
+  // sheet's whole list order is renumbered in one write per chunk.
+  let shownIds = [], drag = null, regrip = null; // regrip: the grip to focus again after the grid redraws (keyboard moves)
+  const canReorder = () => !readOnly && !!activeSheet() && F.sheet !== "off" && (F.sort === "order" || F.sort === "group");
+  const sameGroup = (a, b) => F.sort !== "group" || groupOf(cards.get(a)).key === groupOf(cards.get(b)).key;
+  function moveCard(id, beforeId, afterId) { // between two shown cards (either may be null)
+    const s = activeSheet(), c = cards.get(id); if (!s || !c) return;
+    const o = x => { const k = x && cards.get(x); return k && k.order != null && isFinite(k.order) ? Number(k.order) : null; };
+    const a = o(afterId), b = o(beforeId);
+    let changes = null;
+    if (afterId && beforeId && a != null && b != null && b - a > 1e-6) changes = { [id]: { order: (a + b) / 2 } };
+    else if (afterId && !beforeId && a != null) changes = { [id]: { order: a + 1 } };
+    else if (!afterId && beforeId && b != null) changes = { [id]: { order: b - 1 } };
+    else { // no room: renumber the whole list in its order, with this card in its new place
+      const all = [...cards.values()].sort(sorters.order).map(x => x.id).filter(x => x !== id);
+      const at = afterId ? all.indexOf(afterId) + 1 : beforeId ? Math.max(0, all.indexOf(beforeId)) : all.length;
+      all.splice(at, 0, id);
+      changes = {};
+      all.forEach((x, i) => { if (cards.get(x).order !== i + 1) changes[x] = { order: i + 1 }; });
+    }
+    writeCards(s.id, changes).catch(() => {});
+    renderGrid();
+  }
+  // Moves a card one place among the shown cards of its group: d = -1 earlier, 1 later
+  function nudgeCard(id, d) {
+    const peers = shownIds.filter(x => x === id || sameGroup(x, id)), k = peers.indexOf(id), j = k + d;
+    if (k < 0 || j < 0 || j >= peers.length) return;
+    if (d < 0) moveCard(id, peers[j], peers[j - 1] || null); else moveCard(id, peers[j + 1] || null, peers[j]);
+    regrip = { id, until: Date.now() + 1500 }; focusGrip();
+  }
+  function focusGrip() { if (!regrip || Date.now() > regrip.until) { regrip = null; return; } const g = document.querySelector(`#grid [data-drag="${CSS.escape(regrip.id)}"]`); if (g) g.focus(); }
+  const clearDrop = () => document.querySelectorAll("#grid .drop-before, #grid .drop-after").forEach(x => x.classList.remove("drop-before", "drop-after"));
+  function endDrag() {
+    if (!drag) return;
+    clearDrop(); drag.el.classList.remove("dragging"); document.body.classList.remove("reordering");
+    clearInterval(drag.scroll); drag = null;
+  }
+  $("#grid").addEventListener("pointerdown", e => {
+    const h = e.target.closest("[data-drag]"); if (!h || !canReorder() || e.button !== 0) return;
+    e.preventDefault();
+    const el = h.closest(".card");
+    drag = { id: h.dataset.drag, el, pid: e.pointerId, over: null, after: false, dy: 0, scroll: setInterval(() => { if (drag && drag.dy) window.scrollBy(0, drag.dy); }, 16) };
+    try { h.setPointerCapture(e.pointerId); } catch (err) {}
+    el.classList.add("dragging"); document.body.classList.add("reordering");
+    $("#grid").dataset.cols = getComputedStyle($("#grid")).gridTemplateColumns.split(" ").filter(Boolean).length;
+  });
+  $("#grid").addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.pid) return;
+    drag.dy = e.clientY < 70 ? -14 : e.clientY > window.innerHeight - 70 ? 14 : 0;
+    const under = document.elementFromPoint(e.clientX, e.clientY), t = under && under.closest("#grid .card");
+    clearDrop(); drag.over = null;
+    if (!t || t === drag.el || !sameGroup(t.dataset.id, drag.id)) return;
+    const r = t.getBoundingClientRect(), one = $("#grid").dataset.cols === "1";
+    drag.after = one ? e.clientY > r.top + r.height / 2 : e.clientX > r.left + r.width / 2;
+    drag.over = t.dataset.id; t.classList.add(drag.after ? "drop-after" : "drop-before");
+  });
+  $("#grid").addEventListener("pointerup", e => {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const { id, over, after } = drag; endDrag();
+    if (!over) return;
+    const rest = shownIds.filter(x => x !== id && sameGroup(x, id)), k = rest.indexOf(over) + (after ? 1 : 0); // neighbors in its own group
+    moveCard(id, rest[k] || null, rest[k - 1] || null);
+  });
+  $("#grid").addEventListener("pointercancel", endDrag);
+  $("#grid").addEventListener("keydown", e => {
+    const h = e.target.closest("[data-drag]"); if (!h || !canReorder()) return;
+    const d = e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : 0;
+    if (!d) return;
+    e.preventDefault(); nudgeCard(h.dataset.drag, d);
+  });
+  $("#grid").addEventListener("click", e => { if (e.target.closest("[data-drag]")) e.preventDefault(); });
 
   // ---------- events ----------
   $("#tabs").addEventListener("click", e => { const t = e.target.closest("[data-tab]"); if (!t) return; F.tab = t.dataset.tab; saveFilters(); renderTabs(); renderGrid(); });
@@ -2075,7 +2244,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <fieldset><legend>Rules text</legend>
         <div class="fgrid">
           <div class="field wide" id="fx-old-row"></div>
-          <div class="field wide"><span class="lbl">Effects</span><div id="fx-list" class="fx-list"></div>${readOnly ? "" : `<div><button class="btn" type="button" id="fx-add">Add effect</button></div>`}</div>
+          <div class="field wide"><span class="lbl">Effects</span>${readOnly ? "" : `<div class="fx-adders" id="fx-adders"></div>`}<div id="fx-list" class="fx-list"></div>${readOnly ? "" : `<div><button class="btn" type="button" id="fx-add">Add a blank effect</button></div>`}</div>
           <div class="field wide"><span class="lbl">Card text</span><div class="fx-preview" id="fx-preview" aria-live="polite"></div></div>
           <div class="field wide"><label for="e-fxnote">Other effects (free text, not simulated)</label><textarea id="e-fxnote" rows="2">${esc(c.effectNote || "")}</textarea><span class="hint">For ideas the effect builder can't express yet. They show on the card; the simulator skips them.</span></div>
 
@@ -2084,7 +2253,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       </fieldset>
       <fieldset><legend>Tags</legend>
         <div class="fgrid">
-          <div class="field wide"><label for="e-tags">Public tags</label><input type="text" id="e-tags" value="${esc((c.tags || []).join(", "))}"><span class="hint">Comma separated: Weapon, Crew, Biological, Shields…</span></div>
+          <div class="field wide"><label for="e-tags">Public tags</label><input type="text" id="e-tags" value="${esc((c.tags || []).join(", "))}"><span class="hint">Comma separated: Weapon, Crew, Biological, Shields… Weapon is added by itself to any card with an attack that can stand in the exterior row.</span></div>
           <div class="field wide"><span class="lbl">Source sectors (hidden)</span><div class="checkrow">${SOURCES.map(s => `<label><input type="checkbox" class="e-src" value="${s}" ${(c.sources || []).includes(s) ? "checked" : ""}> ${SECTOR_NAME[s]}</label>`).join("")}</div></div>
           <div class="field"><label for="e-tech">Tech level (hidden)</label><select id="e-tech"><option value="">None</option>${opt(TECHS, c.tech)}</select></div>
           <div class="field"><label for="e-rec">Recipe tags (hidden)</label><input type="text" id="e-rec" value="${esc((c.recipes || []).join(", "))}" placeholder="junk, military…"></div>
@@ -2099,6 +2268,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     $("#fx-old-row").innerHTML = converted && converted.effect ? `<div class="fx-old"><b>Written before the effect builder.</b> Keywords were converted; the rest is in Other effects until you rebuild it below. Old text: ${converted.timing && converted.timing !== "None" ? esc(converted.timing) + ": " : ""}${esc(converted.effect)}</div>` : "";
     $("#fx-old-row").hidden = !(converted && converted.effect);
     renderFx();
+    if ($("#fx-adders")) $("#fx-adders").innerHTML = fxAddersHtml();
     $("#ed-save").hidden = readOnly; $("#ed-dup").hidden = readOnly || isNew; $("#ed-del").hidden = readOnly || isNew;
     // Delete removes this sheet's copy only
     $("#ed-del").textContent = sh && others.length ? `Delete from ${shortName(sh)}` : "Delete"; delete $("#ed-del").dataset.armed;
@@ -2109,6 +2279,16 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   function closeEditor() { $("#editor").hidden = true; $("#scrim").hidden = true; editing = null; }
   const numOrNull = sel => { const v = $(sel).value.trim(); return v === "" ? null : Math.max(0, Number(v)); };
   const list = sel => $(sel).value.split(",").map(s => s.trim()).filter(Boolean);
+  // A card with an attack that can stand in the exterior row is a weapon (DESIGN 7.1.4): crew attack from inside and aren't,
+  // and neither is a card that only deals damage some other way (Reflect, an effect)
+  const isWeaponShape = d => (d.atkVar || (d.attack || []).some(a => Number(a.amt) > 0)) && (d.row === "Exterior" || (d.row === "Either" && !(d.tags || []).includes("Crew")));
+  const withWeaponTag = d => isWeaponShape(d) && !(d.tags || []).includes("Weapon") ? { ...d, tags: ["Weapon", ...(d.tags || [])] } : d;
+  // Shows the tag in the editor as soon as the card gets an attack
+  function syncWeaponTag() {
+    const el = $("#e-tags"); if (!el || readOnly) return;
+    const tags = list("#e-tags"), atk = [$("#e-a1").value, $("#e-a2").value].some(v => Number(v) > 0);
+    if (isWeaponShape({ atkVar: $("#e-var").checked, attack: atk ? [{ amt: 1 }] : [], row: $("#e-row").value, tags }) && !tags.includes("Weapon")) el.value = ["Weapon", ...tags].join(", ");
+  }
   function readForm() {
     const attack = [];
     [["#e-a1", "#e-t1"], ["#e-a2", "#e-t2"]].forEach(([a, t]) => { const n = numOrNull(a); if (n != null) attack.push({ type: $(t).value, amt: n }); });
@@ -2118,7 +2298,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       attack, atkVar: $("#e-var").checked, health: numOrNull("#e-hp"), mult: numOrNull("#e-mult") || 1,
       charges: numOrNull("#e-chg"), ammo: numOrNull("#e-ammo"), chargesEmpty: $("#e-chg-empty").checked, ammoEmpty: $("#e-ammo-empty").checked, gearSlots: numOrNull("#e-gs"), modSlots: numOrNull("#e-ms"), value: numOrNull("#e-val"),
       effects: (editing.effects || []).map(cleanEffect), effectNote: $("#e-fxnote").value.trim(), timing: "", flavor: $("#e-flavor").value.trim(),
-      tags: list("#e-tags"), sources: [...document.querySelectorAll(".e-src:checked")].map(i => i.value), tech: $("#e-tech").value, recipes: list("#e-rec"),
+      tags: withWeaponTag({ attack, atkVar: $("#e-var").checked, row: $("#e-row").value, tags: list("#e-tags") }).tags, sources: [...document.querySelectorAll(".e-src:checked")].map(i => i.value), tech: $("#e-tech").value, recipes: list("#e-rec"),
       pick: $("#e-pick").checked, parked: $("#e-parked").checked, notes: $("#e-notes").value.trim(),
       approved: $("#e-appr").checked, public: $("#e-public").checked, bpAdj: signedOrNull("#e-adj"),
     };
@@ -2130,17 +2310,76 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   function renderLiveBP() {
     const box = $("#bp-live"); if (!box || !editing) return;
     const c = { ...editing, ...readForm() }, p = priceCard(c), st = budgetState(c);
-    const how = x => [x.tier && x.tier !== "base" ? x.tier : "", x.style && x.style !== "single" ? `${STYLE_LABEL[x.style]} ×${FORMULA.styles[x.style]}` : "", x.times > 1 ? `× X (${x.times})` : ""].filter(Boolean).join(", ");
+    const how = x => [x.tier && x.tier !== "base" ? x.tier : "", x.style && x.style !== "single" ? `${STYLE_LABEL[x.style]} ×${FORMULA.styles[x.style]}` : "", x.times > 1 && !(x.notes || []).length ? `× X (${x.times})` : "", ...(x.notes || [])].filter(Boolean).join(", ");
     const rows = p.parts.map(x => `<tr><td>${esc(x.label)}${how(x) ? ` <span class="hint">${esc(how(x))}</span>` : ""}</td><td class="n">${fxFmt(x.bp)}</td></tr>`).join("");
     const un = p.unpriced.map(u => `<li>${esc(u.text)} <span class="hint">${esc(u.why)}</span></li>`).join("");
     box.innerHTML = `<table class="bp-parts">${rows}<tr class="tot"><td>Total${Math.abs(p.raw - p.total) > 1e-9 ? ` (${fxFmt(p.raw)}, rounded once)` : ""}</td><td class="n">${p.total}</td></tr></table>
       ${un ? `<div class="bp-un"><b>No formula covers these; put what they're worth in Effect BP:</b><ul>${un}</ul></div>` : ""}
       ${p.errs.length ? `<div class="fx-err">A formula on this sheet has a problem: ${p.errs.map(esc).join("; ")}</div>` : ""}
+      ${Number(c.bpAdj) && !p.unpriced.length && (c.effects || []).length ? `<div class="bp-un warn"><b>Every effect here is priced by a formula now,</b> and Effect BP still adds ${Number(c.bpAdj)}. Clear Effect BP unless it prices something else, such as the Other effects text.</div>` : ""}
       ${st ? `<span class="bp ${st.s}">${Math.round(st.r * 100)}% of ${st.b}</span>${readOnly ? "" : `<button class="btn" type="button" id="e-fill">Fill health to budget</button>`}` : `<span class="hint">Items have no budget yet</span>`}`;
+    // Each effect's own price, under it
+    document.querySelectorAll("#fx-list [data-fxprice]").forEach(el => {
+      const i = Number(el.dataset.fxprice), mine = p.parts.filter(x => x.i === i), un = p.unpriced.find(u => u.i === i);
+      if (un) el.innerHTML = `<span class="unp">Priced by hand: ${esc(un.why)}</span>${un.fix && !readOnly ? `<button type="button" class="btn" data-fxfix="${i}" data-fix="${esc(un.fix)}">Rewrite it that way</button>` : ""}`;
+      else if (mine.length) {
+        const bp = mine.reduce((t, x) => t + x.bp, 0), rows = [...new Set(mine.map(x => (FROW[x.row] || {}).label || x.row))].join(" + ");
+        el.innerHTML = `<span class="bpn">${fxFmt(bp)} BP</span><span class="hint">${esc(rows)}${how(mine[0]) ? " · " + esc(how(mine[0])) : ""}</span>`;
+      } else el.innerHTML = `<span class="hint">Priced with the attack</span>`;
+    });
+    // What each common effect would add to this card
+    document.querySelectorAll("#fx-adders [data-presetbp]").forEach(el => {
+      const pr = FX_PRESETS[Number(el.dataset.presetbp)]; if (!pr) return;
+      const q = priceCard({ ...c, ...(pr.charges && !(Number(c.charges) > 0) ? { charges: 1 } : {}), effects: [...(c.effects || []), pr.e] });
+      el.textContent = q.unpriced.length > p.unpriced.length ? "by hand" : `${q.raw - p.raw >= 0 ? "+" : ""}${fxFmt(q.raw - p.raw)}`;
+    });
+  }
+  // Ready-made effects, grouped; each adds a copy to the card. `charges`: give a card with no charge pips one.
+  const fxKw = (k, amount, more = {}) => ({ trigger: "", target: "self", action: "keyword", keyword: k, ...(amount != null ? { amount } : {}), ...more });
+  const FX_PRESETS = [
+    ...[fxKw("Resist", 1), fxKw("Block", 1), fxKw("Reflect", 2), fxKw("Self-Repair", 1), fxKw("Self-Heal", 1), fxKw("Taunt"), fxKw("Guard"), fxKw("Flank"), fxKw("Execute"), fxKw("Pierce", 1), fxKw("Splash", 1), fxKw("Vulnerable", null, { type: "Kinetic" })].map(e => ({ g: "Keywords on this card", e })),
+    ...[fxKw("Restore", 2), fxKw("Regen", 1)].map(e => ({ g: "Shields cards", e })),
+    { g: "Charges and ammo", charges: true, e: { trigger: "on_attacked", target: "attack", action: "block_attack", cost: "charge", costCount: 1 } },
+    { g: "Charges and ammo", charges: true, e: { trigger: "on_attacked", target: "it", action: "deal_damage", amount: 3, source: "value", type: "", cost: "charge", costCount: 1 } },
+    { g: "Charges and ammo", e: { trigger: "after_attack", target: "self", action: "discharge", amount: 1, source: "value" } },
+    { g: "Charges and ammo", e: { trigger: "after_attack", target: "self", action: "reload", amount: 1, source: "value", limit: "3/fight" } },
+    { g: "Charges and ammo", e: { trigger: "on_activate", target: "behind_weapon", action: "reload", amount: 1, source: "value" } },
+    { g: "Charges and ammo", e: { trigger: "on_activate", target: "behind", action: "recharge", amount: 1, source: "value" } },
+    ...["after_attack", "on_activate", "end_of_round", "on_ally_death", "on_row_ally_death", "on_adjacent_ally_death"].map(t => ({ g: "Growing during the fight", e: { trigger: t, target: "self", action: "gain_attack", amount: 1, source: "value", stat: "attack" } })),
+    { g: "Growing between fights", e: { trigger: "on_win", target: "self", action: "gain_attack", amount: 1, source: "value", stat: "attack", duration: "permanent" } },
+    { g: "Growing between fights", e: { trigger: "end_of_fight", target: "self", action: "gain_health", amount: 2, source: "value", duration: "permanent" } },
+    { g: "Helping other cards", e: { trigger: "", target: "adjacent_weapons", action: "gain_attack", amount: 1, source: "value", stat: "attack" } },
+    { g: "Helping other cards", e: { trigger: "", target: "behind_weapon", action: "gain_mult", amount: 1 } },
+    { g: "Helping other cards", e: { trigger: "on_activate", target: "behind_weapon", action: "activate" } },
+    { g: "Helping other cards", e: fxKw("Resist", 1, { target: "adjacent" }) },
+    { g: "Helping other cards", e: fxKw("Repair", 2) },
+    { g: "Helping other cards", e: fxKw("Heal", 2) },
+    { g: "Your ship", e: { trigger: "", target: "ship", action: "gain_speed", amount: 4 } },
+    { g: "Your ship", e: { trigger: "fight_start", target: "ship", action: "gain_hull", amount: 4 } },
+  ];
+  function fxAddersHtml() {
+    const groups = [...new Set(FX_PRESETS.map(x => x.g))];
+    const chip = (x, i) => `<button type="button" class="fx-chip" data-preset="${i}">${x.e.trigger ? `<span class="tm">${esc(trigLabel(x.e.trigger))}</span>` : ""}${typeColor(esc(effectText(x.e, editing)))}<span class="cbp" data-presetbp="${i}"></span></button>`;
+    return `<details class="fx-common"><summary>Common effects: tap one to add it</summary>
+      ${groups.map(g => `<div class="fx-cg"><span class="fx-cgl">${esc(g)}</span>${FX_PRESETS.map((x, i) => x.g === g ? chip(x, i) : "").join("")}</div>`).join("")}
+      <p class="hint" style="margin:8px 0 2px">The number is what it adds to this card's price. It joins the effects below; change its amount, target or trigger there.</p></details>`;
   }
   // ---------- effect builder ----------
   const optList = (vals, cur, label = v => v) => vals.map(v => `<option value="${esc(v)}" ${String(v) === String(cur ?? "") ? "selected" : ""}>${esc(label(v))}</option>`).join("");
   const blankEffect = () => ({ trigger: "", target: "self", action: "gain_attack", amount: 1, source: "value", stat: "attack" });
+  // The When and Does lists, in groups; anything not named lands in Other
+  const TRIG_GROUPS = [["Always", ["", "fight_start"]], ["Each round", ["on_activate", "after_attack", "after_activate", "end_of_round", "on_adjacent_activation"]],
+    ["Attacks and damage", ["on_attacked", "on_neighbor_attacked", "on_damaged", "on_shields_down", "on_hull_damage", "on_kill"]],
+    ["Deaths", ["on_death", "on_ally_death", "on_row_ally_death", "on_adjacent_ally_death", "on_lateral_ally_death", "on_enemy_death"]],
+    ["Boarding", ["on_boarding", "on_ally_boarding", "on_enemy_boarding"]], ["The fight", ["on_maelstrom", "end_of_fight", "on_win"]],
+    ["The run (not simulated)", ["on_captain_level", "on_jump", "on_intel", "on_sell_other", "on_card_bought", "when_acquired", "when_fed", "stowed", "quest"]]];
+  const ACT_GROUPS = [["Stats", ["gain_attack", "gain_health", "gain_mult", "gain_hull", "gain_speed", "gain_ammo_max"]], ["Keywords", ["keyword"]], ["Healing", ["repair", "heal"]],
+    ["Charges and ammo", ["reload", "recharge", "discharge", "take_charge"]], ["Damage and targeting", ["deal_damage", "double_damage", "bonus_damage", "cant_damage", "retarget"]],
+    ["Activating and boarding", ["activate", "board"]], ["The incoming attack", ["block_attack", "halve_attack"]], ["Economy (not simulated)", ["gain_credits", "gain_income"]]];
+  function optGroups(groups, keys, cur, label) {
+    const named = new Set(groups.flatMap(([, ks]) => ks)), rest = keys.filter(k => !named.has(k));
+    return [...groups, ["Other", rest]].map(([g, ks]) => { const l = ks.filter(k => keys.includes(k)); return l.length ? `<optgroup label="${esc(g)}">${optList(l, cur, label)}</optgroup>` : ""; }).join("");
+  }
   function fxSimulated(e) { return !!((TRIG[e.trigger || ""] || {}).sim && (TGT[e.target] || {}).sim && (ACT[e.action] || {}).sim && !e.condition); }
   function fxRow(e, i, count) {
     const A = ACT[e.action] || VOCAB.actions[0], P = A.params, k = KW[e.keyword] || {};
@@ -2150,8 +2389,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const num = (f, label) => `<label class="fx-f fx-num">${label}<input type="number" data-fx="${i}" data-f="${f}" value="${esc(e[f] ?? "")}" ${dis}></label>`;
     const txt = (f, label, ph) => `<label class="fx-f">${label}<input type="text" data-fx="${i}" data-f="${f}" value="${esc(e[f] ?? "")}" placeholder="${ph}" ${dis}></label>`;
     const parts = [
-      sel("trigger", optList(VOCAB.triggers.map(t => t.key), e.trigger || "", k2 => trigLabel(k2)), "When"),
-      sel("action", optList(VOCAB.actions.map(a => a.key), e.action, k2 => ACT[k2].label), "Does"),
+      sel("trigger", optGroups(TRIG_GROUPS, VOCAB.triggers.map(t => t.key), e.trigger || "", k2 => trigLabel(k2)), "When"),
+      sel("action", optGroups(ACT_GROUPS, VOCAB.actions.map(a => a.key), e.action, k2 => k2 === "keyword" ? "Have a keyword (Resist, Block, Taunt…)" : ACT[k2].label), "Does"),
       sel("target", optList(targets.map(t => t.key), e.target, k2 => cap1(TGT[k2].text.replace("{tag}", "…"))), "To"),
     ];
     if (P.includes("keyword")) parts.push(sel("keyword", optList(VOCAB.keywords.map(x => x.key), e.keyword), "Keyword"));
@@ -2170,6 +2409,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const moves = readOnly ? "" : `<span class="fx-moves"><button type="button" class="btn" data-fxmove="${i}" data-d="-1" ${i === 0 ? "disabled" : ""} aria-label="Move effect up">↑</button><button type="button" class="btn" data-fxmove="${i}" data-d="1" ${i === count - 1 ? "disabled" : ""} aria-label="Move effect down">↓</button><button type="button" class="btn danger" data-fxdel="${i}">Remove</button></span>`;
     return `<div class="fx-row"><div class="fx-grid">${parts.join("")}</div>
       <label class="fx-f fx-cond">Condition (optional)<input type="text" data-fx="${i}" data-f="condition" value="${esc(e.condition || "")}" placeholder="this crew is below half health" ${dis}></label>
+      <div class="fx-foot"><span class="fx-price" data-fxprice="${i}"></span></div>
       <div class="fx-foot"><span class="chip ${fxSimulated(e) ? "role" : ""}" title="${fxSimulated(e) ? "The simulator runs this effect" : "Conditions, and triggers, targets, or actions the simulator doesn't support yet, are skipped"}">${fxSimulated(e) ? "Simulated" : "Not simulated"}</span>${moves}</div></div>`;
   }
   function renderFx() {
@@ -2180,8 +2420,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   }
   function renderFxPreview() {
     const c = { tags: list("#e-tags"), effects: editing.effects || [], effectNote: $("#e-fxnote") ? $("#e-fxnote").value.trim() : "" };
-    const lines = effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${esc(l.text)}</div>`).join("");
-    $("#fx-preview").innerHTML = (lines || (c.effectNote ? "" : `<span class="none">No effect.</span>`)) + (c.effectNote ? `<div class="fx-note">${esc(c.effectNote)}</div>` : "");
+    const lines = fxLinesHtml(c);
+    $("#fx-preview").innerHTML = (lines || (c.effectNote ? "" : `<span class="none">No effect.</span>`)) + (c.effectNote ? `<div class="fx-note">${typeColor(esc(c.effectNote))}</div>` : "");
   }
   // Keep only the fields an effect's action uses, so stored effects stay tidy
   function cleanEffect(e) {
@@ -2217,13 +2457,36 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   $("#ed-form").addEventListener("change", onFx);
   $("#ed-form").addEventListener("click", e => {
     if (!editing || readOnly) return;
-    if (e.target.closest("#fx-add")) { editing.effects = [...(editing.effects || []), { id: newFid(), ...blankEffect() }]; renderFx(); renderLiveBP(); return; }
+    if (e.target.closest("#fx-add")) {
+      editing.effects = [...(editing.effects || []), { id: newFid(), ...blankEffect() }]; renderFx(); renderLiveBP();
+      const rows = document.querySelectorAll("#fx-list .fx-row"), last = rows[rows.length - 1];
+      if (last) { last.scrollIntoView({ block: "nearest" }); const f = last.querySelector("select"); if (f) f.focus(); }
+      return;
+    }
+    const pre = e.target.closest("[data-preset]");
+    if (pre) {
+      const x = FX_PRESETS[Number(pre.dataset.preset)]; if (!x) return;
+      editing.effects = [...(editing.effects || []), { id: newFid(), ...clone(x.e) }];
+      const added = (x.e.trigger ? trigLabel(x.e.trigger) + ": " : "") + effectText(x.e, editing);
+      if (x.charges && !(Number($("#e-chg").value) > 0)) { $("#e-chg").value = 1; toast(`Added below: ${added} Max charges is now 1, so it has a charge to spend.`); }
+      else toast(`Added below: ${added}`);
+      renderFx(); renderLiveBP(); return;
+    }
+    const fixb = e.target.closest("[data-fxfix]");
+    if (fixb) { // rewrite an effect the way its formula reads it
+      const i = Number(fixb.dataset.fxfix), fx = editing.effects[i]; if (!fx) return;
+      const keep = { id: fx.id, ...(fx.limit ? { limit: fx.limit } : {}) };
+      if (fixb.dataset.fix === "chargeBlock") editing.effects[i] = cleanEffect({ ...keep, trigger: "on_attacked", target: "attack", action: "block_attack", cost: "charge", costCount: 1 });
+      if (fixb.dataset.fix === "chargeReflect") editing.effects[i] = cleanEffect({ ...keep, trigger: "on_attacked", target: "it", action: "deal_damage", amount: Number(fx.amount) || 1, source: "value", type: "", cost: "charge", costCount: 1 });
+      renderFx(); renderLiveBP(); return;
+    }
     const mv = e.target.closest("[data-fxmove]");
     if (mv) { const i = Number(mv.dataset.fxmove), j = i + Number(mv.dataset.d), L = editing.effects; if (L[j]) { [L[i], L[j]] = [L[j], L[i]]; renderFx(); renderLiveBP(); } return; }
     const del = e.target.closest("[data-fxdel]");
     if (del) { editing.effects.splice(Number(del.dataset.fxdel), 1); renderFx(); renderLiveBP(); }
   });
   $("#ed-form").addEventListener("input", renderLiveBP);
+  $("#ed-form").addEventListener("change", e => { if (["e-a1", "e-a2", "e-var", "e-row"].includes(e.target.id)) { syncWeaponTag(); renderFxPreview(); } });
   $("#ed-form").addEventListener("change", renderLiveBP);
   $("#ed-form").addEventListener("click", e => {
     if (!e.target.closest("#e-fill") || !editing) return;
@@ -2401,7 +2664,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       <table class="gtable"><tr><th>Function</th><th>Does</th></tr>${Object.entries(FFUNCS).map(([k, f]) => `<tr><td><code>${k}( )</code></td><td>${esc(f.text)}</td></tr>`).join("")}
         <tr><td><code>Block(Pc)</code></td><td>Calls another row by its id: that row's base formula, with N set to the value given and every other variable unchanged. Charge-fed Block is <code>1.5*Block(Pc)</code>, so it follows Block.</td></tr></table>
       <p><b>Tiers.</b> Every row has a <b>base</b> formula: its price on the card itself. A row that can reach other cards may also have a <b>dumb</b> formula (a fixed card slot: in front, behind, above, below, adjacent, your Shields card) and a <b>smart</b> one (it picks or skips: the most damaged card, the nearest crew, the frontmost; Discharge, and passed Heal and Repair). A blank dumb or smart formula uses base.</p>
-      <p><b>Targeting styles</b> multiply a targeted effect by how many cards it reaches. <b>Triggers:</b> keywords and given buffs are priced always on or at Fight Start; healing, charges, ammo and activating another card once a round (On Activate, After Activate, End of round), and After Attack × X. Anything else, and anything with a condition, a limit or a cost (other than charge-fed Block and Reflect), is priced by hand in the card's Effect BP; the editor lists those.</p>`;
+      <p><b>Targeting styles</b> multiply a targeted effect by how many cards it reaches. <b>Triggers:</b> keywords and given buffs are priced always on or at Fight Start; healing, charges, ammo and activating another card once a round (On Activate, After Activate, End of round), and After Attack × X. The ally-death triggers take a share of the once-a-round price (the On ally death row, by how many allies they can see), and a limit ("at most 3 times per fight") caps what an effect can be worth (the At most N times row). A weapon that reloads itself is priced as more ammo. Anything else, and anything with a condition or a cost (other than charge-fed Block and Reflect), is priced by hand in the card's Effect BP; the editor lists those.</p>`;
   }
   let SH = { plan: null };
   // The Sheet panel's tab (remembered between visits) and the text in its Find box
@@ -2752,6 +3015,9 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       DoubleDamage: "Provisional: re-measure",
       Ramp: "Measured (2026-10-08, Test Board C against random boards): +1 after each attack on a 1-attack gun wins like a 2.5-attack gun, about 12 BP. With mult 2 the gains come twice as often and land on twice the hits, so After Attack is × X twice",
       RampEarly: "On Activate measured like a 3.7-attack gun, about 22 BP: the Ramp's 12 plus one attack point (8 × X), since the first gain lands before the first attack",
+      Speed: "Measured (2026-10-08): going first instead of second is worth about 4 BP, and the first mover wins 52.8% of random 8×8 fights. Speed helps only when it flips initiative, and that depends on the other ship, your ship's size and your other speed cards, so half a BP a point, never more than 4",
+      AllyDeath: "Measured (2026-10-08, a test gun in Test Board C's Cannon slot against random boards): +1 attack on any ally's death, or one in this row, is worth about half of +1 once a round (about 2 deaths a fight reach it); on an adjacent ally's death, or the one in front or behind, about a sixth (about 1). Exterior cards die most, so this row counts about as much as any ally",
+      Limit: "A card acts in about 6 rounds of a fight (a once-a-round ramp fired 5.7 times a fight in the sims). Linear, so a limited ramp is a little cheap: its first gains last longest. A weapon that reloads itself is priced as more ammo instead: its ammo plus what each firing reloads",
       AttackPerWin: "Priced by break-even: base stats break even after about 1.5 cycles and the card pays back around cycle 3. On Death triggers balance themselves",
     },
     handPrices: [],
@@ -2895,7 +3161,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       </table>
           <p>A keyword on the card itself is priced by its row's base formula. Given to other cards ("Adjacent cards have Resist 1."), it is priced by its dumb or smart formula × the targeting style.</p>
           <h3>Prices</h3>${sn(FGROUPS[2])}${rowTable(2)}`],
-        ...[3, 4, 5].map(gi => ["g" + gi, FGROUPS[gi], `${sn(FGROUPS[gi])}${rowTable(gi)}`]),
+        ...[3, 4, 5, 6].map(gi => ["g" + gi, FGROUPS[gi], `${sn(FGROUPS[gi])}${rowTable(gi)}`]),
         ["styles", "Targeting styles", `${sn("Targeting styles")}
           <table class="gtable"><tr><th>Style</th><th>Reaches</th><th class="n">×</th></tr>${FSTYLES.map(st => `<tr><td>${st.label}</td><td>${esc(st.text)}</td><td class="n">${FORMULA.styles[st.k] ?? st.seed}</td></tr>`).join("")}</table>`],
         ["principles", "Pricing principles", `${(G.buffPoints || []).length ? `<ul>${G.buffPoints.map(t => `<li>${g(t)}</li>`).join("")}</ul>` : ""}
@@ -2916,6 +3182,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         <li><b>Charge abilities:</b> set <b>Charges</b> to the number of uses (the card shows them as pips) and set the effect's <b>Costs</b>, which writes <b>"Spend a charge: effect."</b> (or 2 charges, all charges, or ammo; an amount can be "for each charge spent") Put a condition first when there is one: "If this crew is below half health, spend a charge: heal 3." Example: Ablative Tiles, On Attacked, 2 charges, "Spend a charge: block the attack."</li>
         <li><b>Discharge N</b> gives N charges to the cards beside this one, each to the first that takes it: below, then behind, then in front (from an interior card: above, behind, in front). Electric weapons usually carry "After Attack: Discharge 1."; it is separate from Electric damage, which charges the card it is dealt to. <b>Take charges</b> moves charges from a named card to this one.</li>
         <li><b>Ammo</b> is for attacks: each volley (all of a card's attacks in one activation) spends 1, whatever the mult. With none left the card still activates (its On Activate effects fire) but doesn't attack. <b>Reload N</b> gives ammo and <b>Recharge N</b> gives charges; anything past the max is wasted. Both start full each fight unless the card is set to start empty.</li>
+        <li><b>Ally deaths</b> come in four ranges: any ally, an ally in this row, an adjacent ally, or the card in front or behind. The narrower the range, the fewer deaths it sees, and the less it costs.</li>
         <li><b>Charges or a keyword count?</b> Use charges when the uses should be refillable: Electric hits, Capacitors and recharging all feed charges. Use a count such as Block N when the number is fixed for the fight.</li>
         <li>An effect with no trigger is always on, so it needs no Timing and shows no label ("Resist 1.", "Taunt.", "Your crew gain +1 attack."). Pick <b>Always on</b> for these.</li>
         <li>A card whose On Activate effect activates another card ends its own activation there (Gunport).</li>
@@ -3408,7 +3675,15 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       if (t.kind === "S") { mine(owner).forEach(x => { if (alive(x)) fire(x, "on_shields_down"); }); return; }
       expire(t, "destroyed");
       fire(t, "on_death");
-      mine(owner).forEach(x => { if (x !== t && alive(x)) fire(x, "on_ally_death", 0, { subject: t }); });
+      // Ally deaths by range: any ally; one in the same row (or boarder column); an adjacent one; the one in front or behind
+      const L = line(t), near = d => nbr(t, d);
+      mine(owner).forEach(x => {
+        if (x === t || !alive(x)) return;
+        fire(x, "on_ally_death", 0, { subject: t });
+        if (alive(x) && line(x) === L) fire(x, "on_row_ally_death", 0, { subject: t });
+        if (alive(x) && ["front", "behind", "above", "below"].some(d => near(d) === x)) fire(x, "on_adjacent_ally_death", 0, { subject: t });
+        if (alive(x) && (near("front") === x || near("behind") === x)) fire(x, "on_lateral_ally_death", 0, { subject: t });
+      });
       mine(opp).forEach(x => { if (alive(x)) fire(x, "on_enemy_death", 0, { subject: t }); });
       if (t.zone === "col") { const L = t.host.col, k = L.indexOf(t); if (k >= 0) L.splice(k, 1); }
     }
@@ -3852,7 +4127,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     if (!selSlot) return "";
     const s = B[selSlot.zone][selSlot.i], c = s && cards.get(s.id);
     if (!c) return "";
-    const lines = structured(c) ? effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${esc(l.text)}</div>`).join("") + (c.effectNote ? `<div class="fx-note">${esc(c.effectNote)}</div>` : "")
+    const lines = structured(c) ? fxLinesHtml(c) + (c.effectNote ? `<div class="fx-note">${typeColor(esc(c.effectNote))}</div>` : "")
       : c.effect ? `<div>${c.timing && c.timing !== "None" && c.timing !== "Static" ? `<span class="timing">${esc(c.timing)}</span>` : ""}${esc(c.effect)}</div>` : `<span class="none">No effect.</span>`;
     const place = c.row === "Exterior" || c.row === "Either" ? (c.place === "Front" ? "In front of armor" : c.place === "Behind" ? "Behind armor" : c.place && c.place.endsWith(" slot") ? c.place : "Front or behind armor") : "";
     const errs = validate(B).filter(e => e.zone === selSlot.zone && e.i === selSlot.i);
@@ -4072,7 +4347,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   $("#br-marks").addEventListener("click", e => { const b = e.target.closest("[data-brmark]"); if (!b) return; BR.mark = Number(b.dataset.brmark); renderBrowser(); });
   // A read-only look at a card: its stats at the chosen mark, text, tags, and price
   function cardInfo(c, m) {
-    const x = specOf(c.id, m), lines = structured(c) ? effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${esc(l.text)}</div>`).join("") + (c.effectNote ? `<div class="fx-note">${esc(c.effectNote)}</div>` : "") : "";
+    const x = specOf(c.id, m), lines = structured(c) ? fxLinesHtml(c) + (c.effectNote ? `<div class="fx-note">${typeColor(esc(c.effectNote))}</div>` : "") : "";
     const place = c.row === "Exterior" || c.row === "Either" ? (c.place === "Front" ? "In front of armor" : c.place === "Behind" ? "Behind armor" : c.place && c.place.endsWith(" slot") ? c.place : "Front or behind armor") : "";
     return `<div class="c-name">${esc(c.name)} <small class="mono">Mk ${MARKS[m - 1]} · ${esc(c.id)}</small></div>
       <div class="c-meta">${esc(c.row || "")}${place ? " · " + esc(place) : ""}${c.role ? " · " + esc(c.role) : ""}</div>
@@ -4352,7 +4627,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     const c = cards.get(x.id), resume = !!(play && play.playing && SIM.tab === "fight");
     if (resume) { play.playing = false; stopPlay(); renderStage(); }
     cardPop = { resume };
-    const lines = c && structured(c) ? effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${esc(l.text)}</div>`).join("") + (c.effectNote ? `<div class="fx-note">${esc(c.effectNote)}</div>` : "")
+    const lines = c && structured(c) ? fxLinesHtml(c) + (c.effectNote ? `<div class="fx-note">${typeColor(esc(c.effectNote))}</div>` : "")
       : c && c.effect ? `<div>${esc(c.effect)}</div>` : "";
     const L = live || liveOf(x), down = L.hp <= 0;
     const atk = (L.atk || []).filter(a => a[1] > 0).map(([t, n]) => `<span class="atk t-${esc(t)}">${n}</span> ${esc(t)}`).join(" + ");
