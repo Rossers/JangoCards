@@ -56,6 +56,14 @@ The **Cards** view shows the sheet's cards. The tabs split them by group, the se
 
 Sheets can come with boards to fight against, marked "Shared". Boards you save stay in your browser.
 
+**Example boards.** Ross Examples comes with three full ships to start from, each built from the example cards and arranged the way a player would, with the crew in the interior row placed under the cards they help:
+
+- **Test Board A, tank and spank:** a Decoy Buoy draws fire in front of the Armor, patched by the Repair Droid below it; the Gunner gives the Tri Gun an extra hit.
+- **Test Board B, Execute:** a Targeting Array between two guns makes both attack the weakest enemy card first.
+- **Test Board C, four guns:** a sturdy Prospector Cannon in front of the Armor and three guns behind it.
+
+Try them: open one in the **Board Builder** to see how a ship is put together (tap a card to see it), watch two of them in the **Fight Sim**, or pick one as the target in the **Mass Sim**. To change one, edit it and use **Save as new**; your copy stays in your browser.
+
 ## Make your own sheet (optional)
 
 For trying your own balance ideas or cards.

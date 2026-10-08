@@ -1,7 +1,7 @@
 {
  "jango": "balance-sheet",
  "format": 1,
- "exported": "2026-10-08T04:47:52.798Z",
+ "exported": "2026-10-08T04:53:13.564Z",
  "vocab": 6,
  "sheet": {
   "id": "ross-examples",
@@ -1606,13 +1606,13 @@
       "mark": 1
      },
      {
-      "id": "D01",
+      "id": "R02",
       "mark": 1
      }
     ],
     "int": [
      {
-      "id": "I12",
+      "id": "I38",
       "mark": 1
      },
      {
@@ -1620,7 +1620,7 @@
       "mark": 1
      },
      {
-      "id": "I38",
+      "id": "I12",
       "mark": 1
      },
      {
@@ -1631,7 +1631,10 @@
       "id": "D17",
       "mark": 1
      },
-     null
+     {
+      "id": "I32",
+      "mark": 1
+     }
     ]
    }
   },
@@ -1666,13 +1669,13 @@
       "mark": 1
      },
      {
-      "id": "R02",
+      "id": "D01",
       "mark": 1
      }
     ],
     "int": [
      {
-      "id": "I12",
+      "id": "I38",
       "mark": 1
      },
      {
@@ -1680,14 +1683,80 @@
       "mark": 1
      },
      {
-      "id": "I38",
+      "id": "I12",
       "mark": 1
      },
      {
       "id": "D23",
       "mark": 1
      },
-     null,
+     {
+      "id": "D17",
+      "mark": 1
+     },
+     {
+      "id": "I32",
+      "mark": 1
+     }
+    ]
+   }
+  },
+  {
+   "id": "bexc",
+   "name": "Test Board C",
+   "order": 3,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "R01",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "X59",
+      "mark": 1
+     },
+     {
+      "id": "D01",
+      "mark": 1
+     },
+     {
+      "id": "R02",
+      "mark": 1
+     }
+    ],
+    "int": [
+     {
+      "id": "I38",
+      "mark": 1
+     },
+     {
+      "id": "I47",
+      "mark": 1
+     },
+     {
+      "id": "I12",
+      "mark": 1
+     },
+     {
+      "id": "D17",
+      "mark": 1
+     },
+     {
+      "id": "D23",
+      "mark": 1
+     },
      {
       "id": "I32",
       "mark": 1
