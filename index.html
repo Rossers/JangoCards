@@ -457,17 +457,17 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .bp-un, .bp-live .fx-err { flex-basis: 100%; font-family: var(--body); font-size: 13px; }
 .bp-un ul { margin: 4px 0 0; padding-left: 18px; }
 /* design notes: one per formula row and per section of the Sheet panel */
-/* A labeled, tinted block with an accent stripe, in italics, wherever a note shows; an empty box stays faint until used */
-.dnote, .dnote-box { display: block; margin: 4px 0 2px; padding: 4px 9px 5px; border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--accent-soft) 60%, transparent); }
-.dnote-l { display: block; font-family: var(--display); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-style: normal; font-weight: 600; color: var(--accent-ink); margin-bottom: 1px; }
-.dnote { font-size: 13px; font-style: italic; color: var(--ink); }
-textarea.dnote-f { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font: italic 13px/1.5 var(--body); resize: none; overflow: hidden; min-height: 20px; }
-textarea.dnote-f:focus { outline: none; }
+/* Design notes: secondary text, set apart by a small label, a thin grey stripe, a faint wash and italics; the accent shows
+   only while a note is being written, and an empty box stays bare until used */
+.dnote, .dnote-box { display: block; margin: 4px 0 2px; padding: 3px 8px 4px; border-left: 2px solid var(--rule); border-radius: 0 5px 5px 0; background: color-mix(in srgb, var(--sunk) 55%, transparent); }
+.dnote-l { display: block; font-family: var(--display); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-style: normal; font-weight: 600; color: var(--faint); margin-bottom: 1px; }
+.dnote { font-size: 12.5px; font-style: italic; color: var(--muted); }
+textarea.dnote-f { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; color: var(--muted); font: italic 12.5px/1.5 var(--body); resize: none; overflow: hidden; min-height: 19px; }
+textarea.dnote-f:focus { outline: none; color: var(--ink); }
 textarea.dnote-f::placeholder { color: var(--faint); }
 .dnote-box { cursor: text; }
-.dnote-box:focus-within { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
-.dnote-box:has(textarea:placeholder-shown):not(:focus-within) { background: none; border-left-color: var(--rule); }
-.dnote-box:has(textarea:placeholder-shown):not(:focus-within) .dnote-l { color: var(--faint); }
+.dnote-box:focus-within { border-left-color: var(--accent); background: var(--sunk); }
+.dnote-box:has(textarea:placeholder-shown):not(:focus-within) { background: none; }
 </style>
 
 <header class="tally">
