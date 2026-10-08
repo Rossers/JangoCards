@@ -4046,14 +4046,24 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       ${[0, 1].map(s => endTable(s)).join("")}
       <div class="fab-row"><button class="btn primary" type="button" id="f-replay">Replay</button><button class="btn" type="button" id="f-new">Pick new boards</button></div>
       ${unsimNote([...P.A.ext, ...P.A.int, ...P.B.ext, ...P.B.int])}</div>` : "";
-    st.innerHTML = `<div class="box">
-      <div class="controls"><button class="btn" type="button" id="f-restart" title="Back to the start">⏮</button><button class="btn primary" type="button" id="f-play">${P.playing ? "Pause" : last ? "Replay" : "Play"}</button><button class="btn" type="button" id="f-step" ${last ? "disabled" : ""}>Step</button>
+    // The controls are drawn once per fight panel and only updated after that: playback redraws every step (every 60 ms at
+    // Fastest), and a button or menu redrawn between press and release never gets the click
+    if (!st.querySelector("#f-controls")) st.innerHTML = `<div class="box">
+      <div class="controls" id="f-controls"><button class="btn" type="button" id="f-restart" title="Back to the start">⏮</button><button class="btn primary" type="button" id="f-play"></button><button class="btn" type="button" id="f-step">Step</button>
         <label>Speed<select id="f-speed">${[[900, "Slow"], [450, "Normal"], [180, "Fast"], [60, "Fastest"]].map(([v, l]) => `<option value="${v}" ${Number(SIM.fight.speed) === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
-        <span class="round">Round ${step.round}</span><span class="muted">${first} goes first ${P.why}</span></div>
-      <div class="stage">${stageShip(1, ord)}${stageShip(0, ord)}</div>
+        <span class="round" id="f-round"></span><span class="muted" id="f-first"></span></div>
+      <div class="stage" id="f-stage"></div>
       <p class="muted ord-note">Numbers show each card's turn this round, and every card lights up on its turn. One with nothing to do (a wall, a Shields card that's up, crew with no boarders to fight) lights up briefly and adds no line to the log, so the log's turn numbers (A01, A02 …) can skip it. Click a card to see what it does.</p>
-      <div class="log" id="f-log">${logLines || '<span class="muted">The fight is about to start.</span>'}</div></div>${endBox}`;
-    const lg = $("#f-log"); if (lg) lg.scrollTop = lg.scrollHeight;
+      <div class="log" id="f-log"></div></div><div id="f-end"></div>`;
+    $("#f-play").textContent = P.playing ? "Pause" : last ? "Replay" : "Play";
+    $("#f-step").disabled = last;
+    $("#f-round").textContent = `Round ${step.round}`;
+    $("#f-first").textContent = `${first} goes first ${P.why}`;
+    $("#f-stage").innerHTML = stageShip(1, ord) + stageShip(0, ord);
+    const lg = $("#f-log");
+    lg.innerHTML = logLines || '<span class="muted">The fight is about to start.</span>';
+    lg.scrollTop = lg.scrollHeight;
+    $("#f-end").innerHTML = endBox;
   }
   $("#sim-body").addEventListener("change", e => {
     if (SIM.tab !== "fight") return;
