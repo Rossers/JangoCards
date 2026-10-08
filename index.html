@@ -457,10 +457,17 @@ details.logbox summary { cursor: pointer; font-size: 13.5px; color: var(--accent
 .bp-un, .bp-live .fx-err { flex-basis: 100%; font-family: var(--body); font-size: 13px; }
 .bp-un ul { margin: 4px 0 0; padding-left: 18px; }
 /* design notes: one per formula row and per section of the Sheet panel */
-textarea.dnote-f { display: block; width: 100%; box-sizing: border-box; margin: 2px 0 0; padding: 3px 4px; border: 0; border-bottom: 1px dashed var(--rule); border-radius: 0; background: transparent; color: var(--ink); font: 13px/1.5 var(--body); resize: none; overflow: hidden; min-height: 26px; }
-textarea.dnote-f:focus { outline: none; border-bottom-color: var(--accent); background: var(--paper); }
-textarea.dnote-f::placeholder { color: var(--faint); font-style: italic; }
-.dnote { font-size: 13px; color: var(--muted); border-left: 2px solid var(--accent-soft); padding-left: 8px; margin: 4px 0; }
+/* A labeled, tinted block with an accent stripe, in italics, wherever a note shows; an empty box stays faint until used */
+.dnote, .dnote-box { display: block; margin: 4px 0 2px; padding: 4px 9px 5px; border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--accent-soft) 60%, transparent); }
+.dnote-l { display: block; font-family: var(--display); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-style: normal; font-weight: 600; color: var(--accent-ink); margin-bottom: 1px; }
+.dnote { font-size: 13px; font-style: italic; color: var(--ink); }
+textarea.dnote-f { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font: italic 13px/1.5 var(--body); resize: none; overflow: hidden; min-height: 20px; }
+textarea.dnote-f:focus { outline: none; }
+textarea.dnote-f::placeholder { color: var(--faint); }
+.dnote-box { cursor: text; }
+.dnote-box:focus-within { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.dnote-box:has(textarea:placeholder-shown):not(:focus-within) { background: none; border-left-color: var(--rule); }
+.dnote-box:has(textarea:placeholder-shown):not(:focus-within) .dnote-l { color: var(--faint); }
 </style>
 
 <header class="tally">
@@ -2292,11 +2299,12 @@ textarea.dnote-f::placeholder { color: var(--faint); font-style: italic; }
   const secKey = name => "sec." + String(name).toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-+|-+$/g, "");
   const NOTE_SECTIONS = ["Budget", ...FGROUPS, "Targeting styles", "Ship and fight"].map(n => [secKey(n), n]);
   const sheetNotes = s => s && isObj(s.guide) && isObj(s.guide.notes) ? s.guide.notes : GUIDE_SEED.notes;
+  const dnoteHtml = html => `<div class="dnote"><span class="dnote-l">Design notes</span>${html}</div>`;
   const noteMd = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
   function noteBox(key, label, ro, ask) {
     const v = String(sheetNotes(activeSheet())[key] || "");
-    if (ro) return v ? `<p class="dnote">${noteMd(v)}</p>` : "";
-    return `<textarea class="dnote-f" data-dnote="${esc(key)}" rows="1" aria-label="Design notes: ${esc(label)}" placeholder="Design notes (optional): ${esc(ask)}">${esc(v)}</textarea>`;
+    if (ro) return v ? dnoteHtml(noteMd(v)) : "";
+    return `<label class="dnote-box"><span class="dnote-l">Design notes</span><textarea class="dnote-f" data-dnote="${esc(key)}" rows="1" aria-label="Design notes: ${esc(label)}" placeholder="Optional: ${esc(ask)}">${esc(v)}</textarea></label>`;
   }
   const fitNote = el => { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; };
   // How formulas work: for the Sheet panel and the Guide
@@ -2623,13 +2631,13 @@ textarea.dnote-f::placeholder { color: var(--faint); font-style: italic; }
     const g = t => esc(t || "").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\{(\w+)\}/g, (m, k) => k in V ? V[k] : m).replace(/\n/g, "<br>");
     const n = k => g(N[k]);
     const note = r => N[r.id] ? g(N[r.id]) : LEGACY_NOTE[r.id] && N[LEGACY_NOTE[r.id]] ? g(N[LEGACY_NOTE[r.id]]) : "";
-    const sn = name => N[secKey(name)] ? `<p class="dnote">${g(N[secKey(name)])}</p>` : "";
+    const sn = name => N[secKey(name)] ? dnoteHtml(g(N[secKey(name)])) : "";
     const price = (item, bp, nt = "") => `<tr><td>${item}</td><td>${bp}</td><td>${nt}</td></tr>`;
     const fcode = src => `<span class="fx-code">${fxPills(src, false)}</span>`;
     const rowTable = gi => `<table class="gtable"><tr><th>Price</th><th>Formula</th><th>Examples</th></tr>${FROWS.filter(r => r.g === gi).map(r => {
       const X = FORMULA.rows[r.id] || {};
       const fs = ["base", "dumb", "smart"].filter(t => t === "base" || String(X[t] || "").trim()).map(t => `<div data-row="${r.id}" data-tier="${t}">${t === "base" ? "" : `<span class="hint">${t}:</span> `}${fcode(X[t])}<details class="ffgrid"><summary>Grid</summary><div class="ffgrid-body"></div></details></div>`).join("");
-      return `<tr><td><b>${esc(r.label)}</b><div class="hint">${esc(r.what)}</div>${note(r) ? `<div class="dnote">${note(r)}</div>` : ""}</td><td>${fs}</td><td class="hint">${fxHint(X.base, r.id, FORMULA.rows)}</td></tr>`;
+      return `<tr><td><b>${esc(r.label)}</b><div class="hint">${esc(r.what)}</div>${note(r) ? dnoteHtml(note(r)) : ""}</td><td>${fs}</td><td class="hint">${fxHint(X.base, r.id, FORMULA.rows)}</td></tr>`;
     }).join("")}</table>`;
     const lex = [
       ["Blaster, Plasma ___", "Plasma damage"], ["Laser, Beam, Flame", "Thermal damage"], ["Ion, Arc, Tesla, Shock, Storm", "Electric damage"],
