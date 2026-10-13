@@ -1,7 +1,7 @@
 {
  "jango": "balance-sheet",
  "format": 1,
- "exported": "2026-10-08T18:34:14.504Z",
+ "exported": "2026-10-13T02:43:54.149Z",
  "vocab": 7,
  "sheet": {
   "id": "ross",
@@ -1099,9 +1099,12 @@
    ],
    "bpAdj": null,
    "bucket": "exterior",
+   "by": "",
    "charges": null,
    "chargesEmpty": false,
    "check": "",
+   "edited": false,
+   "editedBy": "",
    "effect": "After Attack: Discharge 1.",
    "effectNote": "",
    "effects": [
@@ -1114,7 +1117,8 @@
      "trigger": "after_attack"
     }
    ],
-   "flavor": "Close your yipper-yapper and fire your zipper-zapper!",
+   "flavor": "Close your yipper-yapper and fire the zipper-zapper!",
+   "from": "smv61njrl",
    "gearSlots": null,
    "health": 15,
    "kind": "",
@@ -1380,9 +1384,12 @@
    ],
    "bpAdj": null,
    "bucket": "exterior",
+   "by": "",
    "charges": null,
    "chargesEmpty": false,
    "check": "",
+   "edited": false,
+   "editedBy": "",
    "effect": "Self-Heal 1.",
    "effectNote": "",
    "effects": [
@@ -1395,7 +1402,8 @@
      "trigger": ""
     }
    ],
-   "flavor": "No idea what it is. Just keep it fed and point it's rear end away from you.",
+   "flavor": "No idea what it is. Just keep it fed and point it's rear end away from the ship.",
+   "from": "smv61njrl",
    "gearSlots": null,
    "health": 15,
    "kind": "",
@@ -1418,7 +1426,8 @@
    "src": "user",
    "tags": [
     "Weapon",
-    "Biological"
+    "Biological",
+    "Xeno"
    ],
    "tech": "low",
    "timing": "",
@@ -1438,9 +1447,12 @@
    ],
    "bpAdj": 24,
    "bucket": "exterior",
+   "by": "",
    "charges": null,
    "chargesEmpty": false,
    "check": "",
+   "edited": false,
+   "editedBy": "",
    "effect": "Fight Start: Activate this card.",
    "effectNote": "",
    "effects": [
@@ -1451,7 +1463,8 @@
      "trigger": "fight_start"
     }
    ],
-   "flavor": "How people on the frontier greet each other.",
+   "flavor": "How people on the frontier say, \"Hello\".",
+   "from": "smv61njrl",
    "gearSlots": null,
    "health": 8,
    "kind": "",
@@ -1493,9 +1506,12 @@
    ],
    "bpAdj": null,
    "bucket": "exterior",
+   "by": "",
    "charges": null,
    "chargesEmpty": false,
    "check": "",
+   "edited": false,
+   "editedBy": "",
    "effect": "Your ship has +8 speed.",
    "effectNote": "",
    "effects": [
@@ -1508,6 +1524,7 @@
     }
    ],
    "flavor": "There's no time to fight, we've got packages to deliver!",
+   "from": "smv61njrl",
    "gearSlots": null,
    "health": 13,
    "kind": "",
@@ -1533,7 +1550,7 @@
    ],
    "tech": "low",
    "timing": "",
-   "value": 3
+   "value": 2
   },
   "UMUZSYPOM": {
    "ammo": null,
@@ -1707,7 +1724,1434 @@
    "tech": "mid",
    "timing": "",
    "value": null
+  },
+  "UMV11SF51": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On Activate: Activate the weapon behind this.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "activate",
+     "id": "fxw5ua",
+     "target": "behind_weapon",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "A cozy home for a bloodthirsty weapon.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Gunport",
+   "notes": "Shouldn't placement in front of Armor give this a discount so it can afford a bit more health?",
+   "order": 21.5,
+   "parked": false,
+   "pick": true,
+   "place": "Front",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV12NE8W": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 12,
+   "bucket": "exterior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On Activate: Board the crew below this.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "board",
+     "id": "fvrl69",
+     "target": "crew_below",
+     "trigger": "on_activate"
+    }
+   ],
+   "flavor": "Smash 'em with the pod, then get inside and wreak havoc!",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 15,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Pod Launcher",
+   "notes": "Need to add boarding auto pricing.",
+   "order": 22.5,
+   "parked": false,
+   "pick": true,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Utility",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV152E9V": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Thermal"
+    },
+    {
+     "amt": 1,
+     "type": "Radiation"
+    }
+   ],
+   "bpAdj": 48,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On Kill: Gain +1 radiation. Gain +1 thermal.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "id": "f1mzws",
+     "source": "value",
+     "stat": "Radiation",
+     "target": "self",
+     "trigger": "on_kill"
+    },
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "id": "fwqsxu",
+     "source": "value",
+     "stat": "Thermal",
+     "target": "self",
+     "trigger": "on_kill"
+    }
+   ],
+   "flavor": "Some things you wish you could unsee.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 9,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Experiment X01",
+   "notes": "Need to add the capability to have a card have more than two attack damage types.\nAlso need yo price On Kill effects.",
+   "order": 23.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological",
+    "Xeno"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "UMV15R9C7": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Taunt. Resist 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "id": "fubx2m",
+     "keyword": "Taunt",
+     "target": "self",
+     "trigger": ""
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "id": "fkj7me",
+     "keyword": "Resist",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Squawks so much you're happy to blow it up first.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Decoy Beacon",
+   "notes": "",
+   "order": 24.5,
+   "parked": false,
+   "pick": true,
+   "place": "Front",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Exterior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Defense"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "UMV18YHID": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 8,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On adjacent ally death: Gain +2 kinetic.\nOn adjacent ally boards: board.",
+   "effectNote": "On adjacent ally boards: board.",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 2,
+     "id": "fhd148",
+     "source": "value",
+     "stat": "Kinetic",
+     "target": "self",
+     "trigger": "on_adjacent_ally_death"
+    }
+   ],
+   "flavor": "Will follow you anywhere.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Loyal Dog",
+   "notes": "Need: on ally board (lateral, front, back, row, board), and on ally death (lateral, front, back, etc).",
+   "order": 25.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Pet",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV199206": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 8,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Guard.\nOn adjacent ally boards: board.",
+   "effectNote": "On adjacent ally boards: board.",
+   "effects": [
+    {
+     "action": "keyword",
+     "id": "fi13pq",
+     "keyword": "Guard",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Will keep you safe no matter where you go.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 18,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Guard Dog",
+   "notes": "",
+   "order": 26.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Pet",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV1ES9QO": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 24,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "After Attack: Gain 1 credit.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_credits",
+     "amount": 1,
+     "id": "fflk6x",
+     "source": "value",
+     "target": "self",
+     "trigger": "after_attack"
+    }
+   ],
+   "flavor": "Watch your head and watch your pockets.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 14,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Core World Pickpocket",
+   "notes": "Need credit gain pricing.",
+   "order": 27.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Economy",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV1IEOIL": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Guard.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "id": "frfv8v",
+     "keyword": "Guard",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Keeps the riffraff out.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 16,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Security Guard",
+   "notes": "",
+   "order": 28.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV1INV0C": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Radiation"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Guard. Block 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "id": "frfv8v",
+     "keyword": "Guard",
+     "target": "self",
+     "trigger": ""
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "id": "fhsrr3",
+     "keyword": "Block",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Deep space labs insist on high security.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 15,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Laboratory Guard",
+   "notes": "",
+   "order": 29,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "research"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "high",
+   "timing": "",
+   "value": null
+  },
+  "UMV1IV6BY": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Guard. Resist 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "id": "frfv8v",
+     "keyword": "Guard",
+     "target": "self",
+     "trigger": ""
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "id": "ffyy1p",
+     "keyword": "Resist",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Vaults have a way of needing guards.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Vault Guard",
+   "notes": "",
+   "order": 29,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Support",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV1J57VF": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "",
+   "effectNote": "",
+   "effects": [],
+   "flavor": "Lives by the gun, dies by the gun.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 2,
+   "name": "Gunslinger",
+   "notes": "",
+   "order": 29.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV1X916I": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 5,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On winning a fight: Gain +1 attack permanently.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "duration": "permanent",
+     "id": "ft4gbc",
+     "source": "value",
+     "stat": "attack",
+     "target": "self",
+     "trigger": "on_win"
+    }
+   ],
+   "flavor": "They've seen many battles, and each has made them deadlier.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 8,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Veteran Sniper",
+   "notes": "",
+   "order": 30,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV1X1AH7": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "exterior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Repair 2. Self-Repair 1.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "id": "f8ap4c",
+     "keyword": "Repair",
+     "target": "self",
+     "trigger": ""
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "id": "foa67f",
+     "keyword": "Self-Repair",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Will happily fix your engines, your toaster, and itself.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 18,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Astromech",
+   "notes": "",
+   "order": 30.5,
+   "parked": false,
+   "pick": true,
+   "place": "Either",
+   "public": true,
+   "recipes": [],
+   "role": "Utility",
+   "row": "Either",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Weapon",
+    "Droid",
+    "Crew",
+    "Mechanical"
+   ],
+   "tech": "mid",
+   "timing": "",
+   "value": null
+  },
+  "UMV2E872A": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 1,
+     "type": "Thermal"
+    }
+   ],
+   "bpAdj": 40,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Heal 2. Self-Heal 1.\nOn Fight Start: Create 1 random food.\nOn Fight Survived: Gain +1 health permanently.",
+   "effectNote": "On Fight Start: Create 1 random food.\nOn Fight Survived: Gain +1 health permanently.",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "id": "f03cym",
+     "keyword": "Heal",
+     "target": "self",
+     "trigger": ""
+    },
+    {
+     "action": "keyword",
+     "amount": 1,
+     "id": "f6ghsp",
+     "keyword": "Self-Heal",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "A messy cook is a good cook.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 9,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Messy Cook",
+   "notes": "Need: on fight survived and a create card effect.",
+   "order": 31.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV2EMM19": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 28,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "When fed: Gain +1 health permanently.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_health",
+     "amount": 1,
+     "duration": "permanent",
+     "id": "ft3j5g",
+     "source": "value",
+     "target": "self",
+     "trigger": "when_fed"
+    }
+   ],
+   "flavor": "I swear, this thing's stomach is a black hole.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 13,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Hungry Hound",
+   "notes": "Need: Quest - Feed X food to gain Y HP, feed X*2 food to gain Z attack, feed X*4 food yo gain qx Mult.",
+   "order": 32.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Quest",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological",
+    "Pet"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV2EUOBE": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 2,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 22,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On boarding: Splash 2 kinetic. Gain +1 attack.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "amount": 2,
+     "id": "fdf7js",
+     "keyword": "Splash",
+     "target": "self",
+     "trigger": "on_boarding",
+     "type": "Kinetic"
+    },
+    {
+     "action": "gain_attack",
+     "amount": 1,
+     "id": "ft2fbt",
+     "source": "value",
+     "stat": "attack",
+     "target": "self",
+     "trigger": "on_boarding"
+    }
+   ],
+   "flavor": "A little too eager to board.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 14,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Zealous Breacher",
+   "notes": "Need On Boarding gain Splash X & gain Y attack pricing. Also need a way for a card to trigger itself to attack, when this card boards, it attacks.",
+   "order": 33.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "neutral"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV2N80XT": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 4,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": 16,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "On Attacked: Gain 3 credits (once per fight).",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "gain_credits",
+     "amount": 3,
+     "id": "fqplh7",
+     "limit": "1/fight",
+     "source": "value",
+     "target": "self",
+     "trigger": "on_attacked"
+    }
+   ],
+   "flavor": "Take it easy, I'll tell you where there's a rich field.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 12,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Shifty Prospector",
+   "notes": "Todo: need on attacked gain credits trigger BP price",
+   "order": 34.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Economy",
+   "row": "Interior",
+   "sources": [
+    "frontier"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew",
+    "Biological"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
+  },
+  "UMV3TDDLH": {
+   "ammo": null,
+   "ammoEmpty": false,
+   "approved": true,
+   "atkVar": false,
+   "attach": "",
+   "attack": [
+    {
+     "amt": 5,
+     "type": "Kinetic"
+    }
+   ],
+   "bpAdj": null,
+   "bucket": "interior",
+   "by": "",
+   "charges": null,
+   "chargesEmpty": false,
+   "check": "",
+   "edited": false,
+   "editedBy": "",
+   "effect": "Flank.",
+   "effectNote": "",
+   "effects": [
+    {
+     "action": "keyword",
+     "id": "fhpee0",
+     "keyword": "Flank",
+     "target": "self",
+     "trigger": ""
+    }
+   ],
+   "flavor": "Watch your back around this one.",
+   "from": "smv61njrl",
+   "gearSlots": null,
+   "health": 6,
+   "kind": "",
+   "minMark": 1,
+   "modSlots": null,
+   "mult": 1,
+   "name": "Back Alley Assassin",
+   "notes": "",
+   "order": 35.5,
+   "parked": false,
+   "pick": true,
+   "place": "",
+   "public": true,
+   "recipes": [],
+   "role": "Filler",
+   "row": "Interior",
+   "sources": [
+    "trade"
+   ],
+   "src": "user",
+   "tags": [
+    "Crew"
+   ],
+   "tech": "low",
+   "timing": "",
+   "value": null
   }
  },
- "boards": []
+ "boards": [
+  {
+   "id": "bmv61nl090",
+   "name": "Quick Camp 1",
+   "order": 1791668945972,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "UMV15R9C7",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "UMUZRQA86",
+      "mark": 1
+     },
+     {
+      "id": "UMUZTH9XG",
+      "mark": 1
+     },
+     {
+      "id": "UMUZPGILU",
+      "mark": 1
+     },
+     {
+      "id": "UMUZ71A5Y",
+      "mark": 1
+     },
+     {
+      "id": "UMUZ5SBJU",
+      "mark": 1
+     }
+    ],
+    "int": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   }
+  },
+  {
+   "id": "bmv61nl4g1",
+   "name": "Quick Camp 2",
+   "order": 1791669085623,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "UMV11SF51",
+      "mark": 1
+     },
+     {
+      "id": "UMUZS506V",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "UMUZSRGNX",
+      "mark": 1
+     },
+     {
+      "id": "UMUZR3SM7",
+      "mark": 1
+     },
+     {
+      "id": "UMUZRMJNB",
+      "mark": 1
+     },
+     {
+      "id": "UMUZSYPOM",
+      "mark": 1
+     }
+    ],
+    "int": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   }
+  },
+  {
+   "id": "bmv62a5wv",
+   "name": "Example A",
+   "order": 1791858493039,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "UMUZR3SM7",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "UMUZQDKKF",
+      "mark": 1
+     },
+     {
+      "id": "UMUZRQA86",
+      "mark": 1
+     },
+     {
+      "id": "UMUZQO9G3",
+      "mark": 1
+     },
+     {
+      "id": "UMUZ74N38",
+      "mark": 1
+     },
+     {
+      "id": "UMUZSYPOM",
+      "mark": 1
+     }
+    ],
+    "int": [
+     {
+      "id": "UMV2N80XT",
+      "mark": 1
+     },
+     {
+      "id": "UMV2EUOBE",
+      "mark": 1
+     },
+     {
+      "id": "UMV1X1AH7",
+      "mark": 1
+     },
+     {
+      "id": "UMV18YHID",
+      "mark": 1
+     },
+     {
+      "id": "UMV2E872A",
+      "mark": 1
+     },
+     {
+      "id": "UMV1INV0C",
+      "mark": 1
+     },
+     {
+      "id": "UMV1X916I",
+      "mark": 1
+     },
+     {
+      "id": "UMV1J57VF",
+      "mark": 1
+     }
+    ]
+   }
+  },
+  {
+   "id": "bmv62inv2",
+   "name": "Example B",
+   "order": 1791858889550,
+   "board": {
+    "v": 2,
+    "hull": 20,
+    "baseSpeed": 68,
+    "cargo": 6,
+    "ext": [
+     {
+      "id": "D06",
+      "mark": 1
+     },
+     {
+      "id": "UMUZTH9XG",
+      "mark": 1
+     },
+     {
+      "id": "UMUZ6U2PW",
+      "mark": 1
+     },
+     {
+      "id": "D07",
+      "mark": 1
+     },
+     {
+      "id": "UMUZRCDB5",
+      "mark": 1
+     },
+     {
+      "id": "UMUZSRGNX",
+      "mark": 1
+     },
+     {
+      "id": "UMUZ74N38",
+      "mark": 1
+     },
+     {
+      "id": "UMUZ5SBJU",
+      "mark": 1
+     }
+    ],
+    "int": [
+     {
+      "id": "UMV2N80XT",
+      "mark": 1
+     },
+     {
+      "id": "UMV1INV0C",
+      "mark": 1
+     },
+     {
+      "id": "UMV1IV6BY",
+      "mark": 1
+     },
+     {
+      "id": "UMV2EMM19",
+      "mark": 1
+     },
+     {
+      "id": "UMV2E872A",
+      "mark": 1
+     },
+     {
+      "id": "UMV3TDDLH",
+      "mark": 1
+     },
+     {
+      "id": "UMV1IEOIL",
+      "mark": 1
+     },
+     {
+      "id": "UMV152E9V",
+      "mark": 1
+     }
+    ]
+   }
+  }
+ ]
 }
