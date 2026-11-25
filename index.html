@@ -171,6 +171,8 @@ details.panel[open] > summary::after { content: "–"; }
 .field label.mini { display: inline-flex; align-items: center; gap: 5px; font-family: var(--body); font-size: 12.5px; letter-spacing: 0; text-transform: none; color: var(--muted); font-weight: 400; }
 .price { margin-left: auto; color: var(--muted); font-size: 12.5px; }
 .c-effect { font-size: 14px; }
+.fx-li { position: relative; padding-left: 12px; }
+.fx-li::before { content: "\2022"; position: absolute; left: 1px; opacity: .55; }
 .c-effect .timing { font-family: var(--display); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin-right: 6px; }
 .c-effect .none { color: var(--faint); }
 .c-tags { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -932,7 +934,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
       case "recharge": body = `${subj("recharge")} ${n}${per}`; break;
       case "keyword": {
         const k = KW[e.keyword] || {};
-        const kw = `${e.keyword || "?"}${k.amount ? " " + n : ""}${k.damage_type ? ` (${e.type || "?"})` : k.damage_type_optional && e.type ? " " + e.type.toLowerCase() : ""}`;
+        const kw = `${e.keyword || "?"}${k.amount ? " " + n : ""}${k.damage_type ? ` to ${e.type || "?"}` : k.damage_type_optional && e.type ? " " + e.type.toLowerCase() : ""}`;
         body = self ? kw : `${subj("have")} ${kw}`; break;
       }
       case "double_damage": body = `${subj("deal")} double damage${vs ? " to " + vs : ""}`; break;
@@ -965,16 +967,26 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     return pre ? `${pre}${bare ? body : low1(body)}.` : `${body}.`;
   }
   const structured = c => Array.isArray(c.effects);
-  // Consecutive effects with the same trigger share one line and one label
+  // Effects that share a trigger are one sentence joined with "and" ("Reload 1 and gain +2 kinetic."), unless one of
+  // them has a cost, a condition or a place of its own, which would leave it unclear what the "and" covers. Effects
+  // with no trigger are unrelated, so each gets a line of its own. A card with several lines shows them as bullets.
+  const fxPlain = e => !e.cost && !e.condition && !((WHERE[e.where || ""] || {}).key);
   function effectLines(c) {
     const out = [];
-    (c.effects || []).forEach(e => { const k = e.trigger || "", last = out[out.length - 1], t = effectText(e, c); if (last && last.trigger === k) last.text += " " + t; else out.push({ trigger: k, text: t }); });
-    return out;
+    (c.effects || []).forEach(e => {
+      const k = e.trigger || "", last = out[out.length - 1], t = effectText(e, c), bare = e.action === "keyword" && (e.target || "self") === "self";
+      if (k && last && last.trigger === k && last.plain && fxPlain(e)) last.parts.push(bare ? t : low1(t));
+      else out.push({ trigger: k, parts: [t], plain: fxPlain(e) });
+    });
+    return out.map(l => {
+      const p = l.parts.map((x, i) => i < l.parts.length - 1 ? x.replace(/\.$/, "") : x);
+      return { trigger: l.trigger, text: p.length < 3 ? p.join(" and ") : p.slice(0, -1).join(", ") + " and " + p[p.length - 1] };
+    });
   }
   const trigLabel = k => (TRIG[k] || { label: k }).label;
   // Damage type words in card text ("Gain +2 kinetic.") in their type's color; html is already escaped
   const typeColor = html => String(html).replace(/\b(kinetic|thermal|electric|plasma|radiation)\b/gi, w => `<span class="t-${cap1(w.toLowerCase())}">${w}</span>`);
-  const fxLinesHtml = c => effectLines(c).map(l => `<div>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${typeColor(esc(l.text))}</div>`).join("");
+  const fxLinesHtml = c => effectLines(c).map((l, i, all) => `<div${all.length > 1 ? ' class="fx-li"' : ""}>${l.trigger ? `<span class="timing">${esc(trigLabel(l.trigger))}</span>` : ""}${typeColor(esc(l.text))}</div>`).join("");
   // Plain-text copy of the card text, stored as `effect` for search, the CSV, and older views
   const effectCache = c => [...effectLines(c).map(l => (l.trigger ? trigLabel(l.trigger) + ": " : "") + l.text), ...(c.effectNote ? [c.effectNote] : [])].join("\n");
   // Old free-text cards: keyword sentences become effects; everything else waits in the free-text field
@@ -1069,11 +1081,11 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     { id: "TypePlasma", g: 0, label: "Plasma", amt: "X", what: "Each hit of a card that deals Plasma damage", base: "0" },
     { id: "TypeRadiation", g: 0, label: "Radiation", amt: "X", what: "Each hit of a card that deals Radiation damage", base: "-4*X" },
     { id: "FreeRestore", g: 1, label: "Free Restore", amt: "M", what: "Every Shields card: its free Restore, equal to its mark. Restore 1 is 24; each point above it 8", base: "8*M+16" },
-    { id: "VulnKinetic", g: 1, label: "Vulnerable (Kinetic)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
-    { id: "VulnThermal", g: 1, label: "Vulnerable (Thermal)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
-    { id: "VulnElectric", g: 1, label: "Vulnerable (Electric)", from: 0, what: "A weakness; less on a card with charge pips, which the charges help", base: "-16+12*min(Pc,1)" },
-    { id: "VulnPlasma", g: 1, label: "Vulnerable (Plasma)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
-    { id: "VulnRadiation", g: 1, label: "Vulnerable (Radiation)", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnKinetic", g: 1, label: "Vulnerable to Kinetic", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnThermal", g: 1, label: "Vulnerable to Thermal", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnElectric", g: 1, label: "Vulnerable to Electric", from: 0, what: "A weakness; less on a card with charge pips, which the charges help", base: "-16+12*min(Pc,1)" },
+    { id: "VulnPlasma", g: 1, label: "Vulnerable to Plasma", from: 0, what: "A weakness: it gives BP back", base: "-16" },
+    { id: "VulnRadiation", g: 1, label: "Vulnerable to Radiation", from: 0, what: "A weakness: it gives BP back", base: "-16" },
     { id: "Resist", g: 2, label: "Resist N", tiers: true, kind: "standing", what: "Each instance of damage taken is N lower", base: "8*N*(N+2)" },
     { id: "Block", g: 2, label: "Block N", tiers: true, kind: "standing", what: "Stops the next N attacks", base: "6*N*(N+3)-8" },
     { id: "Reflect", g: 2, label: "Reflect N", tiers: true, kind: "standing", what: "Each attack that hits it takes N back", base: "2*N*(N+5)" },
@@ -3052,8 +3064,8 @@ textarea.dnote-f::placeholder { color: var(--faint); }
   // shields, armor, hull, atkExt, restore, vulnK, vulnOther, guess.
   const GUIDE_SEED = {
     notes: {
-      armor: "**Armor** at Mk I is {armor} health with **Vulnerable (Plasma)**, which gives back {vulnOther} BP.",
-      shields: "**Shields** at Mk I is {shields} shield points with **Vulnerable (Kinetic)**, which gives back {vulnK} BP, and its free Restore 1, worth {restore}.",
+      armor: "**Armor** at Mk I is {armor} health with **Vulnerable to Plasma**, which gives back {vulnOther} BP.",
+      shields: "**Shields** at Mk I is {shields} shield points with **Vulnerable to Kinetic**, which gives back {vulnK} BP, and its free Restore 1, worth {restore}.",
       Attack: "The first hit. 6 attack and 12 health (2:1) is the only shape that kept mirror fights in or near 6 to 8 rounds in every sim configuration",
       Health: "Flat: no placement discount",
       Mult: "Each extra attack copies the attack at 8 a point, plus a surcharge (16, 40, 72, 112 for mult 2 to 5) for buff multiplication, overkill and beating Restore. Mk I Tri Gun: 1 attack, mult 3, 8 health",
@@ -3119,7 +3131,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
     Heal: "When the card activates, it passes N health to its neighbors, each point to the first that is damaged: below, then behind, then in front (from an interior card above, behind, in front). Heal reaches Biological cards, Repair the rest.",
     Regen: "Shields only: a Shields card that is up gains N shield points each activation, after any Restore.",
     Restore: "A down Shields card comes back with N shield points when it activates after a round with no damage. Every Shields card has Restore equal to its mark for free." + (FORMULA.ship.emp !== false ? " On this sheet Restore stops once the Maelstrom starts." : ""),
-    Vulnerable: "Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable (Kinetic), every Armor card Vulnerable (Plasma); any card can carry one as a weakness.",
+    Vulnerable: "Takes 1 more damage from each attack of that type. Every Shields card prints Vulnerable to Kinetic, every Armor card Vulnerable to Plasma; any card can carry one as a weakness.",
     Taunt: "Attacks against its row target this card first, wherever it sits.",
     Guard: "An attack aimed at the card directly in front of or behind it, in the same row or boarder column, hits this card instead.",
     Flank: "Its attacks target the backmost enemy card in its layer. Taunt still draws them first.",
@@ -3213,7 +3225,7 @@ textarea.dnote-f::placeholder { color: var(--faint); }
         ["shields", "Shields and Armor", `
       <ul>
         <li>${n("armor")}</li>
-        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free)${FORMULA.ship.emp !== false ? ", until the Maelstrom starts" : ""}. <b>Regen</b> tops up a Shields card that is up. Every charge a Shields card is given (Recharge, Discharge, an Electric hit) is a shield point, even while it is down, so a down Shields card can be charged back up. Every Shields card has <b>Vulnerable (Kinetic)</b>.</li>
+        <li><b>Shields</b> have <b>shield points</b>, not health, and are <b>restored</b>, never repaired or healed. A Shields card is never destroyed: at 0 it is <b>down</b>, can't be targeted, and still activates. When a down Shields card activates after a round with no damage, it comes back with its Restore (1 per mark, free)${FORMULA.ship.emp !== false ? ", until the Maelstrom starts" : ""}. <b>Regen</b> tops up a Shields card that is up. Every charge a Shields card is given (Recharge, Discharge, an Electric hit) is a shield point, even while it is down, so a down Shields card can be charged back up. Every Shields card has <b>Vulnerable to Kinetic</b>.</li>
         <li>${n("shields")}</li>
       </ul>
           <h3>${esc(FGROUPS[1])}</h3>${sn(FGROUPS[1])}${rowTable(1)}`],
